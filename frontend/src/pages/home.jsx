@@ -19,16 +19,19 @@ function Home() {
                     <EventCard
                         title="Tech Fest"
                         description="Explore technology and innovation."
+                        date="15 October 2026"
                     />
 
                     <EventCard
                         title="Cultural Fest"
                         description="Celebrate talent, culture, and creativity."
+                        date="20 October 2026"
                     />
 
                     <EventCard
                         title="Sports Meet"
                         description="Participate in exciting sports activities."
+                        date="25 October 2026"
                     />
                 </div>
             </section>
