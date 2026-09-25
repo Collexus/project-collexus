@@ -1,9 +1,13 @@
-function EventCard({ title, description, date }) {
+function EventCard({ title, description, date, category, location }) {
     return (
-        <div>
+        <div className="event-card">
             <h3>{title}</h3>
-            <p>{description}</p>
+            <p>{category}</p>
             <p>{date}</p>
+            <p>{location}</p>
+            <p>{description}</p>
+
+            <button>View Details</button>
         </div>
     );
 }
