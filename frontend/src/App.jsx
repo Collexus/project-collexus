@@ -1,13 +1,12 @@
 import "./App.css";
 import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <>
       <Navbar />
-
-      <h1>Welcome to Collaxus</h1>
-      <p>College Events Platform</p>
+      <Home />
     </>
   );
 }
