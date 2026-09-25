@@ -1,3 +1,4 @@
+import EventCard from "../components/EventCard";
 function Home() {
     return (
         <main>
@@ -15,20 +16,20 @@ function Home() {
                 <h2>Featured Events</h2>
 
                 <div>
-                    <div>
-                        <h3>Tech Fest</h3>
-                        <p>Explore technology and innovation.</p>
-                    </div>
+                    <EventCard
+                        title="Tech Fest"
+                        description="Explore technology and innovation."
+                    />
 
-                    <div>
-                        <h3>Cultural Fest</h3>
-                        <p>Celebrate talent, culture, and creativity.</p>
-                    </div>
+                    <EventCard
+                        title="Cultural Fest"
+                        description="Celebrate talent, culture, and creativity."
+                    />
 
-                    <div>
-                        <h3>Sports Meet</h3>
-                        <p>Participate in exciting sports activities.</p>
-                    </div>
+                    <EventCard
+                        title="Sports Meet"
+                        description="Participate in exciting sports activities."
+                    />
                 </div>
             </section>
         </main>
