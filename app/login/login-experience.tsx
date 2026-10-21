@@ -14,6 +14,8 @@ import {
   GraduationCap,
   KeyRound,
   Mail,
+  Hash,
+  Phone,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -167,6 +169,7 @@ export function LoginExperience() {
         }
         const name = String(formData.get("name") ?? "").trim();
         const campusId = String(formData.get("campusId") ?? "").trim();
+        const phone = String(formData.get("phone") ?? "").trim();
         const { data, error: signupError } = await supabase.auth.signUp({
           email,
           password,
@@ -176,6 +179,7 @@ export function LoginExperience() {
               full_name: name,
               account_type: accountType,
               campus_id: campusId || null,
+              phone_number: phone || null,
             },
           },
         });
@@ -291,6 +295,8 @@ export function LoginExperience() {
                 {mode === "signup" && <label className={styles.field}><span>Full name</span><div className={styles.inputWrap}><UsersRound size={16} aria-hidden="true" /><input autoComplete="name" maxLength={80} name="name" placeholder="Your name" required /></div></label>}
                 {mode === "signup" && accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required /></div></label>}
                 {mode !== "recovery" && <label className={styles.field}><span>{accountType === "guest" ? "Email address" : "College email"}</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder={accountType === "guest" ? "you@example.com" : "you@college.edu"} required type="email" /></div></label>}
+                {mode === "signup" && <label className={styles.field}><span>Mobile number</span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" type="tel" /></div></label>}
+                {mode === "signup" && <label className={styles.field}><span>SMS one-time code</span><div className={styles.inputWrap}><Hash size={16} aria-hidden="true" /><input aria-describedby="phone-otp-note" autoComplete="one-time-code" inputMode="numeric" maxLength={6} name="phoneOtp" pattern="[0-9]{6}" placeholder="Enter the 6-digit code" /></div><small className={styles.fieldHelp} id="phone-otp-note">Your number is saved as unverified contact info. SMS verification is not active yet.</small></label>}
                 <label className={styles.field}><span>{mode === "recovery" ? "New password" : "Password"} {(mode === "signup" || mode === "recovery") && <small>at least 10 characters</small>}</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete={mode === "signin" ? "current-password" : "new-password"} minLength={mode === "signin" ? undefined : 10} maxLength={128} name="password" placeholder={mode === "signin" ? "Enter your password" : "Create a strong password"} required type={showPassword ? "text" : "password"} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>
                 {(mode === "signup" || mode === "recovery") && <label className={styles.field}><span>Confirm password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="new-password" minLength={10} maxLength={128} name="passwordAgain" placeholder="Enter it again" required type={showPassword ? "text" : "password"} /></div></label>}
                 {mode === "signin" && <div className={styles.formOptions}><span className={styles.sessionHint}>Secure session</span><button className={styles.forgotButton} disabled={!configured || busy} name="resetPassword" onClick={(event) => { const form = event.currentTarget.form; if (!form) return; const marker = form.querySelector<HTMLInputElement>('input[name="resetPassword"]'); if (marker) marker.value = "true"; form.requestSubmit(); if (marker) marker.value = "false"; }} type="button">Forgot password?</button><input name="resetPassword" type="hidden" value="false" /></div>}

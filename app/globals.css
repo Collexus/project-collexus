@@ -4475,6 +4475,13 @@ html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-them
 #campusMenuDrawer .menu-header-brand .collexus-word{margin-left:0!important;line-height:1!important}
 #campusMenuDrawer .menu-header-brand .menu-brand-subtitle{margin:0!important;line-height:1.15!important}
 
+/* Keep the drawer lockup readable when its title needs more room than the panel. */
+#campusMenuDrawer .menu-header-brand{flex:1 1 auto!important;min-width:0!important;gap:10px!important}
+#campusMenuDrawer .menu-header-brand .menu-brand-copy{flex:1 1 auto;min-width:0}
+#campusMenuDrawer .menu-header-brand .menu-brand-title{flex-wrap:wrap}
+#campusMenuDrawer .menu-header-brand .collexus-word{font-size:14px!important;letter-spacing:.01em!important}
+#campusMenuDrawer .menu-header-brand .menu-brand-subtitle{max-width:100%;white-space:normal!important;overflow-wrap:anywhere;font-size:9px;line-height:1.2!important}
+
 /* The pass selector uses the same cool slate family throughout, with a subtle Outer state. */
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme #passModal[data-pass-type="outer"] .pass-type-tab.active{
   color:#3f5964!important;background:#e6edef!important;border-color:#b8cbd0!important;
