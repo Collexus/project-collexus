@@ -73,11 +73,13 @@
 .fieldHelp { display: block; margin-top: -2px; color: var(--muted); font-size: 10px; font-weight: 500; line-height: 1.4; }
 .inputWrap { box-sizing: border-box; width: 100%; min-width: 0; height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 13px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: var(--soft); transition: border-color .16s ease, box-shadow .16s ease, background .16s ease; }
 .inputWrap:hover { border-color: color-mix(in srgb, var(--teal) 38%, var(--line)); }
-.inputWrap:focus-within { border-color: var(--teal); color: var(--teal-dark); background: var(--card); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 32%, transparent); }
+.inputWrap:focus-within { border-color: var(--teal); color: var(--teal-dark); background: var(--card); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 32%, transparent); outline: 2px solid color-mix(in srgb, var(--teal) 38%, transparent); outline-offset: 2px; }
 .inputWrap > svg { flex: 0 0 auto; color: var(--teal); }
 .inputWrap input { box-sizing: border-box; flex: 1 1 0; width: 0; min-width: 0; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; outline: none; color: var(--ink); background: transparent; font: inherit; font-size: 14px; font-weight: 450; line-height: 1.4; }
-.inputWrap input:focus-visible { outline: 0 !important; box-shadow: none !important; }
-:global(body.warm-editorial-theme.vivid-nightfall-theme) .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; box-shadow: none !important; }
+.inputWrap input:-webkit-autofill, .inputWrap input:-webkit-autofill:hover, .inputWrap input:-webkit-autofill:focus, .inputWrap input:-webkit-autofill:active, .inputWrap input:autofill { -webkit-text-fill-color: var(--ink) !important; -webkit-box-shadow: 0 0 0 1000px var(--soft) inset !important; box-shadow: 0 0 0 1000px var(--soft) inset !important; caret-color: var(--ink); }
+.inputWrap:focus-within input:-webkit-autofill, .inputWrap:focus-within input:autofill { -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important; box-shadow: 0 0 0 1000px var(--card) inset !important; }
+.inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
+:global(body.warm-editorial-theme.vivid-nightfall-theme) .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
 .inputWrap input::placeholder { color: #91a4af; }
 .passwordToggle { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; cursor: pointer; transition: color .16s ease, background .16s ease; }
 .passwordToggle:hover { color: var(--teal); background: var(--teal-soft); }
