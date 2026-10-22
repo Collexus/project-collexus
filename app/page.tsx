@@ -32,7 +32,7 @@ export default function HomePage() {
     <div className="header-search flex-1 max-w-[620px] mx-1 sm:mx-3 flex items-center relative">
       <Icon name="search" className="absolute left-3.5 text-secondary text-[19px] pointer-events-none" />
       <input className="w-full pl-10 pr-16 py-2.5 rounded-xl bg-white text-on-surface placeholder:text-on-surface-variant/70 border border-[#f0d4d8] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose focus:ring-4 focus:ring-[#edbfc6]/20 shadow-[0_2px_8px_rgba(38,12,26,0.04)] transition-all" id="globalSearch" autoComplete="off" placeholder="Search event titles or categories..." type="text"/>
-      <div className="search-shortcut absolute right-2 flex items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><kbd id="searchShortcutModifier">Ctrl</kbd><kbd>K</kbd></div>
+      <div className="search-shortcut absolute right-2 flex items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><Icon name="keyboard" className="shortcut-keyboard"/><kbd>K</kbd></div>
       <div id="searchSuggestions" className="search-suggestions hidden">
         <div className="search-suggestion-title">What are you looking for?</div>
         <button type="button" data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span><small>Build & compete</small></button>
@@ -49,6 +49,7 @@ export default function HomePage() {
       <div className="shrink-0 relative">
         <button id="calendarButton" className="calendar-btn" type="button" aria-label="Open calendar"><Icon name="calendar_month" /><span className="hidden sm:inline">Calendar</span></button>
       </div>
+      <a id="profileButton" href={`${publicBasePath}/profile/`} className="profile-icon-btn" aria-label="Open your profile" title="Your profile"><Icon name="person" /></a>
       <div className="shrink-0 relative">
         <a id="loginButton" href={`${publicBasePath}/login/`} aria-label="Login or sign up" className="login-btn inline-flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg uppercase tracking-wider shadow-[0_6px_18px_rgba(38,12,26,.16)]">
           <span className="login-btn-label">Login / Sign Up</span>
@@ -56,30 +57,7 @@ export default function HomePage() {
       </div>
     </div>
   </div>
-</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" />Hackathons</button><button data-search="Internships"><Icon name="work" />Internships</button><button data-search="Workshops"><Icon name="school" />Workshops</button><button data-search="Branch Events"><Icon name="account_tree" />Branch Events</button><button data-search="Cultural Events"><Icon name="celebration" />Cultural Events</button><button data-search="Outdoors"><Icon name="park" />Outdoors</button></div><main className="w-full pt-[128px] bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
-
-<div className="announcement-bar w-full bg-[#260C1A] text-on-primary py-2.5 px-margin-desktop overflow-hidden shadow-sm relative z-20 border-b border-[#432E36]">
-<div className="flex items-center justify-between max-w-[1920px] mx-auto gap-space-md">
-<div className="flex items-center gap-space-xs shrink-0">
-<span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-blush text-primary font-label-sm text-label-sm uppercase tracking-wider font-bold animate-pulse">Priority Bulletin</span>
-</div>
-<div className="overflow-hidden whitespace-nowrap flex-1 mx-space-md">
-<div className="announcement-copy inline-block animate-[marquee_25s_linear_infinite] font-label-md text-label-md tracking-wider uppercase">
-<span className="text-blush font-bold"><Icon name="bolt" /> RCEE EVENTS · FIND YOUR NEXT EXPERIENCE</span>
-<span className="mx-space-md opacity-40 text-dusty-rose">•</span>
-<span className="text-white">DISCOVER HACKATHONS, WORKSHOPS, PROJECT EXPOS &amp; CAMPUS FESTIVALS</span>
-<span className="mx-space-md opacity-40 text-dusty-rose">•</span>
-<span className="text-dusty-rose font-semibold">EVENT INFORMATION LINKED TO PUBLIC RCEE SOURCES</span>
-<span className="mx-space-md opacity-40 text-dusty-rose">•</span>
-<span className="text-white">CHECK EACH EVENT PAGE FOR DATES, VENUE &amp; PARTICIPATION DETAILS</span>
-</div>
-</div>
-<div className="hidden xl:flex items-center gap-space-xs shrink-0 font-label-sm text-label-sm text-dusty-rose">
-<span>EVENT ARCHIVE: <strong className="text-white">RCEE</strong></span>
-<span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
-</div>
-</div>
-</div>
+</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Outdoors"><Icon name="park" /><span>Outdoors</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
 
 <section className="reference-mood-backdrop relative w-full px-gutter-desktop-wide max-w-[1920px] mx-auto pt-space-xl pb-space-xl overflow-hidden bg-gradient-to-b from-[#FFF8F6] via-[#FFF1ED]/40 to-[#FFF8F6]">
 

@@ -49,8 +49,6 @@ export function OriginalInteractions() {
     (() => {
       
        const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions');
-       const shortcutModifier=document.getElementById('searchShortcutModifier');
-       if(shortcutModifier)shortcutModifier.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl';
        const searchButtons=[...document.querySelectorAll('[data-search]')];
        function focusSearch(value){ if(!input)return; input.value=value; input.dispatchEvent(new Event('input',{bubbles:true})); if(panel)panel.classList.add('hidden'); window.openCollexusCategory?.(value); }
        searchButtons.forEach(b=>b.addEventListener('click',()=>focusSearch(b.dataset.search)));
