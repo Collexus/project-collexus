@@ -71,7 +71,7 @@
 .progressWrap strong { color: var(--accent); }
 .progressWrap p span { padding: 0 3px; color: var(--accent); }
 .contentGrid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .72fr); align-items: start; gap: 18px; }
-.form, .preview { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.form, .preview { min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 16px 44px color-mix(in srgb, var(--ink) 7%, transparent); }
 .form { display: grid; gap: 23px; padding: clamp(20px, 3vw, 30px); }
 .sectionHead { display: flex; align-items: flex-start; gap: 13px; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
 .headingIcon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--line); border-radius: 10px; color: var(--accent); background: var(--accent-soft); }
@@ -113,6 +113,7 @@
 .interestSearch input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font: inherit; font-size: 13px; }
 .noResults { margin: 0; padding: 13px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
+.profileSection { display: grid; gap: 15px; min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent-soft) 52%, var(--card)), var(--card) 68%); }
 .groupSection { display: grid; gap: 15px; padding-top: 4px; }
 .groupHeading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .groupHeading h2 { font-size: 21px; }
@@ -197,7 +198,8 @@
   .progressWrap { gap: 10px; margin: 15px 1px; }
   .progressWrap p { font-size: 10px; }
   .contentGrid { grid-template-columns: minmax(0, 1fr); }
-  .form { gap: 20px; padding: 19px 15px; }
+  .form { gap: 16px; padding: 14px; border-radius: 16px; }
+  .profileSection { gap: 13px; padding: 15px 13px; border-radius: 13px; }
   .sectionHead h2, .groupHeading h2 { font-size: 19px; }
   .fieldGrid { grid-template-columns: minmax(0, 1fr); }
   .preview { position: static; }
