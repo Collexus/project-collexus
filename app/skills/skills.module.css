@@ -51,7 +51,7 @@
 .heroIllustration img { display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 22px rgba(17, 44, 63, .12)); }
 .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
 .hero h1 { margin: 0; color: var(--ink); font-family: "Space Grotesk", var(--font-jakarta), sans-serif; font-size: clamp(31px, 4vw, 46px); font-weight: 700; line-height: 1.08; letter-spacing: -.05em; }
-.hero h1 br { display: none; }
+.hero h1 br { display: block; }
 .hero h1 em { color: var(--accent); font-style: normal; }
 .heroText { max-width: 650px; margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .privacyPill { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 9px 12px; border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line)); border-radius: 999px; color: var(--muted); background: color-mix(in srgb, var(--card) 88%, var(--accent-soft)); font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 5%, transparent); }
@@ -149,7 +149,6 @@
   .shell { width: min(540px, calc(100% - 26px)); padding: 19px 0; }
   .hero { grid-template-columns: minmax(0, 1fr); gap: 4px; min-height: 0; padding: 20px 19px 9px; border-radius: 20px; }
   .hero h1 { font-size: clamp(31px, 8vw, 42px); }
-  .hero h1 br { display: block; }
   .heroText { font-size: 13px; }
   .privacyPill { padding: 8px 10px; font-size: 11px; }
   .heroIllustration { justify-self: center; width: min(100%, 340px); margin: 8px 0 -3px; }
