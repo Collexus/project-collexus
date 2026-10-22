@@ -8,11 +8,6 @@
   --accent: #75dde8;
   --accent-strong: #34fdef;
   --accent-soft: #10313f;
-  --blue: #84c9e5;
-  --green: #9fd6ad;
-  --rose: #eca5bd;
-  --gold: #e8c375;
-  --plum: #c6a9f3;
   min-height: 100vh;
   color: var(--ink);
   background: var(--page);
@@ -29,11 +24,6 @@
   --accent: #176b80;
   --accent-strong: #0c526b;
   --accent-soft: #e4f4f5;
-  --blue: #3c7b9a;
-  --green: #3f7958;
-  --rose: #985069;
-  --gold: #8a651c;
-  --plum: #684a8d;
 }
 
 .header {
@@ -47,20 +37,24 @@
   background: var(--card);
 }
 
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 17px; font-weight: 750; letter-spacing: -.03em; text-decoration: none; }
-.logoFrame { display: grid; place-items: center; width: 38px; height: 38px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-.logoFrame img { width: 32px; height: 32px; object-fit: contain; }
-.backLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; transition: color .16s ease, border-color .16s ease, background .16s ease; }
+.brand { display: inline-flex; align-items: center; gap: 0; color: var(--ink); text-decoration: none; }
+.brandWord { margin-left: -1px; font-family: "Space Grotesk", var(--font-jakarta), sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.045em; line-height: 1; }
+.logoFrame { position: relative; display: block; width: 42px; height: 42px; flex: 0 0 42px; overflow: hidden; border: 1px solid #d6e7e8; border-radius: 12px; background: #fff; box-shadow: 0 3px 10px rgba(15, 52, 65, .12); }
+.logoFrame img { position: absolute; top: -13px; left: 50%; width: 86px; height: 86px; max-width: none; object-fit: contain; clip-path: inset(0 0 38%); transform: translateX(-50%); }
+.backLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 15px; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; transition: color .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease; }
 .backLink:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
 .shell { width: min(1190px, calc(100% - 42px)); margin: 0 auto; padding: 30px 0 24px; }
-.hero { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 10px 0 24px; border-bottom: 1px solid var(--line); }
+.hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(280px, .82fr); align-items: center; gap: 20px; min-height: 248px; padding: 22px clamp(22px, 3.5vw, 42px); overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 24px; background: linear-gradient(120deg, color-mix(in srgb, var(--accent-soft) 68%, var(--card)), var(--card) 72%); box-shadow: 0 14px 34px color-mix(in srgb, var(--ink) 7%, transparent); }
+.heroCopy { max-width: 680px; }
+.heroIllustration { justify-self: end; width: min(100%, 410px); min-width: 0; }
+.heroIllustration img { display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 22px rgba(17, 44, 63, .12)); }
 .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
 .hero h1 { margin: 0; color: var(--ink); font-family: "Space Grotesk", var(--font-jakarta), sans-serif; font-size: clamp(31px, 4vw, 46px); font-weight: 700; line-height: 1.08; letter-spacing: -.05em; }
 .hero h1 br { display: none; }
 .hero h1 em { color: var(--accent); font-style: normal; }
 .heroText { max-width: 650px; margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
-.privacyPill { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--card); font-size: 12px; font-weight: 600; }
+.privacyPill { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 9px 12px; border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line)); border-radius: 999px; color: var(--muted); background: color-mix(in srgb, var(--card) 88%, var(--accent-soft)); font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 5%, transparent); }
 .privacyPill svg { color: var(--accent); }
 .progressWrap { display: flex; align-items: center; gap: 16px; margin: 17px 0; }
 .progressTrack { height: 5px; flex: 1; overflow: hidden; border-radius: 999px; background: var(--line); }
@@ -69,7 +63,7 @@
 .progressWrap strong { color: var(--accent); }
 .progressWrap p span { padding: 0 3px; color: var(--accent); }
 .contentGrid { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 900px; margin-inline: auto; }
-.form { min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 16px 44px color-mix(in srgb, var(--ink) 7%, transparent); }
+.form { min-width: 0; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 22px; background: var(--card); box-shadow: 0 18px 42px color-mix(in srgb, var(--ink) 8%, transparent); }
 .form { display: grid; gap: 23px; padding: clamp(20px, 3vw, 30px); }
 .sectionHead { display: flex; align-items: flex-start; gap: 13px; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
 .headingIcon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--line); border-radius: 10px; color: var(--accent); background: var(--accent-soft); }
@@ -109,7 +103,7 @@
 .textInput { width: 100%; min-height: 47px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--soft); font: inherit; font-size: 13px; }
 .textInput::placeholder { color: var(--muted); }
 .textInput:focus-visible { outline: 0; border-color: var(--accent); background: var(--card); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
-.profileSection { display: grid; gap: 15px; min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent-soft) 52%, var(--card)), var(--card) 68%); }
+.profileSection { display: grid; gap: 15px; min-width: 0; padding: 19px; border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line)); border-radius: 17px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent-soft) 46%, var(--card)), var(--card) 72%); }
 .groupHeading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .groupHeading h2 { font-size: 21px; }
 .groupHeading h2 small { color: var(--muted); font-family: var(--font-jakarta), Arial, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0; }
@@ -134,7 +128,7 @@
 .notice h2 { margin: 0; color: var(--ink); font-family: "Space Grotesk", var(--font-jakarta), sans-serif; font-size: 21px; }
 .notice p { max-width: 480px; margin: 7px 0 15px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
-.footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 25px; padding: 15px 0 6px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding: 14px 18px; border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line)); border-radius: 15px; color: var(--muted); background: color-mix(in srgb, var(--card) 86%, var(--accent-soft)); box-shadow: 0 8px 22px color-mix(in srgb, var(--ink) 5%, transparent); font-size: 11px; }
 
 .backLink:focus-visible, .primaryButton:focus-visible, .actions > a:focus-visible, .tag button:focus-visible, .addButton:focus-visible, .suggestions button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .tag button, .addButton, .suggestions button { touch-action: manipulation; }
@@ -148,23 +142,26 @@
 @media (max-width: 680px) {
   .header { min-height: 62px; padding: 8px 15px; }
   .brand { font-size: 15px; }
-  .logoFrame { width: 35px; height: 35px; }
+  .logoFrame { width: 36px; height: 36px; flex-basis: 36px; }
+  .logoFrame img { top: -11px; width: 72px; height: 72px; }
+  .brandWord { font-size: 18px; }
   .backLink { min-height: 42px; padding: 0 10px; font-size: 12px; }
   .shell { width: min(540px, calc(100% - 26px)); padding: 19px 0; }
-  .hero { align-items: flex-start; flex-direction: column; gap: 14px; padding: 5px 0 19px; }
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 4px; min-height: 0; padding: 20px 19px 9px; border-radius: 20px; }
   .hero h1 { font-size: clamp(31px, 8vw, 42px); }
   .hero h1 br { display: block; }
   .heroText { font-size: 13px; }
   .privacyPill { padding: 8px 10px; font-size: 11px; }
+  .heroIllustration { justify-self: center; width: min(100%, 340px); margin: 8px 0 -3px; }
   .progressWrap { gap: 10px; margin: 15px 1px; }
   .progressWrap p { font-size: 10px; }
   .contentGrid { grid-template-columns: minmax(0, 1fr); }
-  .form { gap: 16px; padding: 14px; border-radius: 16px; }
-  .profileSection { gap: 13px; padding: 15px 13px; border-radius: 13px; }
+  .form { gap: 16px; padding: 14px; border-radius: 18px; }
+  .profileSection { gap: 13px; padding: 15px 13px; border-radius: 15px; }
   .sectionHead h2, .groupHeading h2 { font-size: 19px; }
   .fieldGrid { grid-template-columns: minmax(0, 1fr); }
   .suggestions button { min-height: 44px; font-size: 12px; }
-  .footer { margin-top: 20px; font-size: 10px; }
+  .footer { align-items: flex-start; flex-direction: column; margin-top: 19px; padding: 12px 14px; border-radius: 13px; font-size: 10px; }
 }
 
 @media (max-width: 380px) {
@@ -176,7 +173,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .backLink, .progressTrack span, .selectWrap, .tagBox, .suggestions button, .chip, .chipSelected, .primaryButton { transition: none; }
+  .backLink, .progressTrack span, .selectWrap select, .tagBox, .suggestions button, .primaryButton { transition: none; }
   .primaryButton:hover { transform: none; }
   .spinner { animation: none; }
 }

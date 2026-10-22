@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import Image from "next/image";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, BookOpen, ChevronDown,
-  Compass, GraduationCap, LoaderCircle, Plus, ShieldCheck, Sparkles, X,
+  Compass, GraduationCap, LoaderCircle, Plus, ShieldCheck, X,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
 import styles from "./skills.module.css";
@@ -153,12 +153,13 @@ export function SkillsExperience() {
 
   return <main className={styles.page}>
     <header className={styles.header}>
-      <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><span className={styles.logoFrame}><Image src={`${basePath}/collexus-logo.svg`} alt="" width={32} height={32} /></span><span>Collexus</span></a>
+      <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><span className={styles.logoFrame} aria-hidden="true"><Image src={`${basePath}/collexus-logo.svg`} alt="" width={86} height={86} /></span><span className={styles.brandWord}>llexus</span></a>
       <a className={styles.backLink} href={`${basePath}/`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
     </header>
     <div className={styles.shell}>
       <section className={styles.hero}>
-        <div><p className={styles.eyebrow}><Sparkles size={14} aria-hidden="true" /> YOUR COLLEXUS PROFILE</p><h1>Show them what<br /><em>makes you, you.</em></h1><p className={styles.heroText}>Share your skills, study details, interests, technologies and favorite foods. Find your people, your next team and more events that feel like you.</p><div className={styles.privacyPill}><ShieldCheck size={15} aria-hidden="true" /> You choose what to share</div></div>
+        <div className={styles.heroCopy}><p className={styles.eyebrow}>YOUR COLLEXUS PROFILE</p><h1>Show them what<br /><em>makes you, you.</em></h1><p className={styles.heroText}>Share your skills, study details, interests, technologies and favorite foods. Find your people, your next team and more events that feel like you.</p><div className={styles.privacyPill}><ShieldCheck size={15} aria-hidden="true" /> You choose what to share</div></div>
+        <div className={styles.heroIllustration}><Image src={`${basePath}/images/host-event-planning-illustration.png`} alt="Students planning an event together" width={1536} height={1024} priority unoptimized /></div>
       </section>
       <div className={styles.progressWrap}><div className={styles.progressTrack}><span style={{ width: `${Math.min(100, 24 + selectedCount * 5)}%` }} /></div><p><strong>{selectedCount}</strong> details added <span>·</span> About 2 minutes</p></div>
       {checking ? <div className={styles.notice}><LoaderCircle className={styles.spinner} size={21} aria-hidden="true" /> Checking your account…</div> : <div className={styles.contentGrid}>
