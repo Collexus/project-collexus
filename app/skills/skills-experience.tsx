@@ -133,7 +133,7 @@ export function SkillsExperience() {
       return;
     }
     setBusy(true);
-    const { data, error: updateError } = await supabase.auth.updateUser({ data: {
+    const { error: updateError } = await supabase.auth.updateUser({ data: {
       profile_branch: branch === "Other" ? otherBranch.trim() : branch,
       profile_branch_category: branch,
       profile_branch_details: branch === "Other" ? otherBranch.trim() : "",
