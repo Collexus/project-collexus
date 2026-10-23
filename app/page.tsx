@@ -1,4 +1,5 @@
 import { Icon } from "@/components/icon";
+import { HeaderAccountAction } from "@/components/header-account-action";
 import { OriginalInteractions } from "@/components/original-interactions";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { OriginalEventCards } from "@/components/original-event-cards";
@@ -32,7 +33,7 @@ export default function HomePage() {
     <div className="header-search flex-1 max-w-[620px] mx-1 sm:mx-3 flex items-center relative">
       <Icon name="search" className="absolute left-3.5 text-secondary text-[19px] pointer-events-none" />
       <input className="w-full pl-10 pr-16 py-2.5 rounded-xl bg-white text-on-surface placeholder:text-on-surface-variant/70 border border-[#f0d4d8] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose focus:ring-4 focus:ring-[#edbfc6]/20 shadow-[0_2px_8px_rgba(38,12,26,0.04)] transition-all" id="globalSearch" autoComplete="off" placeholder="Search event titles or categories..." type="text"/>
-      <div className="search-shortcut absolute right-2 flex items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><Icon name="keyboard" className="shortcut-keyboard"/><kbd>K</kbd></div>
+      <div className="search-shortcut absolute right-2 flex items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><kbd className="shortcut-modifier">⌘</kbd><kbd>K</kbd></div>
       <div id="searchSuggestions" className="search-suggestions hidden">
         <div className="search-suggestion-title">What are you looking for?</div>
         <button type="button" data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span><small>Build & compete</small></button>
@@ -49,17 +50,14 @@ export default function HomePage() {
       <div className="shrink-0 relative">
         <button id="calendarButton" className="calendar-btn" type="button" aria-label="Open calendar"><Icon name="calendar_month" /><span className="hidden sm:inline">Calendar</span></button>
       </div>
-      <a id="profileButton" href={`${publicBasePath}/profile/`} className="profile-icon-btn" aria-label="Open your profile" title="Your profile"><Icon name="person" /></a>
       <div className="shrink-0 relative">
-        <a id="loginButton" href={`${publicBasePath}/login/`} aria-label="Login or sign up" className="login-btn inline-flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg uppercase tracking-wider shadow-[0_6px_18px_rgba(38,12,26,.16)]">
-          <span className="login-btn-label">Login / Sign Up</span>
-        </a>
+        <HeaderAccountAction />
       </div>
     </div>
   </div>
 </header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Outdoors"><Icon name="park" /><span>Outdoors</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
 
-<section className="reference-mood-backdrop relative w-full px-gutter-desktop-wide max-w-[1920px] mx-auto pt-space-xl pb-space-xl overflow-hidden bg-gradient-to-b from-[#FFF8F6] via-[#FFF1ED]/40 to-[#FFF8F6]">
+<section className="reference-mood-backdrop relative w-full px-gutter-desktop-wide max-w-[1920px] mx-auto pt-5 sm:pt-6 pb-space-xl overflow-hidden bg-gradient-to-b from-[#FFF8F6] via-[#FFF1ED]/40 to-[#FFF8F6]">
 
 
 <div className="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-blush/35 blur-3xl pointer-events-none -z-10"></div>
@@ -82,7 +80,7 @@ export default function HomePage() {
 
 <div className="flex flex-wrap items-center gap-space-sm w-full sm:w-auto mb-space-lg">
 <a className="hero-cta relative overflow-hidden inline-flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider hover:bg-mocha hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md" href="#featured-events">
-<span>Explore {events.length} Event Records</span>
+<span>Explore Event Records</span>
 <Icon name="arrow_forward" className="text-[18px]" />
 </a>
 <a id="hostEventButton" href={`${publicBasePath}/host-event/`} className="hero-cta hero-cta-high-contrast host-event-cta relative overflow-hidden inline-flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg uppercase tracking-wider border transition-all group">
@@ -137,10 +135,10 @@ export default function HomePage() {
             </div>
 <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
 <div>
-<h3 className="font-headline-md text-headline-md text-white font-bold flagship-aura-title">KREYA ’26 Cultural Fest</h3>
+<h3 className="font-headline-md text-headline-md text-white font-bold flagship-aura-title">KREYA ’27 Cultural Fest</h3>
 <p className="font-body-sm text-body-sm text-blush">Art, music, literature, culture &amp; technical excellence</p>
 </div>
-<span className="px-2 py-1 rounded bg-blush text-primary font-label-sm text-label-sm font-bold uppercase shrink-0">KREYA ’26</span>
+<span className="px-2 py-1 rounded bg-blush text-primary font-label-sm text-label-sm font-bold uppercase shrink-0">KREYA ’27</span>
 </div>
 </div>
 

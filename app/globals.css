@@ -4661,20 +4661,20 @@ body.warm-editorial-theme.vivid-nightfall-theme :is(
 .quick-category-top{gap:clamp(4px,.8vw,10px);padding-inline:clamp(8px,4vw,64px)}
 .quick-category-top button{flex:0 1 auto;justify-content:center;min-height:36px;padding-inline:clamp(8px,1vw,14px);white-space:nowrap}
 .search-shortcut{gap:4px!important;padding-inline:6px!important}
-.search-shortcut .shortcut-keyboard{font-size:15px;color:#607783}
+.search-shortcut .shortcut-modifier{min-width:16px!important;font:600 15px/1 system-ui,sans-serif}
 .search-shortcut kbd{min-width:12px!important}
-.profile-icon-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border:1px solid #efd5da;border-radius:12px;background:#fff;color:#8a4b5c;transition:background .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease}
-.profile-icon-btn .lucide-icon{font-size:19px}
-.profile-icon-btn:hover{transform:translateY(-2px);border-color:#dcaeb9;background:#fff8f8;box-shadow:0 8px 18px rgba(62,20,36,.08)}
-.profile-icon-btn:focus-visible{outline:3px solid #b95f70;outline-offset:2px}
-html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .profile-icon-btn{color:#b9d0d4;background:#132530;border-color:#34525c}
-html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .profile-icon-btn:hover{color:#e9f7f8;background:#1b3540;border-color:#5b818a}
+.quick-category-top{top:72px!important;min-height:44px;padding-block:3px!important;border-top:0!important;box-shadow:0 5px 16px rgba(34,76,83,.07)}
+.quick-category-top button{min-height:36px;padding-inline:clamp(8px,1vw,14px)}
+.profile-icon-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:44px;height:44px;border:1px solid #087e83;border-radius:50%;background:#087e83;color:#fff;box-shadow:0 4px 12px rgba(8,126,131,.16);transition:background .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease}
+.profile-icon-btn .lucide-icon{font-size:20px}
+.profile-icon-btn:hover{transform:translateY(-1px);border-color:#066a70;background:#066a70;box-shadow:0 6px 15px rgba(8,88,94,.2)}
+.profile-icon-btn:focus-visible{outline:3px solid #35a9a5;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.profile-icon-btn{transition:none}}
 @media(max-width:640px){
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;padding:8px 10px!important;justify-content:stretch!important;overflow:visible!important}
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button{min-width:0;min-height:36px!important;padding:7px 3px;gap:5px;font-size:clamp(9px,2.8vw,11px);letter-spacing:0}
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button .lucide-icon{font-size:14px}
-  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:164px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:172px!important}
 }
 
 /* Keep the light-theme hero actions aligned with the shared Collexus teal. */

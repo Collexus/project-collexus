@@ -224,7 +224,7 @@ export const events: CampusEvent[] = [
   },
   {
     slug: "kreya-26-cultural-fest",
-    title: "KREYA ’26 — RCE(A) Cultural Fest",
+    title: "KREYA ’27 — RCE(A) Cultural Fest",
     category: "Cultural",
     branch: "Campus",
     tracks: ["campus & culture", "arts & media"],
