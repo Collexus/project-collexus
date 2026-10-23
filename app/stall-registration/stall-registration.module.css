@@ -76,6 +76,11 @@
 .heroMeta { display: flex; flex-wrap: wrap; gap: 9px; }
 .heroMeta span { display: inline-flex; min-height: 34px; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: color-mix(in srgb, var(--surface) 82%, var(--accent-soft)); font-size: 10px; font-weight: 650; }
 .heroMeta svg { color: var(--accent); }
+.runAdButton { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; margin-top: 17px; padding: 0 15px; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 11px; color: var(--accent-strong); background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface)); font-size: 12px; font-weight: 750; text-decoration: none; transition: border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease; }
+.runAdButton:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); background: var(--accent-soft); box-shadow: 0 5px 12px color-mix(in srgb, var(--accent) 10%, transparent); }
+.runAdButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset: 3px; }
+.runAdButton svg:last-child { transition: transform .16s ease; }
+.runAdButton:hover svg:last-child { transform: translateX(2px); }
 .heroArt { position: relative; display: grid; min-width: 0; min-height: 270px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 18px; background: radial-gradient(ellipse at 52% 45%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 61%), linear-gradient(145deg, color-mix(in srgb, var(--surface-soft) 86%, #d9eeee), color-mix(in srgb, var(--surface) 80%, #b9d9df)); }
 .heroArt img { display: block; width: 100%; height: auto; max-height: 340px; object-fit: contain; }
 .heroArt > span { position: absolute; right: 13px; bottom: 11px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
@@ -187,8 +192,8 @@
   .footer { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .backLink, .field input, .field select, .field textarea, .facility > span, .primaryButton, .secondaryButton, .downloadButton { transition: none; }
-  .primaryButton:hover, .downloadButton:hover { transform: none; }
+  .backLink, .field input, .field select, .field textarea, .facility > span, .primaryButton, .secondaryButton, .downloadButton, .runAdButton, .runAdButton svg:last-child { transition: none; }
+  .primaryButton:hover, .downloadButton:hover, .runAdButton:hover { transform: none; }
 }
 
 /* Match the login page's clean card and field rhythm across the full stall form. */

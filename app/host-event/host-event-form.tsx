@@ -10,6 +10,7 @@ import {
   Clock3,
   Eye,
   MapPin,
+  Megaphone,
   Send,
   ShieldCheck,
   Sparkles,
@@ -271,8 +272,8 @@ export function HostEventForm() {
             <div className={styles.introActions}>
               <div className={styles.formNote}><span>*</span> Required fields</div>
               <a className={styles.stallRegistrationLink} href={`${publicBasePath}/stall-registration/`}>
-                <Store aria-hidden="true" size={16} />
-                <span>Register a stall</span>
+                <Megaphone aria-hidden="true" size={16} />
+                <span>Run an ad</span>
                 <ArrowRight aria-hidden="true" size={15} />
               </a>
             </div>
