@@ -34,6 +34,7 @@ export function OriginalEventCards() {
             data-pricing={pricing}
             data-entry={pricing}
             data-format={event.format.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}
+            data-search-text={[event.title, event.category, event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : "Cultural Events", event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ")}
             key={event.slug}
           >
             <Link className="event-card-link flex flex-1 flex-col" href={`/events/${event.slug}`} aria-label={`View details for ${event.title}`}>

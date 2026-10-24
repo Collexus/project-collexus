@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { HeaderAccountAction } from "@/components/header-account-action";
 import { OriginalInteractions } from "@/components/original-interactions";
@@ -32,16 +33,35 @@ export default function HomePage() {
     
     <div className="header-search flex-1 max-w-[620px] mx-1 sm:mx-3 flex items-center relative">
       <Icon name="search" className="absolute left-3.5 text-secondary text-[19px] pointer-events-none" />
-      <input className="w-full pl-10 pr-16 py-2.5 rounded-xl bg-white text-on-surface placeholder:text-on-surface-variant/70 border border-[#f0d4d8] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose focus:ring-4 focus:ring-[#edbfc6]/20 shadow-[0_2px_8px_rgba(38,12,26,0.04)] transition-all" id="globalSearch" autoComplete="off" placeholder="Search event titles or categories..." type="text"/>
-      <div className="search-shortcut absolute right-2 flex items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><kbd className="shortcut-modifier">⌘</kbd><kbd>K</kbd></div>
-      <div id="searchSuggestions" className="search-suggestions hidden">
-        <div className="search-suggestion-title">What are you looking for?</div>
+      <label className="sr-only" htmlFor="globalSearch">Search published events</label>
+      <input className="w-full pl-10 pr-12 sm:pr-28 py-2.5 rounded-xl bg-white text-on-surface placeholder:text-on-surface-variant/70 border border-[#f0d4d8] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose focus:ring-4 focus:ring-[#edbfc6]/20 shadow-[0_2px_8px_rgba(38,12,26,0.04)] transition-all" id="globalSearch" aria-controls="searchSuggestions" aria-expanded="false" autoComplete="off" placeholder="Search events or topics…" type="search"/>
+      <button id="clearGlobalSearch" className="global-search-clear" type="button" aria-label="Clear search" title="Clear search" hidden><Icon name="close" /></button>
+      <div className="search-shortcut hidden sm:flex absolute right-2 items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><kbd id="searchShortcutModifier">Ctrl</kbd><kbd>K</kbd></div>
+      <div id="searchSuggestions" className="search-suggestions hidden" role="group" aria-label="Event search suggestions">
+        <div className="search-suggestion-title">Explore categories</div>
         <button type="button" data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span><small>Build & compete</small></button>
         <button type="button" data-search="Internships"><Icon name="work" /><span>Internships</span><small>Career opportunities</small></button>
         <button type="button" data-search="Workshops"><Icon name="school" /><span>Workshops</span><small>Learn & upskill</small></button>
         <button type="button" data-search="Branch Events"><Icon name="hub" /><span>Branch Events</span><small>Department activities</small></button>
         <button type="button" data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span><small>Campus life</small></button>
         <button type="button" data-search="Outdoors"><Icon name="park" /><span>Outdoors</span><small>Outdoor campus activities</small></button>
+        <div id="eventSearchResultGroup" className="event-search-result-group" hidden>
+          <div className="search-suggestion-title">Matching events</div>
+          {events.map((event) => {
+            const categoryAlias = event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : "Cultural Events";
+            const searchText = [event.title, event.category, categoryAlias, event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ");
+            const icon = event.category === "Hackathon" ? "terminal" : event.category === "Workshop" ? "school" : event.category === "Project expo" ? "hub" : "celebration";
+
+            return (
+              <Link className="event-search-result" data-event-search-result="" data-event-search-key={searchText} href={`${publicBasePath}/events/${event.slug}/`} key={event.slug}>
+                <span className="event-search-result-icon"><Icon name={icon} /></span>
+                <span className="event-search-result-copy"><strong>{event.title}</strong><small>{event.category} · {event.dateLabel}</small></span>
+                <Icon name="arrow_up_right" className="event-search-result-arrow" />
+              </Link>
+            );
+          })}
+        </div>
+        <p id="searchSuggestionsEmpty" className="search-suggestion-empty" hidden>No matching events or categories. Try a title, topic, track, or organizer.</p>
       </div>
     </div>
 
@@ -280,6 +300,7 @@ export default function HomePage() {
 </div>
 </div>
 
+<p id="eventResultsStatus" className="event-results-status font-body-sm text-on-surface-variant" role="status" aria-live="polite" aria-atomic="true">Showing all {events.length} published event records.</p>
 
 <OriginalEventCards />
 
@@ -293,8 +314,8 @@ export default function HomePage() {
 <div id="noFilteredEvents" className="hidden text-center py-16 px-6 bg-surface-container-lowest rounded-2xl border border-[#f4d3cb] mt-4">
   <Icon name="filter_alt_off" className="text-4xl text-secondary mb-2 block" />
   <h4 className="font-headline-sm text-headline-sm text-primary font-bold">No matching experiences found</h4>
-  <p className="text-sm text-on-surface-variant max-w-md mx-auto mt-1 mb-4">Try selecting different categories or clear all filters to see the full schedule.</p>
-  <button id="resetFromEmptyBtn" className="top-nav-btn is-active" type="button">Reset Filters</button>
+  <p id="noFilteredEventsHint" className="text-sm text-on-surface-variant max-w-md mx-auto mt-1 mb-4">Try a broader search or clear the filters to see the full schedule.</p>
+  <button id="resetFromEmptyBtn" className="top-nav-btn is-active" type="button">Clear Search &amp; Filters</button>
 </div>
 
 </section>

@@ -14,19 +14,20 @@ import {
   GraduationCap,
   KeyRound,
   Mail,
-  Hash,
   Phone,
+  MessageCircle,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
+import { updateUserProfile, type AccountType } from "../../lib/user-profile";
 import styles from "./login.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-type AccountType = "student" | "faculty" | "guest";
 type AccountMode = "signin" | "signup" | "recovery";
-type AuthUser = { email: string | null; displayName: string | null; emailVerified: boolean; accountType: string | null };
+type AuthMethod = "email" | "whatsapp";
+type AuthUser = { email: string | null; phone: string | null; displayName: string | null; contactVerified: boolean; accountType: string | null };
 
 const accountTypes: { id: AccountType; label: string; detail: string; icon: typeof GraduationCap }[] = [
   { id: "student", label: "Student", detail: "College community", icon: GraduationCap },
@@ -39,14 +40,29 @@ function friendlyAuthError(message: string) {
   if (normalized.includes("cancelled") || normalized.includes("canceled")) return "Google sign-in was closed before it finished.";
   if (normalized.includes("network") || normalized.includes("fetch")) return "Connection interrupted. Check your internet and try again.";
   if (normalized.includes("rate limit") || normalized.includes("too many")) return "Too many attempts. Wait a little and try again.";
-  if (normalized.includes("already registered") || normalized.includes("already exists")) return "An account may already use this email. Try signing in or resetting the password.";
+  if (normalized.includes("phone") && (normalized.includes("disabled") || normalized.includes("not configured") || normalized.includes("unsupported"))) return "Phone sign-in isn’t enabled in Supabase yet. Enable Phone Auth and configure WhatsApp delivery.";
+  if (normalized.includes("whatsapp") && (normalized.includes("provider") || normalized.includes("sender"))) return "WhatsApp delivery isn’t configured for this Supabase project yet.";
+  if (normalized.includes("already registered") || normalized.includes("already exists")) return "That account may already exist. Try signing in or use another number.";
+  if (normalized.includes("otp") || normalized.includes("token")) return "That code is invalid or expired. Request a new WhatsApp code and try again.";
   if (normalized.includes("email not confirmed")) return "Verify your email using the link we sent before signing in.";
   return "We couldn’t complete sign-in. Check your details and try again.";
+}
+
+function normalizePhoneNumber(value: string) {
+  return value.trim().replace(/[\s().-]/g, "");
+}
+
+function isInternationalPhoneNumber(value: string) {
+  return /^\+[1-9]\d{7,14}$/.test(value);
 }
 
 export function LoginExperience() {
   const [accountType, setAccountType] = useState<AccountType>("student");
   const [mode, setMode] = useState<AccountMode>("signin");
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("email");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -68,27 +84,49 @@ export function LoginExperience() {
       }
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        let currentUser = session?.user ?? null;
         const pendingAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
-        if (session && pendingAccountType && !session.user.user_metadata.account_type) {
-          await supabase.auth.updateUser({ data: { account_type: pendingAccountType } });
+        const isAccountType = (value: string | null): value is AccountType => value === "student" || value === "faculty" || value === "guest";
+        if (session && isAccountType(pendingAccountType) && !currentUser?.user_metadata.account_type) {
+          let canSaveAccountType = true;
+          const { data, error: metadataError } = await supabase.auth.updateUser({ data: { account_type: pendingAccountType } });
+          if (metadataError) {
+            canSaveAccountType = false;
+            if (active) setError("Google sign-in worked, but we couldn’t finish saving your account type. Try again after refreshing.");
+          } else if (data.user) {
+            currentUser = data.user;
+          }
+
+          if (canSaveAccountType) {
+            const { error: profileError } = await updateUserProfile(supabase, session.user.id, { account_type: pendingAccountType });
+            if (profileError) {
+              if (active) setError("Your account is signed in, but profile storage isn’t ready. Apply the Collexus profiles migration, then refresh this page.");
+            } else {
+              window.sessionStorage.removeItem("collexus-pending-account-type");
+            }
+          }
+        } else if (session && pendingAccountType) {
+          // Keep an existing Google user's saved account type when they sign in.
           window.sessionStorage.removeItem("collexus-pending-account-type");
         }
         const setCurrentUser = (currentUser: User | null) => {
           if (active) {
             setUser(currentUser ? {
               email: currentUser.email ?? null,
+              phone: currentUser.phone ?? null,
               displayName: String(currentUser.user_metadata.full_name ?? currentUser.user_metadata.name ?? "") || null,
-              emailVerified: Boolean(currentUser.email_confirmed_at),
+              contactVerified: Boolean(currentUser.email_confirmed_at || currentUser.phone_confirmed_at),
               accountType: typeof currentUser.user_metadata.account_type === "string" ? currentUser.user_metadata.account_type : null,
             } : null);
             setCheckingSession(false);
             const recoveryCallback = `${window.location.search}${window.location.hash}`.includes("type=recovery");
-            if (currentUser?.email_confirmed_at && !recoveryCallback) {
+            const waitingForAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
+            if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType) {
               window.location.replace(`${basePath}/profile/`);
             }
           }
         };
-        setCurrentUser(session?.user ?? null);
+        setCurrentUser(currentUser);
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
           if (event === "PASSWORD_RECOVERY" && active) setMode("recovery");
           setCurrentUser(nextSession?.user ?? null);
@@ -105,6 +143,16 @@ export function LoginExperience() {
 
   function switchMode(nextMode: AccountMode) {
     setMode(nextMode);
+    setOtpSent(false);
+    setOtpCode("");
+    setError("");
+    setMessage("");
+  }
+
+  function switchAuthMethod(nextMethod: AuthMethod) {
+    setAuthMethod(nextMethod);
+    setOtpSent(false);
+    setOtpCode("");
     setError("");
     setMessage("");
   }
@@ -184,6 +232,10 @@ export function LoginExperience() {
           },
         });
         if (signupError) throw signupError;
+        if (data.session && data.user?.email_confirmed_at) {
+          window.location.assign(`${basePath}/profile/`);
+          return;
+        }
         if (data.session) await supabase.auth.signOut();
         setMessage("Check your inbox for a verification link. Verify your email, then sign in here.");
         return;
@@ -204,6 +256,82 @@ export function LoginExperience() {
     }
   }
 
+  async function submitWhatsapp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+    setBusy(true);
+    const formData = new FormData(event.currentTarget);
+    const phone = normalizePhoneNumber(String(formData.get("phone") ?? phoneNumber));
+
+    try {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setError("WhatsApp sign-in needs a Supabase project URL and publishable key first.");
+        return;
+      }
+      if (!isInternationalPhoneNumber(phone)) {
+        setError("Enter your phone number with its country code, for example +91 98765 43210.");
+        return;
+      }
+
+      if (!otpSent) {
+        const name = String(formData.get("name") ?? "").trim();
+        const campusId = String(formData.get("campusId") ?? "").trim();
+        if (mode === "signup" && !name) {
+          setError("Enter your full name to create an account.");
+          return;
+        }
+        if (mode === "signup" && accountType !== "guest" && !campusId) {
+          setError(`Enter your ${accountType === "student" ? "Student" : "Faculty"} ID to create an account.`);
+          return;
+        }
+
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          phone,
+          options: {
+            channel: "whatsapp",
+            shouldCreateUser: mode === "signup",
+            ...(mode === "signup" ? {
+              data: {
+                full_name: name,
+                account_type: accountType,
+                campus_id: campusId || null,
+              },
+            } : {}),
+          },
+        });
+        if (otpError) throw otpError;
+        setPhoneNumber(phone);
+        setOtpCode("");
+        setOtpSent(true);
+        setMessage(`We sent a 6-digit code to ${phone} on WhatsApp.`);
+        return;
+      }
+
+      const token = String(formData.get("otp") ?? otpCode).trim();
+      if (!/^\d{6}$/.test(token)) {
+        setError("Enter the 6-digit code from WhatsApp.");
+        return;
+      }
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        phone: phoneNumber || phone,
+        token,
+        type: "sms",
+      });
+      if (verifyError) throw verifyError;
+      if (!data.session) {
+        setError("We couldn’t finish verifying that code. Request a new code and try again.");
+        return;
+      }
+      window.location.assign(`${basePath}/profile/`);
+    } catch (authError) {
+      setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function continueWithGoogle() {
     setError("");
     setMessage("");
@@ -214,13 +342,18 @@ export function LoginExperience() {
         setError("Secure sign-in is not configured yet. Add the Supabase project URL and publishable key first.");
         return;
       }
-      window.sessionStorage.setItem("collexus-pending-account-type", accountType);
+      if (mode === "signup") {
+        window.sessionStorage.setItem("collexus-pending-account-type", accountType);
+      } else {
+        window.sessionStorage.removeItem("collexus-pending-account-type");
+      }
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}${basePath}/login/` },
       });
       if (oauthError) throw oauthError;
     } catch (authError) {
+      window.sessionStorage.removeItem("collexus-pending-account-type");
       setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
     } finally {
       setBusy(false);
@@ -253,9 +386,10 @@ export function LoginExperience() {
               <span className={styles.signedIcon}><BadgeCheck size={26} aria-hidden="true" /></span>
               <p className={styles.eyebrow}>YOU’RE SIGNED IN</p>
               <h2>Welcome{user.displayName ? `, ${user.displayName.split(" ")[0]}` : " back"}.</h2>
-              <p className={styles.signedEmail}>{user.email}</p>
-              {!user.emailVerified && <p className={styles.verifyNotice}>Verify your email before using account features.</p>}
+              <p className={styles.signedEmail}>{user.email ?? user.phone}</p>
+              {!user.contactVerified && <p className={styles.verifyNotice}>Verify your email or phone before using account features.</p>}
               {user.accountType && <p className={styles.signedEmail}>Account type: {user.accountType}</p>}
+              {error && <p className={styles.error} role="alert">{error}</p>}
               <a className={styles.primaryButton} href={`${basePath}/#featured-events`}>Explore events <ArrowRight size={17} aria-hidden="true" /></a>
               <button className={styles.textButton} onClick={() => void signOutUser()} type="button">Sign out</button>
             </div>
@@ -270,6 +404,7 @@ export function LoginExperience() {
                   <button
                     aria-pressed={accountType === id}
                     className={`${styles.accountType} ${accountType === id ? styles.accountTypeSelected : ""}`}
+                    disabled={busy || otpSent}
                     key={id}
                     onClick={() => { setAccountType(id); setError(""); }}
                     type="button"
@@ -282,36 +417,46 @@ export function LoginExperience() {
               </div>}
 
               {mode !== "recovery" && <div className={styles.modeTabs} role="tablist" aria-label="Account action">
-                <button aria-selected={mode === "signin"} className={mode === "signin" ? styles.modeActive : ""} onClick={() => switchMode("signin")} role="tab" type="button">Sign in</button>
-                <button aria-selected={mode === "signup"} className={mode === "signup" ? styles.modeActive : ""} onClick={() => switchMode("signup")} role="tab" type="button">Create account</button>
+                <button aria-selected={mode === "signin"} className={mode === "signin" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchMode("signin")} role="tab" type="button">Sign in</button>
+                <button aria-selected={mode === "signup"} className={mode === "signup" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchMode("signup")} role="tab" type="button">Create account</button>
               </div>}
 
-              {mode !== "recovery" && <button className={styles.googleButton} disabled={busy || !configured} onClick={() => void continueWithGoogle()} type="button">
+              {mode !== "recovery" && <div className={`${styles.modeTabs} ${styles.methodTabs}`} role="group" aria-label="Choose sign-in method">
+                <button aria-pressed={authMethod === "email"} className={authMethod === "email" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchAuthMethod("email")} type="button">Email &amp; password</button>
+                <button aria-pressed={authMethod === "whatsapp"} className={authMethod === "whatsapp" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchAuthMethod("whatsapp")} type="button"><MessageCircle size={15} aria-hidden="true" /> WhatsApp code</button>
+              </div>}
+
+              {mode !== "recovery" && <button className={styles.googleButton} disabled={busy || !configured || otpSent} onClick={() => void continueWithGoogle()} type="button">
                 <GoogleMark /><span>Continue with Google</span>
               </button>}
-              {mode !== "recovery" && <div className={styles.divider}><span>or use your email</span></div>}
+              {mode !== "recovery" && <div className={styles.divider}><span>or continue with your selected method</span></div>}
 
-              <form className={styles.form} onSubmit={submitCredentials}>
-                {mode === "signup" && <label className={styles.field}><span>Full name</span><div className={styles.inputWrap}><UsersRound size={16} aria-hidden="true" /><input autoComplete="name" maxLength={80} name="name" placeholder="Your name" required /></div></label>}
-                {mode === "signup" && accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required /></div></label>}
-                {mode !== "recovery" && <label className={styles.field}><span>{accountType === "guest" ? "Email address" : "College email"}</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder={accountType === "guest" ? "you@example.com" : "you@college.edu"} required type="email" /></div></label>}
-                {mode === "signup" && <label className={styles.field}><span>Mobile number</span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" type="tel" /></div></label>}
-                {mode === "signup" && <label className={styles.field}><span>SMS one-time code</span><div className={styles.inputWrap}><Hash size={16} aria-hidden="true" /><input aria-describedby="phone-otp-note" autoComplete="one-time-code" inputMode="numeric" maxLength={6} name="phoneOtp" pattern="[0-9]{6}" placeholder="Enter the 6-digit code" /></div><small className={styles.fieldHelp} id="phone-otp-note">Your number is saved as unverified contact info. SMS verification is not active yet.</small></label>}
-                <label className={styles.field}><span>{mode === "recovery" ? "New password" : "Password"} {(mode === "signup" || mode === "recovery") && <small>at least 10 characters</small>}</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete={mode === "signin" ? "current-password" : "new-password"} minLength={mode === "signin" ? undefined : 10} maxLength={128} name="password" placeholder={mode === "signin" ? "Enter your password" : "Create a strong password"} required type={showPassword ? "text" : "password"} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>
-                {(mode === "signup" || mode === "recovery") && <label className={styles.field}><span>Confirm password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="new-password" minLength={10} maxLength={128} name="passwordAgain" placeholder="Enter it again" required type={showPassword ? "text" : "password"} /></div></label>}
-                {mode === "signin" && <div className={styles.formOptions}><span className={styles.sessionHint}>Secure session</span><button className={styles.forgotButton} disabled={!configured || busy} name="resetPassword" onClick={(event) => { const form = event.currentTarget.form; if (!form) return; const marker = form.querySelector<HTMLInputElement>('input[name="resetPassword"]'); if (marker) marker.value = "true"; form.requestSubmit(); if (marker) marker.value = "false"; }} type="button">Forgot password?</button><input name="resetPassword" type="hidden" value="false" /></div>}
-                {mode === "signup" && <label className={styles.remember}><input required type="checkbox" /> I agree to use Collexus respectfully and keep my account details accurate.</label>}
+              <form className={styles.form} onSubmit={authMethod === "whatsapp" ? submitWhatsapp : submitCredentials}>
+                {mode === "signup" && <label className={styles.field}><span>Full name</span><div className={styles.inputWrap}><UsersRound size={16} aria-hidden="true" /><input autoComplete="name" maxLength={80} name="name" placeholder="Your name" required disabled={busy || otpSent} /></div></label>}
+                {mode === "signup" && accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required disabled={busy || otpSent} /></div></label>}
+                {authMethod === "email" && mode !== "recovery" && <label className={styles.field}><span>{accountType === "guest" ? "Email address" : "College email"}</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder={accountType === "guest" ? "you@example.com" : "you@college.edu"} required type="email" /></div></label>}
+                {authMethod === "email" && mode === "signup" && <label className={styles.field}><span>Mobile number <small>optional · unverified contact info</small></span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" type="tel" disabled={busy} /></div></label>}
+                {authMethod === "whatsapp" && mode !== "recovery" && <label className={styles.field}><span>WhatsApp number <small>Include your country code</small></span><div className={styles.inputWrap}><MessageCircle size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+91 98765 43210" required type="tel" value={phoneNumber} disabled={otpSent || busy} /></div></label>}
+                {authMethod === "whatsapp" && !otpSent && <p className={styles.otpHint}>We’ll send a one-time code in WhatsApp. Use an international number such as +91 98765 43210.</p>}
+                {authMethod === "whatsapp" && otpSent && <>
+                  <label className={styles.field}><span>6-digit WhatsApp code</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="one-time-code" inputMode="numeric" maxLength={6} name="otp" onChange={(event) => setOtpCode(event.target.value.replace(/\D/g, "").slice(0, 6))} pattern="[0-9]{6}" placeholder="Enter the code" required value={otpCode} /></div></label>
+                  <div className={styles.formOptions}><span className={styles.sessionHint}>Sent to {phoneNumber}</span><button className={styles.forgotButton} disabled={busy} onClick={() => { setOtpSent(false); setOtpCode(""); setError(""); setMessage(""); }} type="button">Change number</button></div>
+                </>}
+                {authMethod === "email" && <label className={styles.field}><span>{mode === "recovery" ? "New password" : "Password"} {(mode === "signup" || mode === "recovery") && <small>at least 10 characters</small>}</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete={mode === "signin" ? "current-password" : "new-password"} minLength={mode === "signin" ? undefined : 10} maxLength={128} name="password" placeholder={mode === "signin" ? "Enter your password" : "Create a strong password"} required type={showPassword ? "text" : "password"} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>}
+                {authMethod === "email" && (mode === "signup" || mode === "recovery") && <label className={styles.field}><span>Confirm password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="new-password" minLength={10} maxLength={128} name="passwordAgain" placeholder="Enter it again" required type={showPassword ? "text" : "password"} /></div></label>}
+                {mode === "signup" && <label className={styles.remember}><input required type="checkbox" disabled={busy || otpSent} /> I agree to use Collexus respectfully and keep my account details accurate.</label>}
 
                 {error && <p className={styles.error} role="alert">{error}</p>}
                 {message && <p className={styles.success} role="status">{message}</p>}
                 {!configured && <p className={styles.setupNotice} role="status">Authentication needs a Supabase project URL and publishable key before sign-in is enabled.</p>}
 
                 <button className={styles.primaryButton} disabled={busy || checkingSession || !configured} type="submit">
-                  {busy ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Update password"}<ArrowRight size={17} aria-hidden="true" />
+                  {busy ? "Please wait…" : authMethod === "whatsapp" ? otpSent ? "Verify code" : "Send WhatsApp code" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Update password"}<ArrowRight size={17} aria-hidden="true" />
                 </button>
               </form>
               {mode === "recovery" && <button className={styles.textButton} onClick={() => switchMode("signin")} type="button">Back to sign in</button>}
               {mode !== "recovery" && <p className={styles.roleNote}>Account type helps personalize your experience. Student and faculty status must be verified separately before it can grant campus access.</p>}
+              {authMethod === "whatsapp" && mode === "signin" && <p className={styles.roleNote}>WhatsApp sign-in works for phone accounts. If you already use an email-only account, use that method until a phone number is linked to your account.</p>}
             </>
           )}
         </section>

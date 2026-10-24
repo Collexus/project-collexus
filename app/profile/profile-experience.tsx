@@ -8,6 +8,7 @@ import {
   LoaderCircle, Plus, ShieldCheck, Sparkles, X,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
+import { getUserProfile, updateUserProfile } from "../../lib/user-profile";
 import styles from "./profile.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -22,7 +23,9 @@ function readStringArray(value: unknown) {
 export function ProfileExperience() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
   const [configured, setConfigured] = useState(false);
+  const [accountType, setAccountType] = useState("member");
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -41,7 +44,7 @@ export function ProfileExperience() {
       setChecking(false);
       return;
     }
-    void supabase.auth.getUser().then(({ data, error: authError }) => {
+    void supabase.auth.getUser().then(async ({ data, error: authError }) => {
       if (!active) return;
       if (authError || !data.user) {
         window.location.replace(`${basePath}/login/`);
@@ -50,11 +53,20 @@ export function ProfileExperience() {
       const current = data.user;
       const metadata = current.user_metadata;
       setUser(current);
-      setName(String(metadata.full_name ?? metadata.name ?? ""));
-      setDomain(String(metadata.profile_domain ?? ""));
-      setSkills(readStringArray(metadata.profile_skills));
-      setInterests(readStringArray(metadata.profile_interests));
-      setAbout(String(metadata.profile_about ?? ""));
+      const { profile, error: profileError } = await getUserProfile(supabase, current.id);
+      if (!active) return;
+      if (profileError || !profile) {
+        setError("Profile storage isn’t ready yet. Apply the Collexus profiles migration, then refresh this page.");
+        setChecking(false);
+        return;
+      }
+      setName(profile.full_name ?? String(metadata.full_name ?? metadata.name ?? ""));
+      setAccountType(profile.account_type ?? "member");
+      setDomain(profile.profile_domain ?? "");
+      setSkills(readStringArray(profile.profile_skills));
+      setInterests(readStringArray(profile.profile_interests));
+      setAbout(profile.profile_about ?? "");
+      setProfileReady(true);
       setChecking(false);
     }).catch(() => {
       if (active) {
@@ -104,29 +116,28 @@ export function ProfileExperience() {
       setError("Secure profile saving is not configured yet. Add the Supabase project URL and publishable key first.");
       return;
     }
+    if (!user) {
+      setError("Sign in to save your profile details.");
+      return;
+    }
     setBusy(true);
-    const { data, error: updateError } = await supabase.auth.updateUser({
-      data: {
-        full_name: name.trim(),
-        profile_domain: domain,
-        profile_skills: skills,
-        profile_interests: interests,
-        profile_about: about.trim(),
-        profile_complete: true,
-      },
+    const { profile, error: updateError } = await updateUserProfile(supabase, user.id, {
+      full_name: name.trim(),
+      profile_domain: domain,
+      profile_skills: skills,
+      profile_interests: interests,
+      profile_about: about.trim(),
+      profile_complete: true,
     });
     setBusy(false);
-    if (updateError) {
+    if (updateError || !profile) {
       setError("We couldn’t save your profile. Check your connection and try again.");
       return;
     }
-    if (data.user) setUser(data.user);
     setSaved(true);
   }
 
   const displayName = name.trim() || user?.email?.split("@")[0] || "Your name";
-  const accountType = String(user?.user_metadata.account_type ?? "member");
-
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -166,6 +177,11 @@ export function ProfileExperience() {
           <section className={styles.noticeCard}>
             <ShieldCheck size={22} aria-hidden="true" />
             <div><h2>{configured ? "Sign in to create your profile" : "Account setup is almost ready"}</h2><p>{configured ? "We’ll take you to sign in, then bring you right back here." : "Supabase needs a project URL and publishable key before an account can be loaded or saved."}</p><a className={styles.primaryButton} href={`${basePath}/login/`}>Go to sign in <ArrowRight size={17} aria-hidden="true" /></a></div>
+          </section>
+        ) : !profileReady ? (
+          <section className={styles.noticeCard}>
+            <ShieldCheck size={22} aria-hidden="true" />
+            <div><h2>Profile storage isn’t ready yet</h2><p>{error || "Apply the Collexus profiles migration, then refresh this page."}</p><a className={styles.primaryButton} href={`${basePath}/#featured-events`}>Back to events <ArrowRight size={17} aria-hidden="true" /></a></div>
           </section>
         ) : (
           <div className={styles.contentGrid}>

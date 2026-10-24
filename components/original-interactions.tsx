@@ -9,6 +9,16 @@ import { events } from "@/data/events";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+function normalizeSearchValue(value) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 function mountLucidePlaceholders(container) {
   return [...container.querySelectorAll(".lucide-mount[data-lucide]")].map((node) => {
     const root = createRoot(node);
@@ -48,19 +58,34 @@ export function OriginalInteractions() {
     });
     (() => {
       
-       const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions');
+       const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions'), clearSearchButton=document.getElementById('clearGlobalSearch');
+       const shortcutModifier=document.getElementById('searchShortcutModifier');
+       if(shortcutModifier)shortcutModifier.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl';
        const searchButtons=[...document.querySelectorAll('[data-search]')];
-       function focusSearch(value){ if(!input)return; input.value=value; input.dispatchEvent(new Event('input',{bubbles:true})); if(panel)panel.classList.add('hidden'); window.openCollexusCategory?.(value); }
+       function focusSearch(value){ if(!input)return; input.value=value; input.dispatchEvent(new Event('input',{bubbles:true})); if(panel)panel.classList.add('hidden'); input.setAttribute('aria-expanded','false'); window.openCollexusCategory?.(value); }
        searchButtons.forEach(b=>b.addEventListener('click',()=>focusSearch(b.dataset.search)));
        if(input&&panel){
-        const open=()=>panel.classList.remove('hidden');
-        input.addEventListener('focus',open);
-        input.addEventListener('input',()=>{
-         const q=input.value.trim().toLowerCase(); panel.classList.remove('hidden');
-         panel.querySelectorAll('button[data-search]').forEach(b=>{const text=b.dataset.search.toLowerCase();b.style.display=(!q||text.includes(q))?'grid':'none'});
-        });
-        document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))panel.classList.add('hidden')});
-        document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')panel.classList.add('hidden')});
+        function updateSearchSuggestions(){
+         const q=normalizeSearchValue(input.value);
+         const categorySuggestions=[...panel.querySelectorAll('button[data-search]')];
+         const eventSuggestions=[...panel.querySelectorAll('[data-event-search-result]')];
+         let categoryCount=0,eventCount=0;
+         categorySuggestions.forEach(button=>{const matches=!q||normalizeSearchValue(button.dataset.search||'').includes(q);button.style.display=matches?'grid':'none';if(matches)categoryCount++});
+         eventSuggestions.forEach(link=>{const matches=!!q&&normalizeSearchValue(link.dataset.eventSearchKey||'').includes(q);link.style.display=matches?'grid':'none';if(matches)eventCount++});
+         const eventGroup=document.getElementById('eventSearchResultGroup');
+         const emptyMessage=document.getElementById('searchSuggestionsEmpty');
+         if(eventGroup)eventGroup.hidden=!q||eventCount===0;
+         if(emptyMessage)emptyMessage.hidden=!q||categoryCount+eventCount>0;
+         panel.classList.remove('hidden');
+         input.setAttribute('aria-expanded','true');
+         if(clearSearchButton)clearSearchButton.hidden=!input.value;
+        }
+        const closeSuggestions=()=>{panel.classList.add('hidden');input.setAttribute('aria-expanded','false')};
+        input.addEventListener('focus',updateSearchSuggestions);
+        input.addEventListener('input',updateSearchSuggestions);
+        clearSearchButton?.addEventListener('click',()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus()});
+        document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
+        document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')closeSuggestions()});
        }
        // Scroll-word-reveal inspired section reveal.
        const reveal=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');reveal.unobserve(e.target)}}),{threshold:.15});
@@ -200,8 +225,8 @@ export function OriginalInteractions() {
       
        // Make category buttons/card controls open a dedicated category view.
        document.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategory(b.dataset.search)}));
-       // Enter in search opens the closest category.
-       const input=document.getElementById('globalSearch'); input?.addEventListener('keydown',e=>{if(e.key==='Enter'){const q=input.value.trim().toLowerCase(); if(!q)return; const matchingEvent=events.find(event=>event.title.toLowerCase().includes(q)); if(matchingEvent){window.location.assign(`${publicBasePath}/events/${matchingEvent.slug}/`);return;} const match=Object.keys(categoryData).find(k=>k.toLowerCase().includes(q)||q.includes(k.toLowerCase())); if(match){document.getElementById('searchSuggestions')?.classList.add('hidden');openCategory(match)}}});
+        // Enter opens the first matching event, or the closest category when no event matches.
+        const input=document.getElementById('globalSearch'); input?.addEventListener('keydown',e=>{if(e.key==='Enter'){const q=normalizeSearchValue(input.value); if(!q)return; const matchingEventLink=[...document.querySelectorAll('[data-event-search-result]')].find(link=>link.style.display!=='none'&&normalizeSearchValue(link.dataset.eventSearchKey||'').includes(q)); if(matchingEventLink){window.location.assign(matchingEventLink.href);return;} const match=Object.keys(categoryData).find(k=>normalizeSearchValue(k).includes(q)||q.includes(normalizeSearchValue(k))); if(match){document.getElementById('searchSuggestions')?.classList.add('hidden');input.setAttribute('aria-expanded','false');openCategory(match)}}});
        // Login chooser.
        const modal=document.getElementById('loginModal'), hint=document.getElementById('loginFormHint');
        function closeLogin(){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
@@ -334,6 +359,9 @@ export function OriginalInteractions() {
         const sectionFilterBtn = document.getElementById('sectionFilterBtn');
         const filterCountLabel = document.getElementById('filterCountLabel');
         const noFilteredEvents = document.getElementById('noFilteredEvents');
+         const globalSearchInput = document.getElementById('globalSearch');
+         const eventResultsStatus = document.getElementById('eventResultsStatus');
+         const noResultsHint = document.getElementById('noFilteredEventsHint');
       
         const activeFilters = {
           audience: 'all',
@@ -341,6 +369,7 @@ export function OriginalInteractions() {
           category: 'all',
           branch: 'all'
         };
+         let searchQuery = normalizeSearchValue(globalSearchInput?.value || '');
       
         // Both menu entry points open directly to the event filters.
         sectionFilterBtn?.addEventListener('click', () => {
@@ -368,10 +397,12 @@ export function OriginalInteractions() {
           const category = (card.dataset.category || '').toLowerCase();
           const branch = (card.dataset.branch || '').toLowerCase();
           const tracks = (card.dataset.tracks || '').toLowerCase().split('|');
+           const searchableText = normalizeSearchValue(card.dataset.searchText || '');
           return (activeFilters.audience === 'all' || audience.includes(activeFilters.audience)) &&
             (activeFilters.pricing === 'all' || pricing === activeFilters.pricing) &&
-            (activeFilters.category === 'all' || category === activeFilters.category) &&
-            (activeFilters.branch === 'all' || branch === activeFilters.branch || tracks.includes(activeFilters.branch));
+             (activeFilters.category === 'all' || category.includes(activeFilters.category) || activeFilters.category.includes(category)) &&
+             (activeFilters.branch === 'all' || branch === activeFilters.branch || tracks.includes(activeFilters.branch)) &&
+             (!searchQuery || searchableText.includes(searchQuery));
         }
 
         function updateFilterPreview() {
@@ -393,7 +424,9 @@ export function OriginalInteractions() {
         eventRowsButton?.addEventListener('click', () => setEventListExpanded(!eventGrid?.classList.contains('expanded')));
         updateFilterPreview();
       
-        function applyActiveFilters() {
+        function applyActiveFilters(options = {}) {
+          const closeDrawer = options.closeDrawer !== false;
+          const scrollToResults = options.scrollToResults !== false;
           const eventCards = document.querySelectorAll('#eventsGrid .event-item');
           // Reveal the complete set whenever a filter is applied so matching records are never hidden below the collapsed rows.
           setEventListExpanded(true);
@@ -406,18 +439,7 @@ export function OriginalInteractions() {
           }
       
           eventCards.forEach(card => {
-            const audience = card.dataset.audience || 'all';
-            const pricing = card.dataset.pricing || 'all';
-            const cat = card.dataset.category || 'all';
-            const branch = card.dataset.branch || 'all';
-            const tracks = (card.dataset.tracks || '').toLowerCase().split('|');
-      
-            const matchAudience = activeFilters.audience === 'all' || audience.toLowerCase().split(/\s+/).includes(activeFilters.audience.toLowerCase());
-            const matchPricing = activeFilters.pricing === 'all' || pricing.toLowerCase() === activeFilters.pricing.toLowerCase();
-            const matchCat = activeFilters.category === 'all' || cat.toLowerCase().includes(activeFilters.category.toLowerCase()) || activeFilters.category.toLowerCase().includes(cat.toLowerCase());
-            const matchBranch = activeFilters.branch === 'all' || branch.toLowerCase() === activeFilters.branch.toLowerCase() || tracks.includes(activeFilters.branch.toLowerCase());
-      
-            if (matchAudience && matchPricing && matchCat && matchBranch) {
+            if (matchesSelectedFilters(card)) {
               card.style.display = '';
               visibleCount++;
             } else {
@@ -452,19 +474,48 @@ export function OriginalInteractions() {
           if (noFilteredEvents) {
             noFilteredEvents.classList.toggle('hidden', visibleCount > 0);
           }
+          const searchTerm = globalSearchInput?.value.trim() || '';
+          if (eventResultsStatus) {
+            eventResultsStatus.textContent = searchTerm
+              ? `${visibleCount} ${visibleCount === 1 ? 'event matches' : 'events match'} “${searchTerm}”.`
+              : activeEntries.length
+                ? `Showing ${visibleCount} of ${eventCards.length} published event records.`
+                : `Showing all ${eventCards.length} published event records.`;
+          }
+          if (noResultsHint) {
+            noResultsHint.textContent = searchTerm
+              ? `No published listings match “${searchTerm}”. Try a title, track, organizer, venue, or date.`
+              : 'Try a broader search or clear the filters to see the full schedule.';
+          }
           updateFilterPreview();
       
-          closeMenu();
-          if (document.body.classList.contains('category-mode')) {
-            closeCategory();
+          if (closeDrawer) {
+            closeMenu();
+            if (document.body.classList.contains('category-mode')) {
+              closeCategory();
+            }
           }
-          setTimeout(() => {
-            document.getElementById('featured-events')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+          if (scrollToResults) {
+            setTimeout(() => {
+              document.getElementById('featured-events')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }
         }
+
+        globalSearchInput?.addEventListener('input', () => {
+          searchQuery = normalizeSearchValue(globalSearchInput.value);
+          applyActiveFilters({ closeDrawer: false, scrollToResults: false });
+        });
       
         function resetAllFilters() {
           Object.keys(activeFilters).forEach(k => activeFilters[k] = 'all');
+          if (globalSearchInput) {
+            globalSearchInput.value = '';
+            globalSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            globalSearchInput.setAttribute('aria-expanded', 'false');
+          }
+          document.getElementById('searchSuggestions')?.classList.add('hidden');
+          searchQuery = '';
           document.querySelectorAll('[data-filter-group]').forEach(group => {
             group.querySelectorAll('.filter-chip, .menu-filter-chip').forEach(c => {
               c.classList.toggle('active', c.dataset.filterVal === 'all');

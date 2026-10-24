@@ -46,7 +46,8 @@
 .cardIntro { margin: 9px 0 19px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .accountTypes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .accountType { min-width: 0; min-height: 77px; display: grid; grid-template-columns: 18px minmax(0, 1fr) 16px; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 13px; color: var(--muted); text-align: left; background: var(--soft); cursor: pointer; transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease; }
-.accountType:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--teal) 58%, var(--line)); background: color-mix(in srgb, var(--teal-soft) 48%, var(--soft)); }
+.accountType:hover:not(:disabled) { transform: translateY(-1px); border-color: color-mix(in srgb, var(--teal) 58%, var(--line)); background: color-mix(in srgb, var(--teal-soft) 48%, var(--soft)); }
+.accountType:disabled { opacity: .68; cursor: not-allowed; }
 .accountTypeSelected { border-color: var(--teal); color: var(--teal-dark); background: color-mix(in srgb, var(--teal-soft) 82%, var(--card)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 14%, transparent), 0 3px 10px color-mix(in srgb, var(--teal) 10%, transparent); }
 .accountTypeSelected strong { color: var(--teal-dark); }
 .accountType > svg:first-child { display: block; }
@@ -56,9 +57,11 @@
 .typeCheck { display: block; color: var(--teal); opacity: 0; transform: scale(.8); transition: opacity .16s ease, transform .16s ease; }
 .typeCheckVisible { opacity: 1; transform: scale(1); }
 .modeTabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 23px 0 15px; padding: 4px; border-radius: 12px; background: var(--soft); }
-.modeTabs button { min-height: 44px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); background: transparent; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; transition: border-color .16s ease, color .16s ease, background .16s ease, box-shadow .16s ease; }
+.modeTabs button { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); background: transparent; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; transition: border-color .16s ease, color .16s ease, background .16s ease, box-shadow .16s ease; }
 .modeTabs .modeActive { border-color: color-mix(in srgb, var(--teal) 22%, var(--line)); color: var(--teal-dark); background: var(--card); box-shadow: 0 2px 7px rgba(16, 48, 59, .08), inset 0 -2px 0 var(--teal); }
 .modeTabs button:hover:not(.modeActive) { color: var(--ink); background: color-mix(in srgb, var(--card) 64%, transparent); }
+.modeTabs button:disabled { opacity: .56; cursor: not-allowed; }
+.methodTabs { margin: 0 0 15px; }
 .googleButton { width: 100%; min-height: 45px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: var(--card); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
 .googleButton:hover:not(:disabled) { transform: translateY(-1px); border-color: #9db8be; background: var(--soft); }
 .googleButton:disabled { opacity: .55; cursor: not-allowed; }
@@ -80,6 +83,7 @@
 .inputWrap:focus-within input:-webkit-autofill, .inputWrap:focus-within input:autofill { -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important; box-shadow: 0 0 0 1000px var(--card) inset !important; }
 .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
 :global(body.warm-editorial-theme.vivid-nightfall-theme) .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
+.inputWrap input:disabled { opacity: .62; cursor: not-allowed; }
 .inputWrap input::placeholder { color: #91a4af; }
 .passwordToggle { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; cursor: pointer; transition: color .16s ease, background .16s ease; }
 .passwordToggle:hover { color: var(--teal); background: var(--teal-soft); }
@@ -96,6 +100,7 @@
 .primaryButton:active:not(:disabled) { transform: translateY(1px); }
 .primaryButton:disabled { opacity: .62; cursor: not-allowed; }
 .roleNote { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
+.otpHint { margin: -4px 0 1px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .error, .success, .setupNotice, .verifyNotice { margin: 0; padding: 10px 11px; border: 1px solid; border-radius: 9px; font-size: 10px; line-height: 1.45; }
 .error { color: #9c3434; border-color: #efcdcd; background: #fff5f4; }
 .success { color: #087662; border-color: #bfe4db; background: #effaf6; }

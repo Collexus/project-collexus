@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
+import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, BookOpen, ChevronDown,
   Compass, GraduationCap, LoaderCircle, Plus, ShieldCheck, X,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
+import { getUserProfile, updateUserProfile } from "../../lib/user-profile";
 import styles from "./skills.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -50,6 +52,8 @@ function TagField({ label, hint, values, draft, setDraft, onAdd, onRemove, place
 export function SkillsExperience() {
   const [configured] = useState(isSupabaseConfigured());
   const [checking, setChecking] = useState(() => isSupabaseConfigured());
+  const [user, setUser] = useState<User | null>(null);
+  const [profileReady, setProfileReady] = useState(() => !isSupabaseConfigured());
   const [branch, setBranch] = useState("");
   const [otherBranch, setOtherBranch] = useState("");
   const [experience, setExperience] = useState("");
@@ -87,19 +91,29 @@ export function SkillsExperience() {
       }, 0);
       return () => window.clearTimeout(draftTimer);
     }
-    void supabase.auth.getUser().then(({ data, error: authError }) => {
+    void supabase.auth.getUser().then(async ({ data, error: authError }) => {
       if (!active) return;
       if (authError || !data.user) { window.location.replace(`${basePath}/login/?next=%2Fabout-you%2F`); return; }
-      const metadata = data.user.user_metadata;
-      setBranch(String(metadata.profile_branch_category ?? metadata.profile_branch ?? ""));
-      setOtherBranch(String(metadata.profile_branch_details ?? ""));
-      setExperience(String(metadata.profile_experience ?? ""));
-      setSkills(readArray(metadata.profile_skills));
-      const savedInterests = readArray(metadata.profile_interests);
+      const currentUser = data.user;
+      const metadata = currentUser.user_metadata;
+      setUser(currentUser);
+      const { profile, error: profileError } = await getUserProfile(supabase, currentUser.id);
+      if (!active) return;
+      if (profileError || !profile) {
+        setError("Profile storage isn’t ready yet. Apply the Collexus profiles migration, then refresh this page.");
+        setChecking(false);
+        return;
+      }
+      setBranch(profile.profile_branch_category ?? String(metadata.profile_branch_category ?? metadata.profile_branch ?? ""));
+      setOtherBranch(profile.profile_branch_details ?? String(metadata.profile_branch_details ?? ""));
+      setExperience(profile.profile_experience ?? String(metadata.profile_experience ?? ""));
+      setSkills(readArray(profile.profile_skills ?? metadata.profile_skills));
+      const savedInterests = readArray(profile.profile_interests ?? metadata.profile_interests);
       const oldTech = savedInterests.filter((item) => allTechnologyOptions.has(item));
-      setTechnologies([...new Set([...readArray(metadata.profile_technologies), ...oldTech])]);
+      setTechnologies([...new Set([...readArray(profile.profile_technologies ?? metadata.profile_technologies), ...oldTech])]);
       setInterests(savedInterests.filter((item) => !allTechnologyOptions.has(item) && !removedInterestLabels.has(item)));
-      setFoods(readArray(metadata.profile_favorite_foods));
+      setFoods(readArray(profile.profile_favorite_foods ?? metadata.profile_favorite_foods));
+      setProfileReady(true);
       setChecking(false);
     }).catch(() => { if (active) setChecking(false); });
     return () => { active = false; };
@@ -132,9 +146,9 @@ export function SkillsExperience() {
       } catch { setError("Your browser couldn’t save this draft. Check its storage settings and try again."); }
       return;
     }
+    if (!user) { setError("Sign in to save your profile details."); return; }
     setBusy(true);
-    const { error: updateError } = await supabase.auth.updateUser({ data: {
-      profile_branch: branch === "Other" ? otherBranch.trim() : branch,
+    const { error: updateError } = await updateUserProfile(supabase, user.id, {
       profile_branch_category: branch,
       profile_branch_details: branch === "Other" ? otherBranch.trim() : "",
       profile_experience: experience,
@@ -143,7 +157,7 @@ export function SkillsExperience() {
       profile_interests: interests,
       profile_favorite_foods: foods,
       profile_complete: true,
-    } });
+    });
     setBusy(false);
     if (updateError) { setError("We couldn’t save your details. Check your connection and try again."); return; }
     setSaved(true);
@@ -184,7 +198,7 @@ export function SkillsExperience() {
           </section>
           {error && <p className={styles.error} role="alert">{error}</p>}{saved && <p className={styles.success} role="status"><BadgeCheck size={17} aria-hidden="true" /> Your profile details are saved.</p>}
           {!configured && <p className={styles.setupNotice}><ShieldCheck size={16} aria-hidden="true" /> Your profile service isn’t connected yet. You can still fill out the page and save a draft in this browser.</p>}
-          <div className={styles.actions}><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? <><LoaderCircle className={styles.spinner} size={17} aria-hidden="true" /> Saving…</> : <>{configured ? "Save my details" : "Save this draft"} <ArrowRight size={17} aria-hidden="true" /></>}</button><a href={`${basePath}/#featured-events`}>Maybe later</a></div>
+          <div className={styles.actions}><button className={styles.primaryButton} type="submit" disabled={busy || (configured && !profileReady)}>{busy ? <><LoaderCircle className={styles.spinner} size={17} aria-hidden="true" /> Saving…</> : <>{configured ? "Save my details" : "Save this draft"} <ArrowRight size={17} aria-hidden="true" /></>}</button><a href={`${basePath}/#featured-events`}>Maybe later</a></div>
         </form>
       </div>}
       <footer className={styles.footer}><span>© 2026 Collexus</span><span>Find your people. Find your next experience.</span></footer>
