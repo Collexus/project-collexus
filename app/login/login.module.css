@@ -63,6 +63,7 @@
 .modeTabs button:disabled { opacity: .56; cursor: not-allowed; }
 .googleButton { width: 100%; min-height: 45px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: var(--card); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
 .googleButton:hover:not(:disabled) { transform: translateY(-1px); border-color: #9db8be; background: var(--soft); }
+.googleButton + .googleButton { margin-top: 9px; }
 .googleButton:disabled { opacity: .55; cursor: not-allowed; }
 .googleMark { width: 18px; height: 18px; }
 .divider { display: flex; align-items: center; gap: 12px; margin: 17px 0; color: var(--muted); font-size: 10px; }

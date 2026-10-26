@@ -22,9 +22,9 @@ function readStringArray(value: unknown) {
 
 export function ProfileExperience() {
   const [user, setUser] = useState<User | null>(null);
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(isSupabaseConfigured);
   const [profileReady, setProfileReady] = useState(false);
-  const [configured, setConfigured] = useState(false);
+  const [configured] = useState(isSupabaseConfigured);
   const [accountType, setAccountType] = useState("member");
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
@@ -39,11 +39,7 @@ export function ProfileExperience() {
   useEffect(() => {
     let active = true;
     const supabase = getSupabaseClient();
-    setConfigured(isSupabaseConfigured());
-    if (!supabase) {
-      setChecking(false);
-      return;
-    }
+    if (!supabase) return;
     void supabase.auth.getUser().then(async ({ data, error: authError }) => {
       if (!active) return;
       if (authError || !data.user) {
@@ -137,6 +133,9 @@ export function ProfileExperience() {
     setSaved(true);
   }
 
+  const contactEmail = typeof user?.user_metadata.personal_email === "string"
+    ? user.user_metadata.personal_email
+    : user?.email ?? "WhatsApp account";
   const displayName = name.trim() || user?.email?.split("@")[0] || "Your name";
   return (
     <main className={styles.page}>
@@ -245,7 +244,7 @@ export function ProfileExperience() {
                 <div className={styles.avatar}><span>{displayName.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase() || "C"}</span><i><Check size={12} aria-hidden="true" /></i></div>
                 <span className={styles.roleBadge}>{accountType === "guest" ? "CAMPUS GUEST" : accountType === "faculty" ? "FACULTY" : "STUDENT"}</span>
                 <h3>{displayName}</h3>
-                <p className={styles.previewEmail}>{user.email}</p>
+                <p className={styles.previewEmail}>{contactEmail}</p>
                 <div className={styles.previewDivider} />
                 <p className={styles.previewLabel}><BookOpen size={14} aria-hidden="true" /> DOMAIN</p>
                 <p className={styles.previewValue}>{domain || "Your area of focus"}</p>
