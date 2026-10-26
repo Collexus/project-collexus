@@ -68,6 +68,7 @@ export function LoginExperience() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [needsMobileNumber, setNeedsMobileNumber] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [configured, setConfigured] = useState(false);
 
@@ -101,11 +102,11 @@ export function LoginExperience() {
             const { error: profileError } = await updateUserProfile(supabase, session.user.id, { account_type: pendingAccountType });
             if (profileError) {
               if (active) setError("Your account is signed in, but profile storage isn’t ready. Apply the Collexus profiles migration, then refresh this page.");
-            } else {
+            } else if (currentUser?.user_metadata.phone_number) {
               window.sessionStorage.removeItem("collexus-pending-account-type");
             }
           }
-        } else if (session && pendingAccountType) {
+        } else if (session && pendingAccountType && currentUser?.user_metadata.phone_number) {
           // Keep an existing Google user's saved account type when they sign in.
           window.sessionStorage.removeItem("collexus-pending-account-type");
         }
@@ -118,6 +119,9 @@ export function LoginExperience() {
               contactVerified: Boolean(currentUser.email_confirmed_at || currentUser.phone_confirmed_at),
               accountType: typeof currentUser.user_metadata.account_type === "string" ? currentUser.user_metadata.account_type : null,
             } : null);
+            const pendingGoogleSignup = window.sessionStorage.getItem("collexus-pending-account-type");
+            const savedMobileNumber = String(currentUser?.user_metadata.phone_number ?? "").trim();
+            setNeedsMobileNumber(Boolean(currentUser && pendingGoogleSignup && !savedMobileNumber));
             setCheckingSession(false);
             const recoveryCallback = `${window.location.search}${window.location.hash}`.includes("type=recovery");
             const waitingForAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
@@ -337,6 +341,36 @@ export function LoginExperience() {
     }
   }
 
+  async function submitRequiredMobileNumber(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setBusy(true);
+    const formData = new FormData(event.currentTarget);
+    const phone = normalizePhoneNumber(String(formData.get("phone") ?? ""));
+
+    try {
+      const supabase = getSupabaseClient();
+      if (!supabase || !user) {
+        setError("Secure account updates are not configured yet. Refresh the page and try again.");
+        return;
+      }
+      if (!isInternationalPhoneNumber(phone)) {
+        setError("Enter your mobile number with its country code, for example +91 98765 43210.");
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ data: { phone_number: phone } });
+      if (updateError) throw updateError;
+      window.sessionStorage.removeItem("collexus-pending-account-type");
+      setNeedsMobileNumber(false);
+      window.location.assign(`${basePath}/profile/`);
+    } catch (authError) {
+      setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function continueWithGoogle() {
     setError("");
     setMessage("");
@@ -389,13 +423,26 @@ export function LoginExperience() {
           {user && mode !== "recovery" ? (
             <div className={styles.signedIn}>
               <span className={styles.signedIcon}><BadgeCheck size={26} aria-hidden="true" /></span>
-              <p className={styles.eyebrow}>YOU’RE SIGNED IN</p>
-              <h2>Welcome{user.displayName ? `, ${user.displayName.split(" ")[0]}` : " back"}.</h2>
+              <p className={styles.eyebrow}>{needsMobileNumber ? "ONE LAST STEP" : "YOU’RE SIGNED IN"}</p>
+              <h2>{needsMobileNumber ? "Add your mobile number" : `Welcome${user.displayName ? `, ${user.displayName.split(" ")[0]}` : " back"}.`}</h2>
               <p className={styles.signedEmail}>{user.email ?? user.phone}</p>
-              {!user.contactVerified && <p className={styles.verifyNotice}>Verify your email or phone before using account features.</p>}
-              {user.accountType && <p className={styles.signedEmail}>Account type: {user.accountType}</p>}
-              {error && <p className={styles.error} role="alert">{error}</p>}
-              <a className={styles.primaryButton} href={`${basePath}/#featured-events`}>Explore events <ArrowRight size={17} aria-hidden="true" /></a>
+              {needsMobileNumber ? (
+                <>
+                  <p className={styles.verifyNotice}>A mobile number is required to finish your Google signup. It will be saved as unverified contact information.</p>
+                  {error && <p className={styles.error} role="alert">{error}</p>}
+                  <form className={styles.form} onSubmit={submitRequiredMobileNumber}>
+                    <label className={styles.field}><span>Mobile number <small>required · unverified contact info</small></span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" disabled={busy} /></div></label>
+                    <button className={styles.primaryButton} disabled={busy || !configured} type="submit">{busy ? "Please wait…" : "Save mobile number"}<ArrowRight size={17} aria-hidden="true" /></button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  {!user.contactVerified && <p className={styles.verifyNotice}>Verify your email or phone before using account features.</p>}
+                  {user.accountType && <p className={styles.signedEmail}>Account type: {user.accountType}</p>}
+                  {error && <p className={styles.error} role="alert">{error}</p>}
+                  <a className={styles.primaryButton} href={`${basePath}/#featured-events`}>Explore events <ArrowRight size={17} aria-hidden="true" /></a>
+                </>
+              )}
               <button className={styles.textButton} onClick={() => void signOutUser()} type="button">Sign out</button>
             </div>
           ) : (
