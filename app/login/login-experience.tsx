@@ -33,10 +33,19 @@ const accountTypes: { id: AccountType; label: string; detail: string; icon: type
   { id: "guest", label: "Guest", detail: "Outside participants", icon: UsersRound },
 ];
 
-function friendlyAuthError(message: string) {
+function friendlyAuthError(error: unknown) {
+  const details = typeof error === "object" && error !== null
+    ? error as { message?: unknown; code?: unknown; status?: unknown }
+    : {};
+  const message = typeof details.message === "string" ? details.message : typeof error === "string" ? error : "";
+  const code = typeof details.code === "string" ? details.code : "";
   const normalized = message.toLowerCase();
   if (normalized.includes("cancelled") || normalized.includes("canceled")) return "Google sign-in was closed before it finished.";
   if (normalized.includes("network") || normalized.includes("fetch")) return "Connection interrupted. Check your internet and try again.";
+  if (code === "over_email_send_rate_limit") return "Authentication emails are temporarily limited for this project. Supabase’s built-in sender allows 2 emails per hour across the project. Wait for the limit to reset, or configure custom SMTP to support more signups.";
+  if (code === "over_request_rate_limit") return "Supabase temporarily limited sign-up requests from this network. Wait a few minutes before trying again, and avoid repeated retries.";
+  if (code === "over_sms_send_rate_limit") return "Text-message delivery is temporarily limited. Wait for the SMS limit to reset before requesting another code.";
+  if (details.status === 429) return "Supabase temporarily limited this authentication request. Wait a few minutes before trying again.";
   if (normalized.includes("rate limit") || normalized.includes("too many")) return "Too many attempts. Wait a little and try again.";
   if (normalized.includes("already registered") || normalized.includes("already exists")) return "That account may already exist. Try signing in or use another email address.";
   if (normalized.includes("email not confirmed")) return "Verify your email using the link we sent before signing in.";
@@ -239,7 +248,7 @@ export function LoginExperience() {
         window.location.assign(`${basePath}/profile/`);
       }
     } catch (authError) {
-      setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
+      setError(friendlyAuthError(authError));
     } finally {
       setBusy(false);
     }
@@ -269,7 +278,7 @@ export function LoginExperience() {
       setNeedsMobileNumber(false);
       window.location.assign(`${basePath}/profile/`);
     } catch (authError) {
-      setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
+      setError(friendlyAuthError(authError));
     } finally {
       setBusy(false);
     }
@@ -297,7 +306,7 @@ export function LoginExperience() {
       if (oauthError) throw oauthError;
     } catch (authError) {
       window.sessionStorage.removeItem("collexus-pending-account-type");
-      setError(friendlyAuthError(authError instanceof Error ? authError.message : ""));
+      setError(friendlyAuthError(authError));
     } finally {
       setBusy(false);
     }
