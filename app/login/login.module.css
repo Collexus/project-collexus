@@ -61,7 +61,6 @@
 .modeTabs .modeActive { border-color: color-mix(in srgb, var(--teal) 22%, var(--line)); color: var(--teal-dark); background: var(--card); box-shadow: 0 2px 7px rgba(16, 48, 59, .08), inset 0 -2px 0 var(--teal); }
 .modeTabs button:hover:not(.modeActive) { color: var(--ink); background: color-mix(in srgb, var(--card) 64%, transparent); }
 .modeTabs button:disabled { opacity: .56; cursor: not-allowed; }
-.methodTabs { margin: 0 0 15px; }
 .googleButton { width: 100%; min-height: 45px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: var(--card); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
 .googleButton:hover:not(:disabled) { transform: translateY(-1px); border-color: #9db8be; background: var(--soft); }
 .googleButton:disabled { opacity: .55; cursor: not-allowed; }
@@ -87,20 +86,17 @@
 .inputWrap input::placeholder { color: #91a4af; }
 .passwordToggle { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; cursor: pointer; transition: color .16s ease, background .16s ease; }
 .passwordToggle:hover { color: var(--teal); background: var(--teal-soft); }
-.formOptions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .remember { display: flex; align-items: flex-start; gap: 7px; color: var(--muted); font-size: 9px; font-weight: 500; line-height: 1.5; }
 .remember input { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--teal); cursor: pointer; }
 .remember input:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 48%, white); outline-offset: 2px; }
-.forgotButton, .textButton { padding: 0; border: 0; color: var(--teal); background: transparent; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
-.forgotButton:hover, .textButton:hover { color: var(--teal-dark); text-decoration: underline; }
-.forgotButton:disabled { color: var(--muted); cursor: not-allowed; }
+.textButton { padding: 0; border: 0; color: var(--teal); background: transparent; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.textButton:hover { color: var(--teal-dark); text-decoration: underline; }
 .primaryButton { min-height: 47px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 0 17px; border: 1px solid var(--teal); border-radius: 11px; color: #fff; background: linear-gradient(110deg, #087e83, #117f9b); box-shadow: 0 6px 15px rgba(8, 126, 131, .17); font: inherit; font-size: 12px; font-weight: 750; text-decoration: none; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, filter .16s ease; }
 .form > .primaryButton { width: 100%; margin-top: 2px; }
 .primaryButton:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 9px 20px rgba(8, 126, 131, .2); }
 .primaryButton:active:not(:disabled) { transform: translateY(1px); }
 .primaryButton:disabled { opacity: .62; cursor: not-allowed; }
 .roleNote { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
-.otpHint { margin: -4px 0 1px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .error, .success, .setupNotice, .verifyNotice { margin: 0; padding: 10px 11px; border: 1px solid; border-radius: 9px; font-size: 10px; line-height: 1.45; }
 .error { color: #9c3434; border-color: #efcdcd; background: #fff5f4; }
 .success { color: #087662; border-color: #bfe4db; background: #effaf6; }
@@ -113,8 +109,8 @@
 .textButton { margin-top: 3px; }
 .footer { display: flex; justify-content: space-between; gap: 12px; width: min(620px, calc(100% - 32px)); margin: 0 auto; padding: 17px 0 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
 
-.backLink:focus-visible, .accountType:focus-visible, .modeTabs button:focus-visible, .googleButton:focus-visible, .passwordToggle:focus-visible, .forgotButton:focus-visible, .primaryButton:focus-visible, .textButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 55%, white); outline-offset: 3px; }
-.forgotButton, .textButton { min-height: 44px; padding-inline: 4px; touch-action: manipulation; }
+.backLink:focus-visible, .accountType:focus-visible, .modeTabs button:focus-visible, .googleButton:focus-visible, .passwordToggle:focus-visible, .primaryButton:focus-visible, .textButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 55%, white); outline-offset: 3px; }
+.textButton { min-height: 44px; padding-inline: 4px; touch-action: manipulation; }
 
 @media (max-width: 850px) {
   .shell { grid-template-columns: minmax(0, 620px); }
