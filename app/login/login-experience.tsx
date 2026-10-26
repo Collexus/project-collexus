@@ -143,6 +143,7 @@ export function LoginExperience() {
 
   function switchMode(nextMode: AccountMode) {
     setMode(nextMode);
+    if (nextMode === "signup") setAuthMethod("email");
     setOtpSent(false);
     setOtpCode("");
     setError("");
@@ -217,7 +218,11 @@ export function LoginExperience() {
         }
         const name = String(formData.get("name") ?? "").trim();
         const campusId = String(formData.get("campusId") ?? "").trim();
-        const phone = String(formData.get("phone") ?? "").trim();
+        const phone = normalizePhoneNumber(String(formData.get("phone") ?? ""));
+        if (!isInternationalPhoneNumber(phone)) {
+          setError("Enter your mobile number with its country code, for example +91 98765 43210.");
+          return;
+        }
         const { data, error: signupError } = await supabase.auth.signUp({
           email,
           password,
@@ -227,7 +232,7 @@ export function LoginExperience() {
               full_name: name,
               account_type: accountType,
               campus_id: campusId || null,
-              phone_number: phone || null,
+              phone_number: phone,
             },
           },
         });
@@ -421,7 +426,7 @@ export function LoginExperience() {
                 <button aria-selected={mode === "signup"} className={mode === "signup" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchMode("signup")} role="tab" type="button">Create account</button>
               </div>}
 
-              {mode !== "recovery" && <div className={`${styles.modeTabs} ${styles.methodTabs}`} role="group" aria-label="Choose sign-in method">
+              {mode === "signin" && <div className={`${styles.modeTabs} ${styles.methodTabs}`} role="group" aria-label="Choose sign-in method">
                 <button aria-pressed={authMethod === "email"} className={authMethod === "email" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchAuthMethod("email")} type="button">Email &amp; password</button>
                 <button aria-pressed={authMethod === "whatsapp"} className={authMethod === "whatsapp" ? styles.modeActive : ""} disabled={busy || otpSent} onClick={() => switchAuthMethod("whatsapp")} type="button"><MessageCircle size={15} aria-hidden="true" /> WhatsApp code</button>
               </div>}
@@ -429,13 +434,13 @@ export function LoginExperience() {
               {mode !== "recovery" && <button className={styles.googleButton} disabled={busy || !configured || otpSent} onClick={() => void continueWithGoogle()} type="button">
                 <GoogleMark /><span>Continue with Google</span>
               </button>}
-              {mode !== "recovery" && <div className={styles.divider}><span>or continue with your selected method</span></div>}
+              {mode !== "recovery" && <div className={styles.divider}><span>{mode === "signup" ? "or sign up with email" : "or continue with your selected method"}</span></div>}
 
               <form className={styles.form} onSubmit={authMethod === "whatsapp" ? submitWhatsapp : submitCredentials}>
                 {mode === "signup" && <label className={styles.field}><span>Full name</span><div className={styles.inputWrap}><UsersRound size={16} aria-hidden="true" /><input autoComplete="name" maxLength={80} name="name" placeholder="Your name" required disabled={busy || otpSent} /></div></label>}
                 {mode === "signup" && accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required disabled={busy || otpSent} /></div></label>}
                 {authMethod === "email" && mode !== "recovery" && <label className={styles.field}><span>{accountType === "guest" ? "Email address" : "College email"}</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder={accountType === "guest" ? "you@example.com" : "you@college.edu"} required type="email" /></div></label>}
-                {authMethod === "email" && mode === "signup" && <label className={styles.field}><span>Mobile number <small>optional · unverified contact info</small></span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" type="tel" disabled={busy} /></div></label>}
+                {authMethod === "email" && mode === "signup" && <label className={styles.field}><span>Mobile number <small>required · unverified contact info</small></span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" disabled={busy} /></div></label>}
                 {authMethod === "whatsapp" && mode !== "recovery" && <label className={styles.field}><span>WhatsApp number <small>Include your country code</small></span><div className={styles.inputWrap}><MessageCircle size={16} aria-hidden="true" /><input autoComplete="tel" inputMode="tel" maxLength={20} name="phone" onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+91 98765 43210" required type="tel" value={phoneNumber} disabled={otpSent || busy} /></div></label>}
                 {authMethod === "whatsapp" && !otpSent && <p className={styles.otpHint}>We’ll send a one-time code in WhatsApp. Use an international number such as +91 98765 43210.</p>}
                 {authMethod === "whatsapp" && otpSent && <>
