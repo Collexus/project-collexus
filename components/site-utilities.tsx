@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
 
 export function SiteUtilities() {
-  const [progress, setProgress] = useState(0);
+  const scrollProgressRef = useRef<HTMLSpanElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -16,12 +16,19 @@ export function SiteUtilities() {
     const main = document.querySelector("main");
     if (main && !main.id) main.id = "main-content";
     if (main && !main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+    let scrollFrame = 0;
     const updateScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0);
+      if (scrollFrame) return;
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = 0;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        scrollProgressRef.current?.style.setProperty("transform", `scaleX(${progress})`);
+      });
     };
     updateScroll();
     window.addEventListener("scroll", updateScroll, { passive: true });
+    window.addEventListener("resize", updateScroll);
     let navigationTimeout: number | undefined;
 
     try {
@@ -62,6 +69,8 @@ export function SiteUtilities() {
     document.addEventListener("click", onClick, true);
     return () => {
       window.removeEventListener("scroll", updateScroll);
+      window.removeEventListener("resize", updateScroll);
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
       window.clearTimeout(navigationTimeout);
@@ -117,7 +126,7 @@ export function SiteUtilities() {
   return (
     <>
       <a className="site-skip-link" href="#main-content" onClick={() => document.querySelector("main")?.focus({ preventScroll: true })}>Skip to content</a>
-      <div className="site-scroll-progress" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
+      <div className="site-scroll-progress" aria-hidden="true"><span ref={scrollProgressRef} /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
       </div>
