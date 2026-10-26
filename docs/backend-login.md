@@ -15,9 +15,9 @@ The production Vercel project already has these public browser variables. If cre
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
 
-For local development, put the same two values in `.env.local` at the repository root and restart `npm run dev`.
+For local development, copy `.env.example` to `.env.local`, fill in the Supabase URL and publishable key, and restart `npm run dev`. `.env.local` is ignored by Git.
 
-Never expose a Supabase `service_role` or secret key in a `NEXT_PUBLIC_*` variable or browser code.
+This project uses `output: "export"`, so it has no Next.js server routes to read Twilio or service-role environment variables. Configure the WhatsApp sender under Supabase **Authentication → Providers → Phone**; do not add Twilio auth tokens or a Supabase `service_role` key to this frontend project. Supabase supports WhatsApp delivery through Twilio and Twilio Verify. See the [Supabase phone sign-in guide](https://supabase.com/docs/guides/auth/phone-login).
 
 In Supabase **Authentication → URL Configuration**, allow these redirects:
 
