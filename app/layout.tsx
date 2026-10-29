@@ -34,7 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       } as React.CSSProperties}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `try { const theme = localStorage.getItem("collexus_theme"); document.documentElement.dataset.collexusTheme = theme === "light" || theme === "day" ? "light" : "dark"; } catch { document.documentElement.dataset.collexusTheme = "dark"; }` }} />
+        <script dangerouslySetInnerHTML={{ __html: `document.documentElement.dataset.collexusTheme = "light";` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

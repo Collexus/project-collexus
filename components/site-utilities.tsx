@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
 
 export function SiteUtilities() {
+  const pathname = usePathname();
   const scrollProgressRef = useRef<HTMLSpanElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
@@ -29,6 +31,10 @@ export function SiteUtilities() {
     updateScroll();
     window.addEventListener("scroll", updateScroll, { passive: true });
     window.addEventListener("resize", updateScroll);
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateScroll);
+    resizeObserver?.observe(document.documentElement);
+    if (document.body) resizeObserver?.observe(document.body);
+    document.addEventListener("load", updateScroll, true);
     let navigationTimeout: number | undefined;
 
     try {
@@ -63,19 +69,25 @@ export function SiteUtilities() {
       } catch { /* Tracking is optional and must never block a link. */ }
       document.querySelector(".site-scroll-progress")?.setAttribute("data-loading", "true");
       window.clearTimeout(navigationTimeout);
-      navigationTimeout = window.setTimeout(() => document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading"), 2800);
+      navigationTimeout = window.setTimeout(() => document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading"), 10000);
     };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("click", onClick, true);
     return () => {
       window.removeEventListener("scroll", updateScroll);
       window.removeEventListener("resize", updateScroll);
+      resizeObserver?.disconnect();
+      document.removeEventListener("load", updateScroll, true);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
       window.clearTimeout(navigationTimeout);
     };
   }, []);
+
+  useEffect(() => {
+    document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading");
+  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -146,7 +158,7 @@ export function SiteUtilities() {
         </section>
       </div>}
 
-      {cookieVisible && <aside className="site-cookie-note" aria-label="Browser storage notice"><div><strong>Privacy note</strong><p>Collexus uses essential browser storage to remember your display theme and local form drafts. It does not use advertising cookies.</p></div><button type="button" onClick={dismissNotice} aria-label="Dismiss privacy notice">Got it</button></aside>}
+      {cookieVisible && <aside className="site-cookie-note" aria-label="Browser storage notice"><div><strong>Privacy note</strong><p>Collexus uses essential browser storage to remember local form drafts. Your display starts in day mode when you open the site. It does not use advertising cookies.</p></div><button type="button" onClick={dismissNotice} aria-label="Dismiss privacy notice">Got it</button></aside>}
     </>
   );
 }

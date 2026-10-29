@@ -83,7 +83,12 @@ export function OriginalInteractions() {
         const closeSuggestions=()=>{panel.classList.add('hidden');input.setAttribute('aria-expanded','false')};
         input.addEventListener('focus',updateSearchSuggestions);
         input.addEventListener('input',updateSearchSuggestions);
-        clearSearchButton?.addEventListener('click',()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus()});
+        clearSearchButton?.addEventListener('click',()=>{
+          input.value='';
+          if(document.body.classList.contains('category-mode')) window.closeCollexusCategory?.();
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+          input.focus({preventScroll:true});
+        });
         document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
         document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')closeSuggestions()});
        }
@@ -163,8 +168,9 @@ export function OriginalInteractions() {
         document.body.classList.add('category-mode'); views.classList.remove('hidden'); views.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+key.toLowerCase().replace(/\s+/g,'-')); 
        }
        function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
-       window.openCollexusCategory=openCategory;
        document.getElementById('categoryBack')?.addEventListener('click',closeCategory);
+       window.openCollexusCategory=openCategory;
+       window.closeCollexusCategory=closeCategory;
        document.querySelector('.collexus-brand')?.addEventListener('click',e=>{e.preventDefault();closeCategory();});
       
        // V6 registration + passes + live enrolled count + calendar
@@ -327,10 +333,10 @@ export function OriginalInteractions() {
           });
         });
       
-        // Persistent day / dark display theme.
+        // Start every fresh visit in day mode and keep the selection during client navigation.
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleLabel = document.getElementById('themeToggleLabel');
-        const setDisplayTheme = (theme, persist = true) => {
+        const setDisplayTheme = (theme) => {
           const isLight = theme === 'light';
           document.documentElement.dataset.collexusTheme = isLight ? 'light' : 'dark';
           document.body.classList.remove('dark-green-theme');
@@ -339,9 +345,6 @@ export function OriginalInteractions() {
           if (themeToggleLabel) themeToggleLabel.textContent = isLight ? 'Day' : 'Dark';
           const themeIcon = themeToggleBtn?.querySelector('.theme-toggle-thumb .lucide-icon');
           if (themeIcon) themeIcon.dataset.iconName = isLight ? 'light_mode' : 'dark_mode';
-          if (persist) {
-            try { localStorage.setItem('collexus_theme', isLight ? 'light' : 'dark'); } catch (e) {}
-          }
         };
 
         themeToggleBtn?.addEventListener('click', () => {
@@ -349,11 +352,7 @@ export function OriginalInteractions() {
           setDisplayTheme(isLight ? 'dark' : 'light');
         });
 
-        // Restore the same selection on every route.
-        try {
-          const storedTheme = localStorage.getItem('collexus_theme');
-          setDisplayTheme(storedTheme === 'light' || storedTheme === 'day' ? 'light' : 'dark', false);
-        } catch (e) {}
+        setDisplayTheme(document.documentElement.dataset.collexusTheme === 'dark' ? 'dark' : 'light');
       
         // Integrated Event Filtering Engine
         const sectionFilterBtn = document.getElementById('sectionFilterBtn');
