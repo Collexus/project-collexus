@@ -172,6 +172,12 @@ export function OriginalInteractions() {
        window.openCollexusCategory=openCategory;
        window.closeCollexusCategory=closeCategory;
        document.querySelector('.collexus-brand')?.addEventListener('click',e=>{e.preventDefault();closeCategory();});
+       document.querySelector('.home-back-top')?.addEventListener('click',e=>{
+        e.preventDefault();
+        const behavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+        history.replaceState(null,'',`${location.pathname}${location.search}#home`);
+        window.scrollTo({top:0,behavior});
+       });
       
        // V6 registration + passes + live enrolled count + calendar
        const REG_KEY='collexus_registrations_v6';
