@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
 
 export function SiteUtilities() {
+  const pathname = usePathname();
+  const navigationTimeoutRef = useRef<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -37,23 +40,37 @@ export function SiteUtilities() {
       if (event.key === "Escape") setMenuOpen(false);
     };
     const onClick = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = (event.target as HTMLElement | null)?.closest("a[href]") as HTMLAnchorElement | null;
       if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
       const url = new URL(anchor.href, window.location.href);
-      if (url.origin !== window.location.origin || url.hash && url.pathname === window.location.pathname) return;
+      if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
       try {
         const tracking = new URLSearchParams(sessionStorage.getItem("collexus:tracking") ?? "");
         tracking.forEach((value, key) => { if (!url.searchParams.has(key)) url.searchParams.set(key, value); });
         if (tracking.size) anchor.href = url.toString();
       } catch { /* Tracking is optional and must never block a link. */ }
+      document.querySelector(".site-navigation-progress")?.setAttribute("data-loading", "true");
+      window.clearTimeout(navigationTimeoutRef.current ?? undefined);
+      navigationTimeoutRef.current = window.setTimeout(() => {
+        document.querySelector(".site-navigation-progress")?.removeAttribute("data-loading");
+        navigationTimeoutRef.current = null;
+      }, 10000);
     };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("click", onClick, true);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
+      window.clearTimeout(navigationTimeoutRef.current ?? undefined);
     };
   }, []);
+
+  useEffect(() => {
+    document.querySelector(".site-navigation-progress")?.removeAttribute("data-loading");
+    window.clearTimeout(navigationTimeoutRef.current ?? undefined);
+    navigationTimeoutRef.current = null;
+  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -104,6 +121,7 @@ export function SiteUtilities() {
   return (
     <>
       <a className="site-skip-link" href="#main-content" onClick={() => document.querySelector("main")?.focus({ preventScroll: true })}>Skip to content</a>
+      <div className="site-navigation-progress" aria-hidden="true"><span /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
       </div>
