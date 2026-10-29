@@ -171,7 +171,8 @@ header nav a:not([aria-current="page"]):hover:after{transform:scaleX(1)}
 @media(prefers-reduced-motion:reduce){.collexus-brand,button,a,.search-suggestions button{transition:none!important;animation:none!important}}
 
 :root{--pink-50:#fff8f8;--pink-100:#fff0f1;--pink-200:#f9d8dc;--pink-300:#efb7c0;--rose:#b95f70;--ink:#2b1020;--soft-shadow:0 18px 55px rgba(89,35,52,.10)}
-html{scroll-behavior:smooth}body{background:linear-gradient(180deg,#fffafb 0%,#fff8f8 42%,#fffdfd 100%)!important;color:var(--ink)!important}
+html{scroll-behavior:smooth;scroll-padding-top:var(--site-scroll-offset,146px)}body{background:linear-gradient(180deg,#fffafb 0%,#fff8f8 42%,#fffdfd 100%)!important;color:var(--ink)!important}
+main [id]{scroll-margin-top:var(--site-scroll-offset,146px)}
 body > header{backdrop-filter:blur(18px);background:rgba(255,250,251,.88)!important;border-bottom-color:#f2d9dd!important}
 #globalSearch{height:42px!important;border-radius:14px!important;background:#fff!important;border-color:#edcfd4!important;transition:all .28s ease!important}
 #globalSearch:focus{transform:translateY(-1px);box-shadow:0 0 0 4px rgba(239,183,192,.22),0 10px 28px rgba(89,35,52,.10)!important}
@@ -311,6 +312,7 @@ body.dark-green-theme .login-options .login-option{box-shadow:0 12px 24px rgba(0
 body.category-mode #quickCategories{display:none!important}
 body.category-mode .category-section-nav{position:fixed;top:72px;left:0;right:0;margin:0;border-radius:0 0 14px 14px;justify-content:center;z-index:60;background:rgba(5,10,8,.96)!important}
 body.category-mode .category-page-shell{padding-top:78px}
+body.category-mode #categoryViews{scroll-margin-top:184px}
 
 /* COLLEXUS VIVID NIGHTFALL THEME
    Palette based on the supplied deep violet / orchid reference.
@@ -4530,9 +4532,9 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 /* Shared navigation and utility controls */
 .site-skip-link{position:fixed;z-index:1000;top:10px;left:10px;padding:11px 16px;border-radius:10px;background:#087d83;color:#fff;font-weight:700;transform:translateY(-160%);transition:transform .18s ease}
 .site-skip-link:focus{transform:translateY(0);outline:3px solid #82e7df;outline-offset:3px}
-.site-scroll-progress{position:fixed;z-index:1001;top:0;left:0;width:100%;height:3px;pointer-events:none;background:transparent}
-.site-scroll-progress span{display:block;width:100%;height:100%;background:linear-gradient(90deg,#12a4a7,#65d8c8);box-shadow:0 0 10px rgba(50,190,180,.28);transform:scaleX(0);transform-origin:left center}
-.site-scroll-progress[data-loading="true"] span{width:38%!important;animation:siteNavigate .9s ease-in-out infinite alternate}
+.site-navigation-progress{position:fixed;z-index:1001;top:0;left:0;width:100%;height:3px;pointer-events:none}
+.site-navigation-progress span{display:block;width:100%;height:100%;background:linear-gradient(90deg,#12a4a7,#65d8c8);box-shadow:0 0 10px rgba(50,190,180,.28);transform:scaleX(0);transform-origin:left center;transition:transform .15s ease}
+.site-navigation-progress[data-loading="true"] span{transform:scaleX(.6);animation:siteNavigate .9s ease-in-out infinite alternate}
 .site-utility-actions{position:fixed;z-index:75;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center}
 .site-float-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 16px;border:1px solid rgba(136,174,184,.42);border-radius:999px;background:#1c4654;color:#f5fbfa;font-family:inherit;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;box-shadow:0 8px 22px rgba(12,37,45,.2);cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}
 .site-help-button{width:48px;height:48px;min-height:48px;padding:0}
@@ -4561,11 +4563,19 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 .site-cookie-note button{flex:none;min-height:38px;padding:0 13px;border:0;border-radius:10px;background:#416a73;color:#fff;font-weight:700;cursor:pointer;transition:background .18s ease}
 .site-cookie-note button:hover{background:#2d5b65}
 .site-updated-date{display:block;margin-top:13px;color:#6f8389;font-size:11px}
-.site-route-loading{display:grid;min-height:50vh;place-content:center;justify-items:center;gap:14px;background:var(--surface,#f5f8f7);color:inherit}
+.site-route-loading{display:grid;min-height:calc(100vh - 150px);min-height:calc(100svh - 150px);align-content:center;justify-items:center;gap:14px;padding:24px 20px;background:var(--surface,#f5f8f7);color:inherit}
+.site-route-loading-skeleton{display:grid;width:min(760px,100%);gap:13px;margin-bottom:6px}
+.site-route-skeleton{display:block;border:1px solid rgba(86,125,136,.12);border-radius:14px;background:linear-gradient(100deg,rgba(218,232,232,.5) 20%,rgba(239,246,245,.9) 38%,rgba(218,232,232,.5) 58%);background-size:220% 100%;animation:siteSkeletonShimmer 1.6s ease-in-out infinite}
+.site-route-skeleton-kicker{width:100px;height:12px;border-radius:99px}
+.site-route-skeleton-title{width:min(360px,74%);height:38px}
+.site-route-skeleton-copy{width:min(520px,90%);height:16px}
+.site-route-skeleton-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.site-route-skeleton-card{height:145px}
 .site-route-loading p{margin:0;color:#607780;font-size:14px;font-weight:600}
 .site-route-spinner{width:34px;height:34px;border:3px solid rgba(15,139,143,.2);border-top-color:#0a9296;border-radius:50%;animation:siteSpin .75s linear infinite}
 @keyframes siteSpin{to{transform:rotate(360deg)}}
-@keyframes siteNavigate{from{transform:scaleX(.8);transform-origin:left}to{transform:scaleX(2.1);transform-origin:left}}
+@keyframes siteSkeletonShimmer{to{background-position-x:-220%}}
+@keyframes siteNavigate{from{transform:scaleX(.36)}to{transform:scaleX(.86)}}
 html:not([data-collexus-theme="light"]) .site-menu-panel{--surface:#101b23;--ink:#edf4f5}
 html:not([data-collexus-theme="light"]) .site-menu-footer p{color:#a5b8bf}
 html:not([data-collexus-theme="light"]) .site-copy-button{background:#17333a;color:#9ce6dd;border-color:#2a6267}
@@ -4576,8 +4586,9 @@ html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
 @keyframes siteFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes siteSlideIn{from{transform:translateX(18px);opacity:.8}to{transform:translateX(0);opacity:1}}
 @media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{left:10px;bottom:66px;width:calc(100vw - 20px);padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
-@media(prefers-reduced-motion:reduce){.site-skip-link,.site-float-button,.site-menu-links a,.site-menu-panel,.site-cookie-note,.site-route-spinner,.site-scroll-progress[data-loading="true"] span{animation:none!important;transition:none!important}}
-@media print{.site-skip-link,.site-scroll-progress,.site-utility-actions,.site-menu-scrim,.site-cookie-note,header,.quick-category-rail,.announcement-bar,button{display:none!important}body,main,section,article{background:#fff!important;color:#111!important;box-shadow:none!important}.details-page{padding:0!important}.details-page :is(section,article){break-inside:avoid;border-color:#bbb!important}a{color:#111!important;text-decoration:underline!important}}
+@media(max-width:720px){:root{--site-scroll-offset:184px}.site-route-skeleton-grid{grid-template-columns:1fr}.site-route-skeleton-card{height:92px}}
+@media(prefers-reduced-motion:reduce){.site-skip-link,.site-float-button,.site-menu-links a,.site-menu-panel,.site-cookie-note,.site-route-spinner,.site-route-skeleton,.site-navigation-progress span{animation:none!important;transition:none!important}}
+@media print{.site-skip-link,.site-navigation-progress,.site-utility-actions,.site-menu-scrim,.site-cookie-note,header,.quick-category-rail,.announcement-bar,button{display:none!important}body,main,section,article{background:#fff!important;color:#111!important;box-shadow:none!important}.details-page{padding:0!important}.details-page :is(section,article){break-inside:avoid;border-color:#bbb!important}a{color:#111!important;text-decoration:underline!important}}
 
 /* Consistent Collexus action color across the homepage and shared controls. */
 body.warm-editorial-theme.vivid-nightfall-theme :is(

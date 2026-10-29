@@ -17,25 +17,27 @@ The production Vercel project already has these public browser variables. If cre
 
 For local development, copy `.env.example` to `.env.local`, fill in the Supabase URL and publishable key, and restart `npm run dev`. `.env.local` is ignored by Git.
 
-This project uses `output: "export"`, so it has no Next.js server routes to read Twilio or service-role environment variables. Configure the WhatsApp sender under Supabase **Authentication → Providers → Phone**; do not add Twilio auth tokens or a Supabase `service_role` key to this frontend project. Supabase supports WhatsApp delivery through Twilio and Twilio Verify. See the [Supabase phone sign-in guide](https://supabase.com/docs/guides/auth/phone-login).
+This project uses `output: "export"`, so it has no Next.js server routes to read provider secrets or a Supabase `service_role` key. Keep provider credentials out of this frontend project.
 
 In Supabase **Authentication → URL Configuration**, allow these redirects:
 
 - `https://project-collexus-ashy.vercel.app/login/`
+- `https://collexus.in/login/`
+- `https://www.collexus.in/login/`
 - `http://localhost:3000/login/`
 
-The live Collexus Supabase project has Email, Phone, and Google providers enabled, and new account signups are enabled. Google sign-in also needs the project's Google OAuth client to keep this Supabase callback URL registered:
+The live Collexus Supabase project has Email, Phone, and Google providers enabled, and new account signups are enabled. New accounts use a college email as their Auth identity and receive a one-time email code. Existing phone-auth accounts can still sign in through the optional WhatsApp path. Google sign-in also needs the project's Google OAuth client to keep this Supabase callback URL registered:
 
 `https://ewzbdgjcmvosaqiwekti.supabase.co/auth/v1/callback`
 
-Do not replace the Supabase Site URL unless the app's canonical production domain changes. Add the Collexus login URL to the redirect allow-list so OAuth and email confirmation return to the active `.ashy` deployment.
+Do not replace the Supabase Site URL unless the app's canonical production domain changes. Keep the Collexus production login URL and any preview URL under test in the redirect allow-list so OAuth and email confirmation return to the correct deployment.
 
-## Configure WhatsApp OTP
+## Configure email OTP
 
-New Collexus accounts use the phone number as their Supabase Auth identity. The signup form collects the user's name, account type, campus ID, and a **personal email for contact only**. It requests an OTP with Supabase Auth's `channel: "whatsapp"`; the user becomes signed in only after `verifyOtp` accepts the code with `type: "sms"`. The form requires an international number such as `+91 98765 43210`.
+Signup collects the user's name, account type, campus ID, college email, and international phone number. Supabase Auth uses the email as the account identity and sends a six-digit code with `signInWithOtp`; the session is created only after `verifyOtp` accepts it with `type: "email"`. The phone number is stored as unverified contact information in Auth metadata and is not used for authentication. Use an email inbox the person can access. The form labels it as a college email but does not guess or enforce a college domain.
 
-Enable the Phone provider in Supabase Auth and configure a WhatsApp sender with Twilio or Twilio Verify; Supabase currently supports WhatsApp delivery only through those providers. See the [Supabase phone sign-in guide](https://supabase.com/docs/guides/auth/phone-login) and [JavaScript OTP reference](https://supabase.com/docs/reference/javascript/auth-signinwithotp). If code delivery fails, check the Phone provider, Twilio WhatsApp sender, and Supabase Auth rate limits in the project dashboard.
+In Supabase **Authentication → Email Templates → Magic Link**, configure the message to display `{{ .Token }}` when the user needs a code instead of a clickable sign-in link. Supabase's default auth email sender is rate-limited; configure custom SMTP for reliable production delivery and higher limits. See the [Supabase passwordless email guide](https://supabase.com/docs/guides/auth/auth-email-passwordless), [email template guide](https://supabase.com/docs/guides/auth/auth-email-templates), and [JavaScript OTP reference](https://supabase.com/docs/reference/javascript/auth-signinwithotp). Add the deployed `/login/` URL to Supabase's redirect allow-list.
 
-The Auth trigger creates the private profile row from signup metadata when Supabase creates the pending Auth user. Unverified users receive no authenticated session, and profile table access is still restricted by RLS to the authenticated account owner. The trigger copies the name, account type, and campus ID; the personal email remains in Auth user metadata and is displayed as contact information, not as the login identity. Student and faculty labels are self-reported and do not grant campus access.
+The Auth trigger creates the private profile row from signup metadata when Supabase creates the pending Auth user. Unverified users receive no authenticated session, and profile table access is still restricted by RLS to the authenticated account owner. The trigger copies the name, account type, and campus ID. Student and faculty labels are self-reported and do not grant campus access.
 
-To avoid silently creating duplicate accounts, the WhatsApp **Sign in** flow only accepts an existing phone-auth account; email-only and Google accounts need a verified phone linked before using WhatsApp sign-in. Configure Supabase Auth rate limits and CAPTCHA before opening OTP requests to production traffic. Phone OTP providers can incur message charges.
+Existing phone-auth accounts can use the optional WhatsApp sign-in form. That path only accepts an existing account; it does not create new phone-only accounts. To keep it available, leave the Phone provider enabled and configure a WhatsApp sender through Twilio or Twilio Verify. See the [Supabase phone sign-in guide](https://supabase.com/docs/guides/auth/phone-login). Configure Auth rate limits and CAPTCHA before opening OTP requests to production traffic.

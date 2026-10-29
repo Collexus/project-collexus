@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
 
 export function SiteUtilities() {
-  const scrollProgressRef = useRef<HTMLSpanElement>(null);
+  const pathname = usePathname();
+  const navigationTimeoutRef = useRef<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -16,20 +18,6 @@ export function SiteUtilities() {
     const main = document.querySelector("main");
     if (main && !main.id) main.id = "main-content";
     if (main && !main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
-    let scrollFrame = 0;
-    const updateScroll = () => {
-      if (scrollFrame) return;
-      scrollFrame = window.requestAnimationFrame(() => {
-        scrollFrame = 0;
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-        scrollProgressRef.current?.style.setProperty("transform", `scaleX(${progress})`);
-      });
-    };
-    updateScroll();
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll);
-    let navigationTimeout: number | undefined;
 
     try {
       const current = new URL(window.location.href);
@@ -52,30 +40,37 @@ export function SiteUtilities() {
       if (event.key === "Escape") setMenuOpen(false);
     };
     const onClick = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = (event.target as HTMLElement | null)?.closest("a[href]") as HTMLAnchorElement | null;
       if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
       const url = new URL(anchor.href, window.location.href);
-      if (url.origin !== window.location.origin || url.hash && url.pathname === window.location.pathname) return;
+      if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
       try {
         const tracking = new URLSearchParams(sessionStorage.getItem("collexus:tracking") ?? "");
         tracking.forEach((value, key) => { if (!url.searchParams.has(key)) url.searchParams.set(key, value); });
         if (tracking.size) anchor.href = url.toString();
       } catch { /* Tracking is optional and must never block a link. */ }
-      document.querySelector(".site-scroll-progress")?.setAttribute("data-loading", "true");
-      window.clearTimeout(navigationTimeout);
-      navigationTimeout = window.setTimeout(() => document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading"), 2800);
+      document.querySelector(".site-navigation-progress")?.setAttribute("data-loading", "true");
+      window.clearTimeout(navigationTimeoutRef.current ?? undefined);
+      navigationTimeoutRef.current = window.setTimeout(() => {
+        document.querySelector(".site-navigation-progress")?.removeAttribute("data-loading");
+        navigationTimeoutRef.current = null;
+      }, 10000);
     };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("click", onClick, true);
     return () => {
-      window.removeEventListener("scroll", updateScroll);
-      window.removeEventListener("resize", updateScroll);
-      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
-      window.clearTimeout(navigationTimeout);
+      window.clearTimeout(navigationTimeoutRef.current ?? undefined);
     };
   }, []);
+
+  useEffect(() => {
+    document.querySelector(".site-navigation-progress")?.removeAttribute("data-loading");
+    window.clearTimeout(navigationTimeoutRef.current ?? undefined);
+    navigationTimeoutRef.current = null;
+  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -126,7 +121,7 @@ export function SiteUtilities() {
   return (
     <>
       <a className="site-skip-link" href="#main-content" onClick={() => document.querySelector("main")?.focus({ preventScroll: true })}>Skip to content</a>
-      <div className="site-scroll-progress" aria-hidden="true"><span ref={scrollProgressRef} /></div>
+      <div className="site-navigation-progress" aria-hidden="true"><span /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
       </div>
@@ -146,7 +141,7 @@ export function SiteUtilities() {
         </section>
       </div>}
 
-      {cookieVisible && <aside className="site-cookie-note" aria-label="Browser storage notice"><div><strong>Privacy note</strong><p>Collexus uses essential browser storage to remember your display theme and local form drafts. It does not use advertising cookies.</p></div><button type="button" onClick={dismissNotice} aria-label="Dismiss privacy notice">Got it</button></aside>}
+      {cookieVisible && <aside className="site-cookie-note" aria-label="Browser storage notice"><div><strong>Privacy note</strong><p>Collexus uses essential browser storage to remember local form drafts. Your display starts in day mode when you open the site. It does not use advertising cookies.</p></div><button type="button" onClick={dismissNotice} aria-label="Dismiss privacy notice">Got it</button></aside>}
     </>
   );
 }
