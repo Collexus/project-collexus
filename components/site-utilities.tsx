@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
 
 export function SiteUtilities() {
-  const pathname = usePathname();
-  const scrollProgressRef = useRef<HTMLSpanElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -18,24 +15,6 @@ export function SiteUtilities() {
     const main = document.querySelector("main");
     if (main && !main.id) main.id = "main-content";
     if (main && !main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
-    let scrollFrame = 0;
-    const updateScroll = () => {
-      if (scrollFrame) return;
-      scrollFrame = window.requestAnimationFrame(() => {
-        scrollFrame = 0;
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-        scrollProgressRef.current?.style.setProperty("transform", `scaleX(${progress})`);
-      });
-    };
-    updateScroll();
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll);
-    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateScroll);
-    resizeObserver?.observe(document.documentElement);
-    if (document.body) resizeObserver?.observe(document.body);
-    document.addEventListener("load", updateScroll, true);
-    let navigationTimeout: number | undefined;
 
     try {
       const current = new URL(window.location.href);
@@ -67,27 +46,14 @@ export function SiteUtilities() {
         tracking.forEach((value, key) => { if (!url.searchParams.has(key)) url.searchParams.set(key, value); });
         if (tracking.size) anchor.href = url.toString();
       } catch { /* Tracking is optional and must never block a link. */ }
-      document.querySelector(".site-scroll-progress")?.setAttribute("data-loading", "true");
-      window.clearTimeout(navigationTimeout);
-      navigationTimeout = window.setTimeout(() => document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading"), 10000);
     };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("click", onClick, true);
     return () => {
-      window.removeEventListener("scroll", updateScroll);
-      window.removeEventListener("resize", updateScroll);
-      resizeObserver?.disconnect();
-      document.removeEventListener("load", updateScroll, true);
-      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
-      window.clearTimeout(navigationTimeout);
     };
   }, []);
-
-  useEffect(() => {
-    document.querySelector(".site-scroll-progress")?.removeAttribute("data-loading");
-  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -138,7 +104,6 @@ export function SiteUtilities() {
   return (
     <>
       <a className="site-skip-link" href="#main-content" onClick={() => document.querySelector("main")?.focus({ preventScroll: true })}>Skip to content</a>
-      <div className="site-scroll-progress" aria-hidden="true"><span ref={scrollProgressRef} /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
       </div>
