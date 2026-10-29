@@ -1,0 +1,178 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profileButton {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #087e83;
+  border-radius: 50%;
+  color: #fff;
+  background: #087e83;
+  box-shadow: 0 4px 12px rgba(8, 126, 131, .16);
+  cursor: pointer;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.profileButton:hover {
+  transform: translateY(-1px);
+  background: #066a70;
+  box-shadow: 0 6px 15px rgba(8, 88, 94, .2);
+}
+
+.profileButton:focus-visible,
+.links a:focus-visible,
+.signOut:focus-visible {
+  outline: 3px solid #35a9a5;
+  outline-offset: 3px;
+}
+
+.profileButton :global(.lucide-icon) {
+  font-size: 20px;
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(286px, calc(100vw - 24px));
+  padding: 9px;
+  border: 1px solid #e5d0c9;
+  border-radius: 18px;
+  color: #321421;
+  background: #fffaf7;
+  box-shadow: 0 18px 48px rgba(38, 12, 26, .2);
+}
+
+.identity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 12px 12px 13px;
+  border-bottom: 1px solid #eedbd5;
+}
+
+.identity strong {
+  overflow: hidden;
+  color: #321421;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity span {
+  overflow: hidden;
+  color: #786266;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.links {
+  display: grid;
+  gap: 2px;
+  padding: 7px 0;
+}
+
+.links a,
+.signOut {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 11px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 11px;
+  color: #512d39;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.links a:hover,
+.signOut:hover:not(:disabled) {
+  color: #087e83;
+  background: #e7f5f2;
+}
+
+.links a svg,
+.signOut svg {
+  flex: 0 0 auto;
+  color: #087e83;
+}
+
+.signOut {
+  width: 100%;
+  border-top: 1px solid #eedbd5;
+  border-radius: 0 0 10px 10px;
+  color: #9b3f43;
+}
+
+.signOut svg {
+  color: currentColor;
+}
+
+.signOut:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.error {
+  margin: 3px 6px 8px;
+  color: #9b3f43;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+:global(html:not([data-collexus-theme="light"])) .dropdown {
+  border-color: #39434d;
+  color: #edf5f7;
+  background: #151e27;
+}
+
+:global(html:not([data-collexus-theme="light"])) .identity {
+  border-color: #39434d;
+}
+
+:global(html:not([data-collexus-theme="light"])) .identity strong {
+  color: #edf5f7;
+}
+
+:global(html:not([data-collexus-theme="light"])) .identity span {
+  color: #a8bac4;
+}
+
+:global(html:not([data-collexus-theme="light"])) .links a,
+:global(html:not([data-collexus-theme="light"])) .signOut {
+  color: #d7e5e9;
+}
+
+:global(html:not([data-collexus-theme="light"])) .links a:hover,
+:global(html:not([data-collexus-theme="light"])) .signOut:hover:not(:disabled) {
+  color: #8ce9df;
+  background: #1c3539;
+}
+
+:global(html:not([data-collexus-theme="light"])) .links a svg {
+  color: #8ce9df;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profileButton {
+    transition: none;
+  }
+
+  .profileButton:hover {
+    transform: none;
+  }
+}

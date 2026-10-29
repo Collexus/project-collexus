@@ -8,19 +8,25 @@ const categories = {
   Workshop: "workshops",
   "Project expo": "branch",
   Cultural: "cultural",
+  "Special event": "special",
 } as const;
 
-function pricingFilter(fee: string) {
-  if (/₹|paid|pass fee/i.test(fee)) return "paid";
-  if (/free/i.test(fee)) return "free";
-  return "unknown";
+function feeDetails(fee: string) {
+  if (/free/i.test(fee)) return { pricing: "free", minimumFee: 0 };
+
+  const amounts = [...fee.matchAll(/(?:₹|\bINR\s*|\bRs\.?\s*)([\d,]+(?:\.\d{1,2})?)/gi)]
+    .map((match) => Number(match[1].replaceAll(",", "")))
+    .filter(Number.isFinite);
+  if (amounts.length) return { pricing: "paid", minimumFee: Math.min(...amounts) };
+  if (/\bpaid\b|pass fee/i.test(fee)) return { pricing: "paid", minimumFee: null };
+  return { pricing: "unknown", minimumFee: null };
 }
 
 export function OriginalEventCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="eventsGrid">
       {events.map((event) => {
-        const pricing = pricingFilter(event.fee);
+        const { pricing, minimumFee } = feeDetails(event.fee);
         const audience = event.audience === "RCEE students" ? "rcee" : event.audience === "External participants" ? "outside" : "rcee outside";
         const category = categories[event.category];
 
@@ -28,13 +34,15 @@ export function OriginalEventCards() {
           <article
             className={`event-item event-tile event-${category} bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-[#f4d3cb] flex flex-col group`}
             data-category={category}
+            data-special-event={event.specialEvent ? "true" : "false"}
             data-branch={event.branch.toLowerCase()}
             data-tracks={event.tracks.join("|")}
             data-audience={audience}
             data-pricing={pricing}
+            data-min-fee={minimumFee ?? ""}
             data-entry={pricing}
             data-format={event.format.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}
-            data-search-text={[event.title, event.category, event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : "Cultural Events", event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ")}
+            data-search-text={[event.title, event.category, event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : event.category === "Special event" || event.specialEvent ? "Special events" : "Cultural Events", event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ")}
             key={event.slug}
           >
             <Link className="event-card-link flex flex-1 flex-col" href={`/events/${event.slug}`} aria-label={`View details for ${event.title}`}>

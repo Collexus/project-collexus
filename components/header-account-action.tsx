@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import Link from "next/link";
+import { Award, CircleHelp, ClipboardList, Info, LogOut, Ticket, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import styles from "./header-account-action.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export function HeaderAccountAction() {
   const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -28,9 +36,80 @@ export function HeaderAccountAction() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) setMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      buttonRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
   if (user) {
     const name = String(user.user_metadata.full_name ?? user.user_metadata.name ?? "Your profile");
-    return <a id="profileButton" href={`${basePath}/profile/`} className="profile-icon-btn" aria-label={`Open ${name}'s profile`} title={name}><Icon name="person" /></a>;
+    const email = user.email ?? "Signed in to Collexus";
+    const profileLinks = [
+      { label: "Profile", href: `${basePath}/profile/#profile`, Icon: UserRound },
+      { label: "About", href: `${basePath}/profile/#about`, Icon: Info },
+      { label: "Registered / Orders", href: `${basePath}/profile/#registered-orders`, Icon: ClipboardList },
+      { label: "My vouchers", href: `${basePath}/profile/#my-vouchers`, Icon: Ticket },
+      { label: "Certificates", href: `${basePath}/profile/#certificates`, Icon: Award },
+      { label: "Help", href: `${basePath}/#faq`, Icon: CircleHelp },
+    ];
+
+    async function signOut() {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setSignOutError("We couldn’t connect to your account. Try again.");
+        return;
+      }
+      setSigningOut(true);
+      setSignOutError("");
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        window.location.assign(`${basePath}/`);
+      } catch {
+        setSignOutError("Sign out didn’t finish. Please try again.");
+        setSigningOut(false);
+      }
+    }
+
+    return (
+      <div className={styles.root} ref={rootRef}>
+        <button
+          ref={buttonRef}
+          id="profileButton"
+          className={styles.profileButton}
+          type="button"
+          aria-label={`Open ${name}'s profile menu`}
+          aria-expanded={menuOpen}
+          aria-controls="profileDropdown"
+          title={name}
+          onClick={() => { setSignOutError(""); setMenuOpen((open) => !open); }}
+        ><Icon name="person" /></button>
+
+        <div className={styles.dropdown} id="profileDropdown" hidden={!menuOpen}>
+          <div className={styles.identity}><strong>{name}</strong><span>{email}</span></div>
+          <nav className={styles.links} aria-label="Profile navigation">
+            {profileLinks.map(({ label, href, Icon: ItemIcon }) => <Link href={href} key={label} onClick={() => setMenuOpen(false)}><ItemIcon size={17} aria-hidden="true" /><span>{label}</span></Link>)}
+          </nav>
+          {signOutError && <p className={styles.error} role="alert">{signOutError}</p>}
+          <button className={styles.signOut} type="button" onClick={signOut} disabled={signingOut}>
+            <LogOut size={17} aria-hidden="true" /><span>{signingOut ? "Signing out…" : "Sign out"}</span>
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

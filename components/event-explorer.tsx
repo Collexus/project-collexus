@@ -14,7 +14,7 @@ type Props = { events: CampusEvent[] };
 type CategoryFilter = EventCategory | "All events";
 type BranchFilter = EventBranch | "All tracks";
 
-const categories: CategoryFilter[] = ["All events", "Hackathon", "Workshop", "Project expo", "Cultural"];
+const categories: CategoryFilter[] = ["All events", "Hackathon", "Workshop", "Project expo", "Cultural", "Special event"];
 const branches: BranchFilter[] = ["All tracks", "IoT", "Hardware", "Campus"];
 const categoryIcons: Record<CategoryFilter, typeof Grid2X2> = {
   "All events": Grid2X2,
@@ -22,6 +22,7 @@ const categoryIcons: Record<CategoryFilter, typeof Grid2X2> = {
   Workshop: GraduationCap,
   "Project expo": Lightbulb,
   Cultural: PartyPopper,
+  "Special event": PartyPopper,
 };
 
 type EventGridProps = { events: CampusEvent[]; onReset: () => void };
@@ -72,7 +73,7 @@ export function EventExplorer({ events }: Props) {
     return events.filter((event) => {
       const matchesQuery = !normalizedQuery || [event.title, event.category, event.branch, event.description, event.organizer]
         .join(" ").toLowerCase().includes(normalizedQuery);
-      const matchesCategory = category === "All events" || event.category === category;
+      const matchesCategory = category === "All events" || (category === "Special event" ? event.specialEvent === true || event.category === "Special event" : event.category === category);
       const matchesBranch = branch === "All tracks" || event.branch === branch;
       const matchesDate = dateFilter === "all" || (dateFilter === "dated" ? Boolean(event.dateStart) : !event.dateStart);
       return matchesQuery && matchesCategory && matchesBranch && matchesDate;

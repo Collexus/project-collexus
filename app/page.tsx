@@ -48,8 +48,8 @@ export default function HomePage() {
         <div id="eventSearchResultGroup" className="event-search-result-group" hidden>
           <div className="search-suggestion-title">Matching events</div>
           {events.map((event) => {
-            const categoryAlias = event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : "Cultural Events";
-            const searchText = [event.title, event.category, categoryAlias, event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ");
+            const categoryAlias = event.category === "Hackathon" ? "Hackathons" : event.category === "Workshop" ? "Workshops" : event.category === "Project expo" ? "Branch Events" : event.category === "Cultural" ? "Cultural Events" : "Special Events";
+            const searchText = [event.title, event.category, categoryAlias, event.specialEvent ? "Special Events" : "", event.branch, event.tracks.join(" "), event.audience, event.organizer, event.venue, event.dateLabel, event.format, event.fee, event.description].join(" ");
             const icon = event.category === "Hackathon" ? "terminal" : event.category === "Workshop" ? "school" : event.category === "Project expo" ? "hub" : "celebration";
 
             return (
@@ -528,12 +528,13 @@ export default function HomePage() {
         </section>
 
         <section className="filter-group-card">
-          <div className="filter-group-heading"><span className="filter-group-icon"><Icon name="payments" /></span><div><h3>Event cost</h3><p>Unknown fees stay separate from free events.</p></div></div>
+          <div className="filter-group-heading"><span className="filter-group-icon"><Icon name="payments" /></span><div><h3>Event cost</h3><p>Fee ranges use the amounts in each event listing.</p></div></div>
           <div className="menu-filter-chips" data-filter-group="pricing">
             <button className="menu-filter-chip active" type="button" data-filter-val="all"><Icon name="apps" />Any cost</button>
             <button className="menu-filter-chip" type="button" data-filter-val="free"><Icon name="check_circle" />Free</button>
             <button className="menu-filter-chip" type="button" data-filter-val="paid"><Icon name="confirmation_number" />Paid</button>
-            <button className="menu-filter-chip" type="button" data-filter-val="unknown"><Icon name="help" />Not listed</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="under-250"><Icon name="payments" />Under ₹250</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="under-500"><Icon name="payments" />Under ₹500</button>
           </div>
         </section>
 
@@ -545,6 +546,7 @@ export default function HomePage() {
             <button className="menu-filter-chip" type="button" data-filter-val="workshops"><Icon name="school" />Workshops</button>
             <button className="menu-filter-chip" type="button" data-filter-val="branch"><Icon name="account_tree" />Project expos</button>
             <button className="menu-filter-chip" type="button" data-filter-val="cultural"><Icon name="celebration" />Cultural</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="special"><Icon name="celebration" />Special events</button>
             <button className="menu-filter-chip" type="button" data-filter-val="outdoors"><Icon name="park" />Outdoors</button>
           </div>
         </section>
@@ -554,7 +556,7 @@ export default function HomePage() {
           <div className="menu-filter-chips" data-filter-group="branch">
             <button className="menu-filter-chip active" type="button" data-filter-val="all">All tracks</button>
             <button className="menu-filter-chip" type="button" data-filter-val="computer science & it">CSE &amp; IT</button>
-            <button className="menu-filter-chip" type="button" data-filter-val="ai & data science">AI &amp; Data Science</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="ai & data science">AIML / AI &amp; Data Science</button>
             <button className="menu-filter-chip" type="button" data-filter-val="electronics & communication">ECE</button>
             <button className="menu-filter-chip" type="button" data-filter-val="electrical engineering">EEE</button>
             <button className="menu-filter-chip" type="button" data-filter-val="mechanical engineering">Mechanical</button>
@@ -565,6 +567,8 @@ export default function HomePage() {
             <button className="menu-filter-chip" type="button" data-filter-val="ui/ux design">UI/UX design</button>
             <button className="menu-filter-chip" type="button" data-filter-val="arts & media">Arts &amp; media</button>
             <button className="menu-filter-chip" type="button" data-filter-val="video editing">Video editing</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="bba">BBA</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="mba">MBA</button>
           </div>
         </section>
 

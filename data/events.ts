@@ -1,10 +1,11 @@
-export type EventCategory = "Hackathon" | "Workshop" | "Project expo" | "Cultural";
+export type EventCategory = "Hackathon" | "Workshop" | "Project expo" | "Cultural" | "Special event";
 export type EventBranch = "IoT" | "Hardware" | "Campus" | "AI & Data Science";
 
 export type CampusEvent = {
   slug: string;
   title: string;
   category: EventCategory;
+  specialEvent?: boolean;
   branch: EventBranch;
   tracks: string[];
   audience: "Open to all" | "RCEE students" | "External participants";
@@ -226,6 +227,7 @@ export const events: CampusEvent[] = [
     slug: "kreya-26-cultural-fest",
     title: "KREYA ’27 — RCE(A) Cultural Fest",
     category: "Cultural",
+    specialEvent: true,
     branch: "Campus",
     tracks: ["campus & culture", "arts & media"],
     audience: "Open to all",

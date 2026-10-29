@@ -399,13 +399,20 @@ export function OriginalInteractions() {
         function matchesSelectedFilters(card) {
           const audience = (card.dataset.audience || '').toLowerCase().split(/\s+/);
           const pricing = (card.dataset.pricing || 'unknown').toLowerCase();
+          const minimumFee = Number(card.dataset.minFee);
+          const hasMinimumFee = card.dataset.minFee !== undefined && card.dataset.minFee !== '' && Number.isFinite(minimumFee);
           const category = (card.dataset.category || '').toLowerCase();
+          const specialEvent = card.dataset.specialEvent === 'true';
           const branch = (card.dataset.branch || '').toLowerCase();
           const tracks = (card.dataset.tracks || '').toLowerCase().split('|');
            const searchableText = normalizeSearchValue(card.dataset.searchText || '');
+          const matchesPricing = activeFilters.pricing === 'all' ||
+            pricing === activeFilters.pricing ||
+            (activeFilters.pricing === 'under-250' && hasMinimumFee && minimumFee < 250) ||
+            (activeFilters.pricing === 'under-500' && hasMinimumFee && minimumFee < 500);
           return (activeFilters.audience === 'all' || audience.includes(activeFilters.audience)) &&
-            (activeFilters.pricing === 'all' || pricing === activeFilters.pricing) &&
-             (activeFilters.category === 'all' || category.includes(activeFilters.category) || activeFilters.category.includes(category)) &&
+            matchesPricing &&
+             (activeFilters.category === 'all' || (activeFilters.category === 'special' && specialEvent) || category.includes(activeFilters.category) || activeFilters.category.includes(category)) &&
              (activeFilters.branch === 'all' || branch === activeFilters.branch || tracks.includes(activeFilters.branch)) &&
              (!searchQuery || searchableText.includes(searchQuery));
         }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, BookOpen, BriefcaseBusiness, Check,
@@ -21,6 +22,7 @@ function readStringArray(value: unknown) {
 }
 
 export function ProfileExperience() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(isSupabaseConfigured);
   const [profileReady, setProfileReady] = useState(false);
@@ -28,6 +30,7 @@ export function ProfileExperience() {
   const [accountType, setAccountType] = useState("member");
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
+  const [otherDomain, setOtherDomain] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillDraft, setSkillDraft] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
@@ -58,7 +61,9 @@ export function ProfileExperience() {
       }
       setName(profile.full_name ?? String(metadata.full_name ?? metadata.name ?? ""));
       setAccountType(profile.account_type ?? "member");
-      setDomain(profile.profile_domain ?? "");
+      const savedDomain = profile.profile_domain ?? "";
+      setDomain(savedDomain && !domains.includes(savedDomain) ? "Other" : savedDomain);
+      setOtherDomain(savedDomain && !domains.includes(savedDomain) ? savedDomain : "");
       setSkills(readStringArray(profile.profile_skills));
       setInterests(readStringArray(profile.profile_interests));
       setAbout(profile.profile_about ?? "");
@@ -103,7 +108,8 @@ export function ProfileExperience() {
     event.preventDefault();
     setError("");
     setSaved(false);
-    if (!domain) {
+    const domainValue = domain === "Other" ? otherDomain.trim() : domain;
+    if (!domainValue) {
       setError("Choose your main area of interest to continue.");
       return;
     }
@@ -119,7 +125,7 @@ export function ProfileExperience() {
     setBusy(true);
     const { profile, error: updateError } = await updateUserProfile(supabase, user.id, {
       full_name: name.trim(),
-      profile_domain: domain,
+      profile_domain: domainValue,
       profile_skills: skills,
       profile_interests: interests,
       profile_about: about.trim(),
@@ -131,6 +137,7 @@ export function ProfileExperience() {
       return;
     }
     setSaved(true);
+    router.replace(`${basePath}/`);
   }
 
   const contactEmail = typeof user?.user_metadata.personal_email === "string"
@@ -140,9 +147,9 @@ export function ProfileExperience() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home">
-          <span className={styles.logoFrame} aria-hidden="true"><img src={`${basePath}/collexus-logo.svg`} alt="" /></span>
-          <span>Collexus</span>
+        <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home">
+          <span className="college-logo-wrap" aria-hidden="true"><img src={`${basePath}/collexus-logo.svg`} alt="" className="college-logo" /></span>
+          <span className="collexus-word">llexus</span>
         </a>
         <a className={styles.backLink} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
       </header>
@@ -184,7 +191,7 @@ export function ProfileExperience() {
           </section>
         ) : (
           <div className={styles.contentGrid}>
-            <form className={styles.form} onSubmit={saveProfile}>
+            <form className={styles.form} id="profile" onSubmit={saveProfile}>
               <div className={styles.formHeading}>
                 <span className={styles.headingIcon}><CircleUserRound size={20} aria-hidden="true" /></span>
                 <div><p className={styles.sectionKicker}>PROFILE DETAILS</p><h2>Start with what makes you, you.</h2><p>Choose a domain, add a few skills and share what you’re into.</p></div>
@@ -195,13 +202,17 @@ export function ProfileExperience() {
                 <input autoComplete="name" maxLength={80} value={name} onChange={(event) => { setName(event.target.value); setSaved(false); }} placeholder="e.g. Ananya Rao" />
               </label>
 
-              <label className={styles.field}>
-                <span>Which domain are you in? <b>*</b></span>
-                <span className={styles.selectWrap}><Compass size={17} aria-hidden="true" /><select value={domain} onChange={(event) => { setDomain(event.target.value); setSaved(false); }} required>
+              <div className={styles.field}>
+                <span id="profile-domain-label">Which domain are you in? <b>*</b></span>
+                <span className={styles.selectWrap}><Compass size={17} aria-hidden="true" /><select aria-labelledby="profile-domain-label" value={domain} onChange={(event) => { const value = event.target.value; setDomain(value); if (value !== "Other") setOtherDomain(""); setSaved(false); }} required>
                   <option value="">Choose your main domain</option>{domains.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select><ChevronDown size={16} aria-hidden="true" /></span>
                 <small>Pick the area you study, work in or want to explore.</small>
-              </label>
+                {domain === "Other" && <div className={styles.customDomainField}>
+                  <label htmlFor="profile-domain-other">Tell us your area <small>Required</small></label>
+                  <input id="profile-domain-other" autoComplete="off" maxLength={80} value={otherDomain} onChange={(event) => { setOtherDomain(event.target.value); setSaved(false); }} placeholder="e.g. AIML, BBA or MBA" required />
+                </div>}
+              </div>
 
               <fieldset className={styles.fieldset}>
                 <legend>Skills <small>Choose a few or add your own</small></legend>
@@ -222,7 +233,7 @@ export function ProfileExperience() {
                 })}</div>
               </fieldset>
 
-              <label className={styles.field}>
+              <label className={styles.field} id="about">
                 <span>About you <small>Optional</small></span>
                 <textarea value={about} onChange={(event) => { setAbout(event.target.value); setSaved(false); }} maxLength={280} rows={4} placeholder="A few lines about what you’re learning, building or hoping to meet…" />
                 <small className={styles.counter}>{about.length}/280 · Keep it friendly and brief</small>
@@ -247,7 +258,7 @@ export function ProfileExperience() {
                 <p className={styles.previewEmail}>{contactEmail}</p>
                 <div className={styles.previewDivider} />
                 <p className={styles.previewLabel}><BookOpen size={14} aria-hidden="true" /> DOMAIN</p>
-                <p className={styles.previewValue}>{domain || "Your area of focus"}</p>
+                <p className={styles.previewValue}>{domain === "Other" ? otherDomain || "Tell us your area of focus" : domain || "Your area of focus"}</p>
                 <p className={styles.previewLabel}><BriefcaseBusiness size={14} aria-hidden="true" /> SKILLS</p>
                 {skills.length ? <div className={styles.previewChips}>{skills.slice(0, 4).map((item) => <span key={item}>{item}</span>)}{skills.length > 4 && <span>+{skills.length - 4}</span>}</div> : <p className={styles.previewEmpty}>Your skills will show up here.</p>}
                 <p className={styles.previewLabel}><Heart size={14} aria-hidden="true" /> INTERESTS</p>
@@ -259,6 +270,24 @@ export function ProfileExperience() {
             </aside>
           </div>
         )}
+
+        <section className={styles.accountSections} aria-label="Your Collexus account">
+          <article className={styles.accountSection} id="registered-orders">
+            <p className={styles.sectionKicker}>EVENT ACTIVITY</p>
+            <h2>Registered / Orders</h2>
+            <p>Your event registrations and orders will appear here when they’re connected to your account.</p>
+          </article>
+          <article className={styles.accountSection} id="my-vouchers">
+            <p className={styles.sectionKicker}>REWARDS</p>
+            <h2>My vouchers</h2>
+            <p>Vouchers linked to your Collexus account will be listed here.</p>
+          </article>
+          <article className={styles.accountSection} id="certificates">
+            <p className={styles.sectionKicker}>ACHIEVEMENTS</p>
+            <h2>Certificates</h2>
+            <p>Certificates issued for your event participation will appear here.</p>
+          </article>
+        </section>
 
         <footer className={styles.footer}><span>© 2026 Collexus</span><span>Campus events, in one place.</span></footer>
       </div>
