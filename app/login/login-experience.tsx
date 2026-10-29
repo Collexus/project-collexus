@@ -28,7 +28,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 type AccountMode = "signin" | "signup" | "recovery";
 type PhoneAuthStep = "details" | "verify";
 type EmailAuthPurpose = "signin" | "signup";
-type SignupDetails = { fullName: string; campusId: string; email: string };
+type SignupDetails = { fullName: string; campusId: string; email: string; phone: string };
 type AuthUser = { email: string | null; phone: string | null; displayName: string | null; contactVerified: boolean; accountType: string | null };
 
 const accountTypes: { id: AccountType; label: string; detail: string; icon: typeof GraduationCap }[] = [
@@ -330,11 +330,16 @@ export function LoginExperience() {
       if (isSignup) {
         const fullName = String(formData.get("name") ?? "").trim();
         const campusId = String(formData.get("campusId") ?? "").trim();
+        const phone = normalizePhoneNumber(String(formData.get("phone") ?? ""));
         if (!fullName) {
           setError("Enter your full name to create your account.");
           return;
         }
-        signup = { fullName, campusId, email };
+        if (!isInternationalPhoneNumber(phone)) {
+          setError("Enter your phone number with its country code, for example +91 98765 43210.");
+          return;
+        }
+        signup = { fullName, campusId, email, phone };
         window.sessionStorage.removeItem("collexus-pending-account-type");
       }
       const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -345,6 +350,7 @@ export function LoginExperience() {
             full_name: signup.fullName,
             account_type: accountType,
             campus_id: signup.campusId || null,
+            phone_number: signup.phone,
           } } : {}),
         },
       });
@@ -379,6 +385,7 @@ export function LoginExperience() {
             full_name: pendingSignup.fullName,
             account_type: accountType,
             campus_id: pendingSignup.campusId || null,
+            phone_number: pendingSignup.phone,
           } } : {}),
         },
       });
@@ -648,6 +655,7 @@ export function LoginExperience() {
                   <label className={styles.field}><span>Full name</span><div className={styles.inputWrap}><UsersRound size={16} aria-hidden="true" /><input autoComplete="name" defaultValue={pendingSignup?.fullName ?? ""} maxLength={80} name="name" placeholder="Your name" required disabled={busy} /></div></label>
                   {accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" defaultValue={pendingSignup?.campusId ?? ""} maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required disabled={busy} /></div></label>}
                   <label className={styles.field}><span>College email</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" defaultValue={pendingSignup?.email ?? ""} maxLength={254} name="email" placeholder="name@college.edu" required type="email" disabled={busy} /></div><small className={styles.fieldHelp}>Use an inbox you can access. Your sign-in code will be sent here.</small></label>
+                  <label className={styles.field}><span>Phone number</span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" defaultValue={pendingSignup?.phone ?? "+91 "} inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" disabled={busy} /></div><small className={styles.fieldHelp}>Contact information only. Your sign-in code goes to your college email.</small></label>
                   <label className={styles.remember}><input name="agreement" required type="checkbox" disabled={busy} /> I agree to use Collexus respectfully and keep my account details accurate.</label>
                   {error && <p className={styles.error} role="alert">{error}</p>}
                   {message && <p className={styles.success} role="status">{message}</p>}

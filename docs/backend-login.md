@@ -34,7 +34,7 @@ Do not replace the Supabase Site URL unless the app's canonical production domai
 
 ## Configure email OTP
 
-Signup collects the user's name, account type, campus ID, and college email. Supabase Auth uses that email as the account identity and sends a six-digit code with `signInWithOtp`; the session is created only after `verifyOtp` accepts it with `type: "email"`. Use an email inbox the person can access. The form labels it as a college email but does not guess or enforce a college domain.
+Signup collects the user's name, account type, campus ID, college email, and international phone number. Supabase Auth uses the email as the account identity and sends a six-digit code with `signInWithOtp`; the session is created only after `verifyOtp` accepts it with `type: "email"`. The phone number is stored as unverified contact information in Auth metadata and is not used for authentication. Use an email inbox the person can access. The form labels it as a college email but does not guess or enforce a college domain.
 
 In Supabase **Authentication → Email Templates → Magic Link**, configure the message to display `{{ .Token }}` when the user needs a code instead of a clickable sign-in link. Supabase's default auth email sender is rate-limited; configure custom SMTP for reliable production delivery and higher limits. See the [Supabase passwordless email guide](https://supabase.com/docs/guides/auth/auth-email-passwordless), [email template guide](https://supabase.com/docs/guides/auth/auth-email-templates), and [JavaScript OTP reference](https://supabase.com/docs/reference/javascript/auth-signinwithotp). Add the deployed `/login/` URL to Supabase's redirect allow-list.
 
