@@ -46,6 +46,9 @@ function friendlyAuthError(error: unknown) {
   const normalized = message.toLowerCase();
   if (normalized.includes("cancelled") || normalized.includes("canceled")) return "Google sign-in was closed before it finished.";
   if (normalized.includes("network") || normalized.includes("fetch")) return "Connection interrupted. Check your internet and try again.";
+  if (code === "email_address_not_authorized") return "This inbox isn’t enabled for sign-in codes yet. The Collexus administrator needs to configure email delivery for college addresses.";
+  if (code === "email_address_invalid") return "The email service rejected this address. Check the address and try again.";
+  if (code === "email_provider_disabled" || code === "otp_disabled") return "Email code sign-in is disabled right now. Contact the Collexus administrator.";
   if (code === "phone_exists" || code === "email_exists" || code === "user_already_exists" || normalized.includes("phone number already registered") || normalized.includes("email address already registered")) return "An account already exists for this address. Choose Sign in and request an email code.";
   if (code === "otp_expired") return "This code has expired. Request a new code and try again.";
   if (code === "otp_invalid" || code === "token_not_found" || code === "invalid_credentials") return "That code or sign-in detail is not valid. Check it and try again.";
