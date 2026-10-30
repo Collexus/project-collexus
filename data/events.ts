@@ -16,6 +16,7 @@ export type CampusEvent = {
   organizer: string;
   description: string;
   fee: string;
+  paymentUrl?: string;
   format: string;
   image: string;
   source: string;
@@ -41,6 +42,7 @@ export const events: CampusEvent[] = [
     description:
       "PRAKALP 2026 was a two-day national project expo and offline 24-hour hackathon at Ramachandra College of Engineering in Eluru. RCEE described 100+ expo slots across 10 domains and 200+ hackathon teams across four themes: IoT Sprint, Cyber Security, AI Agents Hack and Embed Fusion. The college listed a ₹3,00,000 combined prize pool. The IoT Sprint report records a 10:00 AM April 1 start and 10:00 AM April 2 finish.",
     fee: "The PRAKALP page listed ₹1,000 for a single participant or duo, and ₹500 per person for teams of 3–5. Registration is closed.",
+    paymentUrl: "https://rzp.io/rzp/nqlZqLTa",
     format: "In person · 24-hour IoT Sprint plus project expo",
     image: `${publicBasePath}/assets/event-art/hackathon.webp`,
     source: "https://www.rcee.ac.in/prakalp",

@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
 
 type EventSummary = {
   slug: string;
@@ -11,6 +11,7 @@ type EventSummary = {
   dateLabel: string;
   audience: string;
   fee: string;
+  paymentUrl?: string;
 };
 
 type Registration = { slug: string; name: string; email: string };
@@ -40,6 +41,31 @@ function DemoFrame({ event, step, children }: { event: EventSummary; step: strin
 export function RegistrationDemoForm({ event }: { event: EventSummary }) {
   const router = useRouter();
   const [error, setError] = useState("");
+
+  if (event.paymentUrl) {
+    return (
+      <main className="details-page demo-page">
+        <div className="details-topline">
+          <Link href={`/events/${event.slug}`} className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link>
+          <span className="record-label"><CreditCard size={14} aria-hidden="true" /> RAZORPAY PAYMENT PAGE</span>
+        </div>
+        <section className="demo-card">
+          <span className="demo-kicker"><LockKeyhole size={15} aria-hidden="true" /> SECURE HOSTED CHECKOUT</span>
+          <h1>Continue to Razorpay</h1>
+          <p className="demo-event-title">{event.title}</p>
+          <div className="demo-event-meta"><span>{event.dateLabel}</span><span>{event.audience}</span></div>
+          <div className="demo-order-summary">
+            <div><span>Published entry information</span><strong>{event.fee}</strong></div>
+            <div><span>Payment processing</span><strong>Razorpay hosted page</strong></div>
+          </div>
+          <p className="demo-archive-notice">This is a historical event record. Review the amount and organizer instructions on the hosted page before paying. Collexus does not receive payment status or create a registration from this payment link.</p>
+          <a className="primary-button demo-submit" href={event.paymentUrl} target="_blank" rel="noreferrer">
+            Open Razorpay payment page <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        </section>
+      </main>
+    );
+  }
 
   function submit(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();

@@ -20,5 +20,5 @@ export default async function RegistrationPage({ params }: RegistrationPageProps
   const event = getEvent(slug);
   if (!event) notFound();
 
-  return <RegistrationDemoForm event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, audience: event.audience, fee: event.fee }} />;
+  return <RegistrationDemoForm event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, audience: event.audience, fee: event.fee, paymentUrl: event.paymentUrl }} />;
 }
