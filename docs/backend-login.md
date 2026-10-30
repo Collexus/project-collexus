@@ -35,6 +35,8 @@ The live Collexus Supabase project has Email, Phone, and Google providers enable
 
 `https://ewzbdgjcmvosaqiwekti.supabase.co/auth/v1/callback`
 
+The error `Unsupported provider: missing OAuth secret` means the Google provider is enabled but its OAuth client secret is missing in Supabase. Create a Google OAuth client for a web application, add `https://collexus.in` and `https://www.collexus.in` as authorized origins, register the Supabase callback above as an authorized redirect URI, then enter the client ID and secret in **Supabase → Authentication → Providers → Google**. Keep the client secret in Supabase only; never add it to the frontend, repository, or Vercel environment variables. See [Supabase’s Google sign-in setup](https://supabase.com/docs/guides/auth/social-sign-in/auth-google).
+
 Do not replace the Supabase Site URL unless the app's canonical production domain changes. Keep the Collexus production login URL and any preview URL under test in the redirect allow-list so OAuth and email confirmation return to the correct deployment.
 
 ## Configure email OTP

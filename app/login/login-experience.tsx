@@ -48,6 +48,7 @@ function friendlyAuthError(error: unknown) {
   const normalized = message.toLowerCase();
   if (normalized.includes("cancelled") || normalized.includes("canceled")) return "Google sign-in was closed before it finished.";
   if (normalized.includes("network") || normalized.includes("fetch")) return "Connection interrupted. Check your internet and try again.";
+  if (normalized.includes("missing oauth secret") || normalized.includes("unsupported provider")) return "Google sign-in needs its OAuth client ID and secret configured in Supabase Authentication → Providers → Google.";
   if (code === "email_address_not_authorized") return "This inbox isn’t enabled for sign-in codes yet. The Collexus administrator needs to configure email delivery for college addresses.";
   if (code === "email_address_invalid") return "The email service rejected this address. Check the address and try again.";
   if (code === "email_provider_disabled" || code === "otp_disabled") return "Email code sign-in is disabled right now. Contact the Collexus administrator.";
