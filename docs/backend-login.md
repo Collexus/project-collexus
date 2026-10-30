@@ -10,13 +10,15 @@ The account type and campus ID are self-reported profile values. They are not pr
 
 ## Configure the deployed login
 
-The production site is built and deployed by the GitHub Pages workflow from `main`. Store all public values under the repository’s **Settings → Secrets and variables → Actions → Variables** so the static build can embed them:
+The live `collexus.in` site is deployed from `main` by the Vercel project `project-collexus`. Set these values in **Vercel → Project Settings → Environment Variables**, with the environment set to **Production**:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the Cloudflare Turnstile site key; it is public and must match the secret configured in Supabase Auth)
 
 For local development, copy `.env.example` to `.env.local`, fill in the Supabase URL, publishable key, and Turnstile site key, and restart `npm run dev`. `.env.local` is ignored by Git.
+
+The GitHub Pages workflow publishes a separate copy at `https://collexus.github.io/project-collexus/`; it does not serve `collexus.in`. That build reads the same public values from GitHub repository Actions variables.
 
 This project uses `output: "export"`, so it has no Next.js server routes to read provider secrets or a Supabase `service_role` key. Keep provider credentials out of this frontend project.
 
