@@ -10,12 +10,13 @@ The account type and campus ID are self-reported profile values. They are not pr
 
 ## Configure the deployed login
 
-The production Vercel project already has these public browser variables. If creating another deployment, set them before building:
+The production site is built and deployed by the GitHub Pages workflow from `main`. Store the Supabase public values under the repository’s **Settings → Secrets and variables → Actions → Variables** so the static build can embed them. The workflow includes the public Turnstile site key supplied for Collexus; a repository variable with the same name can override it when the key is rotated.
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the Cloudflare Turnstile site key; it is public and must match the secret configured in Supabase Auth)
 
-For local development, copy `.env.example` to `.env.local`, fill in the Supabase URL and publishable key, and restart `npm run dev`. `.env.local` is ignored by Git.
+For local development, copy `.env.example` to `.env.local`, fill in the Supabase URL, publishable key, and Turnstile site key, and restart `npm run dev`. `.env.local` is ignored by Git.
 
 This project uses `output: "export"`, so it has no Next.js server routes to read provider secrets or a Supabase `service_role` key. Keep provider credentials out of this frontend project.
 
@@ -25,6 +26,8 @@ In Supabase **Authentication → URL Configuration**, allow these redirects:
 - `https://collexus.in/login/`
 - `https://www.collexus.in/login/`
 - `http://localhost:3000/login/`
+
+Supabase Auth CAPTCHA protection should use Cloudflare Turnstile. Keep the Turnstile secret in Supabase Auth, and set the matching public site key as the `NEXT_PUBLIC_TURNSTILE_SITE_KEY` GitHub Actions repository variable. Add `collexus.in` and `www.collexus.in` to the Turnstile widget's allowed hostnames. The login page passes each fresh Turnstile token to Supabase Auth and requests a new token after each protected request.
 
 The live Collexus Supabase project has Email, Phone, and Google providers enabled, and new account signups are enabled. New accounts use a college email as their Auth identity and receive a one-time email code. Existing phone-auth accounts can still sign in through the optional WhatsApp path. Google sign-in also needs the project's Google OAuth client to keep this Supabase callback URL registered:
 

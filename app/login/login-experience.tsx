@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
 import { updateUserProfile, type AccountType } from "../../lib/user-profile";
+import { TurnstileChallenge, turnstileSiteKey } from "./turnstile-challenge";
 import styles from "./login.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -49,6 +50,7 @@ function friendlyAuthError(error: unknown) {
   if (code === "email_address_not_authorized") return "This inbox isn’t enabled for sign-in codes yet. The Collexus administrator needs to configure email delivery for college addresses.";
   if (code === "email_address_invalid") return "The email service rejected this address. Check the address and try again.";
   if (code === "email_provider_disabled" || code === "otp_disabled") return "Email code sign-in is disabled right now. Contact the Collexus administrator.";
+  if (code === "captcha_failed") return "Cloudflare couldn’t verify the security check. Complete it again and retry.";
   if (code === "phone_exists" || code === "email_exists" || code === "user_already_exists" || normalized.includes("phone number already registered") || normalized.includes("email address already registered")) return "An account already exists for this address. Choose Sign in and request an email code.";
   if (code === "otp_expired") return "This code has expired. Request a new code and try again.";
   if (code === "otp_invalid" || code === "token_not_found" || code === "invalid_credentials") return "That code or sign-in detail is not valid. Check it and try again.";
@@ -93,6 +95,36 @@ export function LoginExperience() {
   const [needsMobileNumber, setNeedsMobileNumber] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [configured, setConfigured] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaWidgetError, setCaptchaWidgetError] = useState("");
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const captchaTokenRef = useRef("");
+
+  const saveCaptchaToken = useCallback((token: string) => {
+    captchaTokenRef.current = token;
+    setCaptchaToken(token);
+  }, []);
+
+  const resetCaptchaChallenge = useCallback(() => {
+    captchaTokenRef.current = "";
+    setCaptchaToken("");
+    setCaptchaWidgetError("");
+    setCaptchaResetKey((key) => key + 1);
+  }, []);
+
+  function takeCaptchaToken() {
+    if (!turnstileSiteKey) {
+      setError("Security verification is unavailable right now. Please contact the Collexus team.");
+      return null;
+    }
+    const token = captchaTokenRef.current;
+    if (!token) {
+      setError(captchaWidgetError || "Complete the Cloudflare security check to continue.");
+      return null;
+    }
+    resetCaptchaChallenge();
+    return token;
+  }
 
   useEffect(() => {
     if (!resendSeconds) return;
@@ -238,9 +270,12 @@ export function LoginExperience() {
         return;
       }
 
+      const captchaToken = takeCaptchaToken();
+      if (!captchaToken) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
         phone,
         options: {
+          captchaToken,
           channel: "whatsapp",
           shouldCreateUser: false,
         },
@@ -266,9 +301,11 @@ export function LoginExperience() {
     try {
       const supabase = getSupabaseClient();
       if (!supabase) throw new Error("Supabase is not configured.");
+      const captchaToken = takeCaptchaToken();
+      if (!captchaToken) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
         phone: pendingPhone,
-        options: { channel: "whatsapp", shouldCreateUser: false },
+        options: { captchaToken, channel: "whatsapp", shouldCreateUser: false },
       });
       if (otpError) throw otpError;
       setResendSeconds(60);
@@ -345,9 +382,12 @@ export function LoginExperience() {
         signup = { fullName, campusId, email, phone };
         window.sessionStorage.removeItem("collexus-pending-account-type");
       }
+      const captchaToken = takeCaptchaToken();
+      if (!captchaToken) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
+          captchaToken,
           shouldCreateUser: isSignup,
           ...(signup ? { data: {
             full_name: signup.fullName,
@@ -380,9 +420,12 @@ export function LoginExperience() {
     try {
       const supabase = getSupabaseClient();
       if (!supabase) throw new Error("Supabase is not configured.");
+      const captchaToken = takeCaptchaToken();
+      if (!captchaToken) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: pendingEmail,
         options: {
+          captchaToken,
           shouldCreateUser: emailAuthPurpose === "signup",
           ...(pendingSignup ? { data: {
             full_name: pendingSignup.fullName,
@@ -454,8 +497,11 @@ export function LoginExperience() {
           setError("Enter your email address first, then choose Forgot password.");
           return;
         }
+        const captchaToken = takeCaptchaToken();
+        if (!captchaToken) return;
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}${basePath}/login/`,
+          captchaToken,
         });
         if (resetError) throw resetError;
         setMessage("If an account exists for this email, a password reset link is on its way.");
@@ -481,7 +527,13 @@ export function LoginExperience() {
         return;
       }
 
-      const { data, error: signinError } = await supabase.auth.signInWithPassword({ email, password });
+      const captchaToken = takeCaptchaToken();
+      if (!captchaToken) return;
+      const { data, error: signinError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: { captchaToken },
+      });
       if (signinError) throw signinError;
       if (!data.user.email_confirmed_at) {
         await supabase.auth.signOut();
@@ -627,6 +679,16 @@ export function LoginExperience() {
                 <button aria-selected={mode === "signin"} className={mode === "signin" ? styles.modeActive : ""} disabled={busy || (phoneAuthPurpose !== null && phoneAuthStep === "verify") || emailAuthStep === "verify"} onClick={() => switchMode("signin")} role="tab" type="button">Sign in</button>
                 <button aria-selected={mode === "signup"} className={mode === "signup" ? styles.modeActive : ""} disabled={busy || (phoneAuthPurpose !== null && phoneAuthStep === "verify") || emailAuthStep === "verify"} onClick={() => switchMode("signup")} role="tab" type="button">Create account</button>
               </div>}
+
+              {mode !== "recovery" && (
+                <TurnstileChallenge
+                  errorMessage={captchaWidgetError}
+                  onError={setCaptchaWidgetError}
+                  onToken={saveCaptchaToken}
+                  resetKey={captchaResetKey}
+                  tokenReady={Boolean(captchaToken)}
+                />
+              )}
 
               {mode === "signin" && phoneAuthPurpose === null && emailAuthStep === "details" && <>
                 <button className={styles.googleButton} disabled={busy || !configured} onClick={() => void continueWithGoogle()} type="button">
