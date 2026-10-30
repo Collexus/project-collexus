@@ -10,6 +10,7 @@ import {
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
 import { getUserProfile, updateUserProfile } from "../../lib/user-profile";
 import styles from "./skills.module.css";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const localDraftKey = "collexus:skills-profile-draft";
@@ -167,7 +168,7 @@ export function SkillsExperience() {
 
   return <main className={styles.page}>
     <header className={styles.header}>
-      <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><span className={styles.logoFrame} aria-hidden="true"><Image src={`${basePath}/collexus-logo.svg`} alt="" width={86} height={86} /></span><span className={styles.brandWord}>llexus</span></a>
+      <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={basePath} /></a>
       <a className={styles.backLink} href={`${basePath}/`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
     </header>
     <div className={styles.shell}>

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
 import { updateUserProfile, type AccountType } from "../../lib/user-profile";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { TurnstileChallenge, turnstileSiteKey } from "./turnstile-challenge";
 import styles from "./login.module.css";
 
@@ -29,7 +30,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 type AccountMode = "signin" | "signup" | "recovery";
 type PhoneAuthStep = "details" | "verify";
 type EmailAuthPurpose = "signin" | "signup";
-type SignupDetails = { fullName: string; campusId: string; email: string; phone: string };
+type SignupDetails = { fullName: string; campusId: string; email: string; phone: string; password: string };
 type AuthUser = { email: string | null; phone: string | null; displayName: string | null; contactVerified: boolean; accountType: string | null };
 
 const accountTypes: { id: AccountType; label: string; detail: string; icon: typeof GraduationCap }[] = [
@@ -86,6 +87,8 @@ export function LoginExperience() {
   const [emailOtp, setEmailOtp] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingSignup, setPendingSignup] = useState<SignupDetails | null>(null);
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupPasswordAgain, setSignupPasswordAgain] = useState("");
   const [resendSeconds, setResendSeconds] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -99,6 +102,7 @@ export function LoginExperience() {
   const [captchaWidgetError, setCaptchaWidgetError] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const captchaTokenRef = useRef("");
+  const signupPasswordSetupRef = useRef(false);
 
   const saveCaptchaToken = useCallback((token: string) => {
     captchaTokenRef.current = token;
@@ -185,7 +189,7 @@ export function LoginExperience() {
             setCheckingSession(false);
             const recoveryCallback = `${window.location.search}${window.location.hash}`.includes("type=recovery");
             const waitingForAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
-            if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType) {
+            if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType && !signupPasswordSetupRef.current) {
               window.location.replace(`${basePath}/profile/`);
             }
           }
@@ -217,6 +221,9 @@ export function LoginExperience() {
     setEmailOtp("");
     setPendingEmail("");
     setPendingSignup(null);
+    setSignupPassword("");
+    setSignupPasswordAgain("");
+    signupPasswordSetupRef.current = false;
     setResendSeconds(0);
     setError("");
     setMessage("");
@@ -371,15 +378,25 @@ export function LoginExperience() {
         const fullName = String(formData.get("name") ?? "").trim();
         const campusId = String(formData.get("campusId") ?? "").trim();
         const phone = normalizePhoneNumber(String(formData.get("phone") ?? ""));
+        const password = String(formData.get("signupPassword") ?? "");
+        const passwordAgain = String(formData.get("signupPasswordAgain") ?? "");
         if (!fullName) {
           setError("Enter your full name to create your account.");
+          return;
+        }
+        if (password.length < 10) {
+          setError("Use at least 10 characters for your password.");
+          return;
+        }
+        if (password !== passwordAgain) {
+          setError("The passwords don’t match yet.");
           return;
         }
         if (!isInternationalPhoneNumber(phone)) {
           setError("Enter your phone number with its country code, for example +91 98765 43210.");
           return;
         }
-        signup = { fullName, campusId, email, phone };
+        signup = { fullName, campusId, email, phone, password };
         window.sessionStorage.removeItem("collexus-pending-account-type");
       }
       const captchaToken = takeCaptchaToken();
@@ -400,6 +417,8 @@ export function LoginExperience() {
       if (otpError) throw otpError;
       setPendingEmail(email);
       setPendingSignup(signup);
+      setSignupPassword("");
+      setSignupPasswordAgain("");
       setEmailAuthPurpose(isSignup ? "signup" : "signin");
       setEmailAuthStep("verify");
       setEmailOtp("");
@@ -454,23 +473,48 @@ export function LoginExperience() {
       setError("Enter the 6-digit code sent to your college email.");
       return;
     }
+    if (emailAuthPurpose === "signup" && (!pendingSignup?.password || pendingSignup.password.length < 10)) {
+      setError("Your signup details expired. Start account creation again to choose a password.");
+      return;
+    }
     setBusy(true);
+    let emailVerified = false;
     try {
       const supabase = getSupabaseClient();
       if (!supabase || !pendingEmail) {
         setError("Your code request has expired. Start again to get a new code.");
         return;
       }
+      if (emailAuthPurpose === "signup") signupPasswordSetupRef.current = true;
       const { data, error: verifyError } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
       if (verifyError) throw verifyError;
       if (!data.session || !data.user?.email_confirmed_at) {
+        signupPasswordSetupRef.current = false;
         setError("Supabase did not confirm this email. Check the code or request a new one.");
         return;
       }
+      emailVerified = true;
+      if (emailAuthPurpose === "signup" && pendingSignup) {
+        const { error: passwordError } = await supabase.auth.updateUser({ password: pendingSignup.password });
+        if (passwordError) throw passwordError;
+      }
+      signupPasswordSetupRef.current = false;
       window.sessionStorage.removeItem("collexus-pending-account-type");
       window.location.assign(`${basePath}/profile/`);
     } catch (authError) {
-      setError(friendlyAuthError(authError));
+      if (emailAuthPurpose === "signup" && emailVerified) {
+        setMode("recovery");
+        setEmailAuthPurpose(null);
+        setEmailAuthStep("details");
+        setEmailOtp("");
+        setPendingEmail("");
+        setPendingSignup(null);
+        setMessage("Email verified. Set your password below to finish creating your account.");
+        setError("We couldn’t save the password from your signup form. Enter it again to finish.");
+      } else {
+        signupPasswordSetupRef.current = false;
+        setError(friendlyAuthError(authError));
+      }
     } finally {
       setBusy(false);
     }
@@ -520,6 +564,7 @@ export function LoginExperience() {
         }
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
+        signupPasswordSetupRef.current = false;
         setMode("signin");
         setMessage("Your password has been updated. Sign in with your new password.");
         window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
@@ -617,8 +662,7 @@ export function LoginExperience() {
     <main className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home">
-          <span className={styles.brandLogoFrame} aria-hidden="true"><img src={`${basePath}/collexus-logo.svg`} alt="" /></span>
-          <span>Collexus</span>
+          <CollexusHomeLogo basePath={basePath} />
         </a>
         <a className={styles.backLink} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
       </header>
@@ -656,7 +700,7 @@ export function LoginExperience() {
             <>
               <p className={styles.eyebrow}>{mode === "signin" ? "WELCOME BACK" : mode === "signup" ? "GET STARTED" : "ACCOUNT RECOVERY"}</p>
               <h2>{mode === "signin" ? "Sign in to Collexus" : mode === "signup" ? "Create your account" : "Choose a new password"}</h2>
-              <p className={styles.cardIntro}>{mode === "recovery" ? "Use a new password you have not used here before." : mode === "signup" ? "Create your account with a one-time code sent to your college email." : "Choose your account type to get the right sign-in fields."}</p>
+              <p className={styles.cardIntro}>{mode === "recovery" ? "Use a new password you have not used here before." : mode === "signup" ? "Verify your college email and choose a password for your account." : "Choose your account type to get the right sign-in fields."}</p>
 
               {mode !== "recovery" && <div className={styles.accountTypes} role="group" aria-label="Choose account type">
                 {accountTypes.map(({ id, label, detail, icon: Icon }) => (
@@ -721,6 +765,8 @@ export function LoginExperience() {
                   {accountType !== "guest" && <label className={styles.field}><span>{accountType === "student" ? "Student ID" : "Faculty ID"} <small>for profile reference</small></span><div className={styles.inputWrap}><BookOpenCheck size={16} aria-hidden="true" /><input autoComplete="off" defaultValue={pendingSignup?.campusId ?? ""} maxLength={30} name="campusId" placeholder={accountType === "student" ? "e.g. 23CSP001" : "e.g. FAC001"} required disabled={busy} /></div></label>}
                   <label className={styles.field}><span>College email</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" defaultValue={pendingSignup?.email ?? ""} maxLength={254} name="email" placeholder="name@college.edu" required type="email" disabled={busy} /></div><small className={styles.fieldHelp}>Use an inbox you can access. Your sign-in code will be sent here.</small></label>
                   <label className={styles.field}><span>Phone number</span><div className={styles.inputWrap}><Phone size={16} aria-hidden="true" /><input autoComplete="tel" defaultValue={pendingSignup?.phone ?? "+91 "} inputMode="tel" maxLength={20} name="phone" pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" disabled={busy} /></div><small className={styles.fieldHelp}>Contact information only. Your sign-in code goes to your college email.</small></label>
+                  <label className={styles.field}><span>Create password <small>at least 10 characters</small></span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="new-password" minLength={10} maxLength={128} name="signupPassword" onChange={(event) => setSignupPassword(event.currentTarget.value)} placeholder="Create a password" required type={showPassword ? "text" : "password"} value={signupPassword} disabled={busy} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>
+                  <label className={styles.field}><span>Confirm password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input aria-describedby={signupPasswordAgain ? "signup-password-match" : undefined} aria-invalid={Boolean(signupPasswordAgain && signupPassword !== signupPasswordAgain)} autoComplete="new-password" minLength={10} maxLength={128} name="signupPasswordAgain" onChange={(event) => setSignupPasswordAgain(event.currentTarget.value)} placeholder="Enter your password again" required type={showPassword ? "text" : "password"} value={signupPasswordAgain} disabled={busy} /></div>{signupPasswordAgain && <small aria-live="polite" className={`${styles.passwordMatch} ${signupPassword !== signupPasswordAgain ? styles.passwordMatchInvalid : ""}`} id="signup-password-match" role="status">{signupPassword === signupPasswordAgain ? "Passwords match." : "Passwords don’t match yet."}</small>}</label>
                   <label className={styles.remember}><input name="agreement" required type="checkbox" disabled={busy} /> I agree to use Collexus respectfully and keep my account details accurate.</label>
                   {error && <p className={styles.error} role="alert">{error}</p>}
                   {message && <p className={styles.success} role="status">{message}</p>}

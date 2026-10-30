@@ -93,6 +93,8 @@
 .passwordToggle { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; cursor: pointer; transition: color .16s ease, background .16s ease; }
 .passwordToggle:hover { color: var(--teal); background: var(--teal-soft); }
 .remember { display: flex; align-items: flex-start; gap: 7px; color: var(--muted); font-size: 9px; font-weight: 500; line-height: 1.5; }
+.passwordMatch { margin: -5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.passwordMatchInvalid { color: #9c3434; }
 .remember input { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--teal); cursor: pointer; }
 .remember input:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 48%, white); outline-offset: 2px; }
 .textButton { padding: 0; border: 0; color: var(--teal); background: transparent; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }

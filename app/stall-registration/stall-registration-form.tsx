@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import styles from "./stall-registration.module.css";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftKey = "collexus-stall-request-v1";
@@ -121,7 +122,7 @@ export function StallRegistrationForm() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home"><span className={styles.brandLogoFrame} aria-hidden="true"><img src={`${publicBasePath}/collexus-logo.svg`} alt="" /></span><span>Collexus</span></a>
+        <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={publicBasePath} /></a>
         <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={17} aria-hidden="true" /><span>Back to events</span></a>
       </header>
 

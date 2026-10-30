@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/icon";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { HeaderAccountAction } from "@/components/header-account-action";
 import { OriginalInteractions } from "@/components/original-interactions";
 import { FaqAccordion } from "@/components/faq-accordion";
@@ -23,10 +24,7 @@ export default function HomePage() {
       </button>
 
       <a className="collexus-brand flex items-center gap-0 shrink-0" data-path="discover" href="#" aria-label="Collexus home">
-        <span className="college-logo-wrap" title="Ramachandra College of Engineering">
-          <img src={`${publicBasePath}/collexus-logo.svg`} alt="Collexus logo" className="college-logo"/>
-        </span>
-        <span className="collexus-word hidden md:inline-block">llexus</span>
+        <CollexusHomeLogo basePath={publicBasePath} wordmarkClassName="hidden md:inline-block" />
       </a>
     </div>
 

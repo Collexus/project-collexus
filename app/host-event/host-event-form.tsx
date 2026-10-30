@@ -18,6 +18,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import styles from "./host-event.module.css";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
@@ -254,8 +255,7 @@ export function HostEventForm() {
     <main className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home">
-          <span className={styles.brandLogoFrame} aria-hidden="true"><img src={`${publicBasePath}/collexus-logo.svg`} alt="" /></span>
-          <span>Collexus</span>
+          <CollexusHomeLogo basePath={publicBasePath} />
         </a>
         <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}>
           <ArrowLeft aria-hidden="true" size={17} />
