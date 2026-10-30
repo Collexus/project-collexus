@@ -10,7 +10,7 @@ The account type and campus ID are self-reported profile values. They are not pr
 
 ## Configure the deployed login
 
-The production site is built and deployed by the GitHub Pages workflow from `main`. Store the Supabase public values under the repository’s **Settings → Secrets and variables → Actions → Variables** so the static build can embed them. The workflow includes the public Turnstile site key supplied for Collexus; a repository variable with the same name can override it when the key is rotated.
+The production site is built and deployed by the GitHub Pages workflow from `main`. Store all public values under the repository’s **Settings → Secrets and variables → Actions → Variables** so the static build can embed them:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
