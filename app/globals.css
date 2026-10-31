@@ -4930,3 +4930,14 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
   }
   body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:218px!important}
 }
+
+@media(max-width:760px){
+  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{
+    position:fixed!important;top:78px!important;left:0;right:0;z-index:45;
+    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    flex-wrap:initial!important;justify-content:stretch!important;gap:6px!important;
+    min-height:0!important;margin:0!important;padding:0 12px 8px!important;
+    overflow:visible!important;border-top:0!important;
+  }
+  body.warm-editorial-theme.vivid-nightfall-theme main.w-full.bg-surface{padding-top:132px!important}
+}
