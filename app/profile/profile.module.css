@@ -108,3 +108,22 @@
 .accountSection>p:last-child{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
 .form,.field[id="about"]{scroll-margin-top:88px}
 @media(max-width:680px){.accountSections{grid-template-columns:minmax(0,1fr);gap:9px}.accountSection{padding:15px}}
+.phoneLabel{display:flex;align-items:center;justify-content:space-between;gap:9px;color:var(--ink);font-size:11px;font-weight:750}
+.phoneVerified{display:inline-flex;align-items:center;gap:4px;color:var(--teal-dark);font-size:10px;font-weight:750}
+.phoneInputRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.phoneInputRow input,.phoneCodeRow input{box-sizing:border-box;min-width:0;min-height:48px;padding:0 13px;border:1px solid var(--line);border-radius:11px;color:var(--ink);background:var(--soft);font:inherit;font-size:13px;font-weight:450}
+.phoneInputRow input:focus-visible,.phoneCodeRow input:focus-visible{outline:0;border-color:var(--teal);background:var(--card);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 19%,transparent)}
+.phoneAction,.phoneActionPrimary,.phoneChangeButton{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;color:var(--teal-dark);background:var(--card);font:inherit;font-size:10px;font-weight:750;white-space:nowrap;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.phoneAction:hover:not(:disabled),.phoneChangeButton:hover:not(:disabled){border-color:var(--teal);background:var(--teal-soft)}
+.phoneActionPrimary{border-color:var(--teal);color:#fff;background:linear-gradient(110deg,#087e83,#117f9b)}
+.phoneActionPrimary:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.04)}
+.phoneAction:disabled,.phoneActionPrimary:disabled,.phoneChangeButton:disabled{opacity:.58;cursor:not-allowed}
+.phoneCodePanel{display:grid;gap:8px;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}
+.phoneCodePanel>label{color:var(--muted);font-size:10px;font-weight:600;line-height:1.45}
+.phoneCodeRow{display:grid;grid-template-columns:minmax(100px,1fr) auto auto;gap:7px;align-items:center}
+.phoneCodeRow input{min-height:44px;font-size:12px;letter-spacing:.08em}
+.phoneCodePanel>small,.phoneError,.phoneSuccess{font-size:10px;line-height:1.5}
+.phoneCodePanel>small{color:var(--muted)}
+.phoneError{color:#9c3434}
+.phoneSuccess{color:#087662}
+@media(max-width:520px){.phoneInputRow{grid-template-columns:minmax(0,1fr)}.phoneAction,.phoneActionPrimary{width:100%}.phoneCodeRow{grid-template-columns:minmax(0,1fr) minmax(110px,auto)}.phoneChangeButton{grid-column:1/-1}}

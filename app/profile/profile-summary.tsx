@@ -44,7 +44,7 @@ function fromAuthAndProfile(user: User, profile: UserProfile | null): ProfileDet
   return {
     name: profile?.full_name ?? asText(metadata.full_name ?? metadata.name),
     email: user.email ?? "",
-    phone: profile?.profile_phone ?? asText(metadata.phone_number ?? user.phone),
+    phone: user.phone_confirmed_at && user.phone ? user.phone : profile?.profile_phone ?? asText(metadata.phone_number ?? user.phone),
     campusId: profile?.campus_id ?? asText(metadata.campus_id),
     organization: profile?.profile_organization ?? "",
     address: profile?.profile_address ?? "",

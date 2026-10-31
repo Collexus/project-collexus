@@ -22,6 +22,26 @@ function readStringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function normalizePhoneNumber(value: string) {
+  return value.trim().replace(/[\s().-]/g, "");
+}
+
+function isInternationalPhoneNumber(value: string) {
+  return /^\+[1-9]\d{7,14}$/.test(value);
+}
+
+function phoneAuthErrorMessage(error: unknown) {
+  const details = typeof error === "object" && error !== null ? error as { code?: unknown; message?: unknown } : {};
+  const code = typeof details.code === "string" ? details.code : "";
+  const message = typeof details.message === "string" ? details.message.toLowerCase() : "";
+  if (code === "phone_exists") return "This number is already connected to another Collexus account.";
+  if (code === "over_sms_send_rate_limit") return "Too many codes were requested. Wait a little before trying again.";
+  if (code === "phone_provider_disabled" || code === "sms_provider_disabled" || code === "sms_send_failed" || message.includes("sms provider") || message.includes("phone change") || message.includes("twilio")) return "SMS verification isn’t configured for this project yet. Ask the Collexus administrator to enable an SMS provider in Supabase.";
+  if (code === "otp_expired") return "That code has expired. Request a new SMS code.";
+  if (code === "otp_invalid" || code === "token_not_found") return "That code doesn’t match. Check the SMS and try again.";
+  return "We couldn’t verify this number. Check the number and try again.";
+}
+
 export function ProfileExperience() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(isSupabaseConfigured);
@@ -31,6 +51,12 @@ export function ProfileExperience() {
   const [name, setName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [phone, setPhone] = useState("");
+  const [pendingPhoneVerification, setPendingPhoneVerification] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneResendSeconds, setPhoneResendSeconds] = useState(0);
+  const [phoneBusy, setPhoneBusy] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneMessage, setPhoneMessage] = useState("");
   const [campusId, setCampusId] = useState("");
   const [organization, setOrganization] = useState("");
   const [address, setAddress] = useState("");
@@ -97,7 +123,7 @@ export function ProfileExperience() {
       setName(profile.full_name ?? String(metadata.full_name ?? metadata.name ?? ""));
       setEmailAddress(current.email ?? "");
       setAccountType(profile.account_type ?? String(metadata.account_type ?? "student"));
-      setPhone(profile.profile_phone ?? String(metadata.phone_number ?? current.phone ?? ""));
+      setPhone(current.phone_confirmed_at && current.phone ? current.phone : profile.profile_phone ?? String(metadata.phone_number ?? current.phone ?? ""));
       setCampusId(profile.campus_id ?? String(metadata.campus_id ?? ""));
       setOrganization(profile.profile_organization ?? "");
       setAddress(profile.profile_address ?? "");
@@ -127,6 +153,94 @@ export function ProfileExperience() {
     });
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!phoneResendSeconds) return;
+    const timer = window.setTimeout(() => setPhoneResendSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [phoneResendSeconds]);
+
+  const phoneVerified = Boolean(user?.phone_confirmed_at && normalizePhoneNumber(user.phone ?? "") === normalizePhoneNumber(phone));
+
+  async function sendPhoneVerification() {
+    const supabase = getSupabaseClient();
+    const normalizedPhone = normalizePhoneNumber(phone);
+    setPhoneError("");
+    setPhoneMessage("");
+    if (!isInternationalPhoneNumber(normalizedPhone)) {
+      setPhoneError("Enter a phone number with its country code, such as +91 98765 43210.");
+      return;
+    }
+    if (!supabase || !user) {
+      setPhoneError("Sign in to verify a phone number with SMS.");
+      return;
+    }
+    if (user.phone_confirmed_at && normalizePhoneNumber(user.phone ?? "") === normalizedPhone) {
+      setPhoneMessage("This number is already verified for your account.");
+      return;
+    }
+
+    setPhoneBusy(true);
+    try {
+      if (pendingPhoneVerification === normalizedPhone) {
+        const { error: resendError } = await supabase.auth.resend({ type: "phone_change", phone: normalizedPhone });
+        if (resendError) throw resendError;
+        setPhoneMessage(`A new verification code was sent to ${normalizedPhone}.`);
+      } else {
+        const { error: sendError } = await supabase.auth.updateUser({ phone: normalizedPhone });
+        if (sendError) throw sendError;
+        setPendingPhoneVerification(normalizedPhone);
+        setPhoneOtp("");
+        setPhoneMessage(`A 6-digit verification code was sent to ${normalizedPhone} by SMS.`);
+      }
+      setPhoneResendSeconds(60);
+    } catch (authError) {
+      setPhoneError(phoneAuthErrorMessage(authError));
+    } finally {
+      setPhoneBusy(false);
+    }
+  }
+
+  async function verifyPhoneNumber() {
+    const supabase = getSupabaseClient();
+    const token = phoneOtp.trim();
+    setPhoneError("");
+    setPhoneMessage("");
+    if (!supabase || !user || !pendingPhoneVerification) {
+      setPhoneError("Request a new SMS code before verifying your number.");
+      return;
+    }
+    if (!/^\d{6}$/.test(token)) {
+      setPhoneError("Enter the 6-digit code from your SMS.");
+      return;
+    }
+
+    setPhoneBusy(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({ phone: pendingPhoneVerification, token, type: "phone_change" });
+      if (verifyError) throw verifyError;
+      const verifiedUser = data.user ?? user;
+      setUser(verifiedUser);
+      setPhone(pendingPhoneVerification);
+      setPendingPhoneVerification("");
+      setPhoneOtp("");
+      setPhoneResendSeconds(0);
+
+      const { data: metadataData, error: metadataError } = await supabase.auth.updateUser({ data: { phone_number: pendingPhoneVerification } });
+      if (!metadataError && metadataData.user) setUser(metadataData.user);
+      const { error: profileError } = await updateUserProfile(supabase, user.id, { profile_phone: pendingPhoneVerification });
+      const profileErrorText = profileError?.message.toLowerCase() ?? "";
+      setPhoneMessage(profileError
+        ? profileErrorText.includes("profile_phone") || profileErrorText.includes("column")
+          ? "Phone verified by SMS. Your account has the verified number; syncing the profile field needs the profile contact fields migration."
+          : "Phone verified by SMS, but the profile field did not sync. Save your profile again after checking your connection."
+        : "Phone number verified by SMS and saved to your account.");
+    } catch (authError) {
+      setPhoneError(phoneAuthErrorMessage(authError));
+    } finally {
+      setPhoneBusy(false);
+    }
+  }
 
   function addSkill(value: string) {
     const normalized = value.trim().replace(/\s+/g, " ");
@@ -371,7 +485,25 @@ export function ProfileExperience() {
                 <div className={styles.fieldGrid}>
                   <label className={styles.field}><span>Full name</span><input autoComplete="name" maxLength={80} value={name} onChange={(event) => { setName(event.target.value); setSaved(false); }} placeholder="Your name" /></label>
                   <label className={styles.field}><span>Email address <small>{user ? "Sign-in email" : "Optional preview detail"}</small></span><input autoComplete="email" type="email" maxLength={254} value={contactEmail} onChange={(event) => { if (!user) setEmailAddress(event.target.value); }} readOnly={Boolean(user)} placeholder={user ? "Signed-in email" : "you@example.com"} /></label>
-                  <label className={styles.field}><span>Phone number</span><input autoComplete="tel" inputMode="tel" maxLength={24} value={phone} onChange={(event) => { setPhone(event.target.value); setSaved(false); }} placeholder="Add a phone number" /></label>
+                  <div className={styles.field}>
+                    <label className={styles.phoneLabel} htmlFor="profile-phone"><span>Phone number</span>{phoneVerified && <span className={styles.phoneVerified}><BadgeCheck size={13} aria-hidden="true" /> Verified</span>}</label>
+                    <div className={styles.phoneInputRow}>
+                      <input id="profile-phone" autoComplete="tel" inputMode="tel" maxLength={24} value={phone} onChange={(event) => { setPhone(event.target.value); setSaved(false); setPendingPhoneVerification(""); setPhoneOtp(""); setPhoneResendSeconds(0); setPhoneError(""); setPhoneMessage(""); }} placeholder="+91 98765 43210" />
+                      <button className={styles.phoneAction} type="button" disabled={phoneBusy || busy || phoneVerified || !configured || !user} onClick={() => void sendPhoneVerification()}>{phoneBusy ? <><LoaderCircle className={styles.spinner} size={14} aria-hidden="true" /> Sending…</> : phoneVerified ? "Verified" : pendingPhoneVerification ? phoneResendSeconds ? `Resend in ${phoneResendSeconds}s` : "Resend SMS code" : "Verify by SMS"}</button>
+                    </div>
+                    {pendingPhoneVerification && <div className={styles.phoneCodePanel}>
+                      <label htmlFor="profile-phone-code">Enter the 6-digit code sent to {pendingPhoneVerification}</label>
+                      <div className={styles.phoneCodeRow}>
+                        <input id="profile-phone-code" autoComplete="one-time-code" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" value={phoneOtp} onChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" />
+                        <button className={styles.phoneActionPrimary} type="button" disabled={phoneBusy || phoneOtp.length !== 6} onClick={() => void verifyPhoneNumber()}>{phoneBusy ? "Checking…" : "Verify number"}</button>
+                        <button className={styles.phoneChangeButton} type="button" disabled={phoneBusy} onClick={() => { setPendingPhoneVerification(""); setPhoneOtp(""); setPhoneResendSeconds(0); setPhoneError(""); setPhoneMessage(""); }}>Change number</button>
+                      </div>
+                      {phoneResendSeconds > 0 && <small>You can request another SMS in {phoneResendSeconds}s.</small>}
+                    </div>}
+                    {phoneError && <small className={styles.phoneError} role="alert">{phoneError}</small>}
+                    {phoneMessage && <small className={styles.phoneSuccess} role="status">{phoneMessage}</small>}
+                    {!configured && <small>SMS verification is available after your Collexus account is connected.</small>}
+                  </div>
                   <label className={styles.field}><span>Account type</span><input value={accountLabel} readOnly /></label>
                   <label className={`${styles.field} ${styles.fieldWide}`}><span>Address <small>Optional</small></span><input autoComplete="street-address" maxLength={240} value={address} onChange={(event) => { setAddress(event.target.value); setSaved(false); }} placeholder="City, state or address" /></label>
                 </div>
