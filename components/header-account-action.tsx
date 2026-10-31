@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { Award, CircleHelp, ClipboardList, Info, LogOut, Ticket, UserRound } from "lucide-react";
+import { BadgeCheck, CircleHelp, ClipboardList, Info, LogOut, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import styles from "./header-account-action.module.css";
@@ -57,13 +57,13 @@ export function HeaderAccountAction() {
   if (user) {
     const name = String(user.user_metadata.full_name ?? user.user_metadata.name ?? "Your profile");
     const email = user.email ?? "Signed in to Collexus";
+    const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "C";
     const profileLinks = [
-      { label: "Profile", href: `${basePath}/profile/#profile`, Icon: UserRound },
-      { label: "About", href: `${basePath}/profile/#about`, Icon: Info },
-      { label: "Registered / Orders", href: `${basePath}/profile/#registered-orders`, Icon: ClipboardList },
-      { label: "My vouchers", href: `${basePath}/profile/#my-vouchers`, Icon: Ticket },
-      { label: "Certificates", href: `${basePath}/profile/#certificates`, Icon: Award },
-      { label: "Help", href: `${basePath}/#faq`, Icon: CircleHelp },
+      { label: "Profile", href: `${basePath}/profile/`, Icon: UserRound },
+      { label: "About you", href: `${basePath}/profile/edit/#about`, Icon: Info },
+      { label: "Registrations & orders", href: `${basePath}/registrations/`, Icon: ClipboardList },
+      { label: "Help", href: `${basePath}/help/`, Icon: CircleHelp },
+      { label: "About Collexus", href: `${basePath}/about/`, Icon: UserRound },
     ];
 
     async function signOut() {
@@ -99,7 +99,15 @@ export function HeaderAccountAction() {
         ><Icon name="person" /></button>
 
         <div className={styles.dropdown} id="profileDropdown" hidden={!menuOpen}>
-          <div className={styles.identity}><strong>{name}</strong><span>{email}</span></div>
+          <div className={styles.identity}>
+            <span className={styles.avatar} aria-hidden="true">{initials}</span>
+            <div className={styles.identityCopy}>
+              <small className={styles.identityEyebrow}>COLLEXUS ACCOUNT</small>
+              <strong>{name}</strong>
+              <span>{email}</span>
+            </div>
+            <span className={styles.identityBadge} title="Signed in"><BadgeCheck size={14} aria-hidden="true" /> <span>Signed in</span></span>
+          </div>
           <nav className={styles.links} aria-label="Profile navigation">
             {profileLinks.map(({ label, href, Icon: ItemIcon }) => <Link href={href} key={label} onClick={() => setMenuOpen(false)}><ItemIcon size={17} aria-hidden="true" /><span>{label}</span></Link>)}
           </nav>

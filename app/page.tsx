@@ -153,10 +153,10 @@ export default function HomePage() {
             </div>
 <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
 <div>
-<h3 className="font-headline-md text-headline-md text-white font-bold flagship-aura-title">KREYA ’27 Cultural Fest</h3>
+<h3 className="font-headline-md text-headline-md text-white font-bold flagship-aura-title">KREYA ’26 Cultural Fest</h3>
 <p className="font-body-sm text-body-sm text-blush">Art, music, literature, culture &amp; technical excellence</p>
 </div>
-<span className="px-2 py-1 rounded bg-blush text-primary font-label-sm text-label-sm font-bold uppercase shrink-0">KREYA ’27</span>
+<span className="px-2 py-1 rounded bg-blush text-primary font-label-sm text-label-sm font-bold uppercase shrink-0">KREYA ’26</span>
 </div>
 </div>
 
@@ -567,6 +567,7 @@ export default function HomePage() {
             <button className="menu-filter-chip" type="button" data-filter-val="video editing">Video editing</button>
             <button className="menu-filter-chip" type="button" data-filter-val="bba">BBA</button>
             <button className="menu-filter-chip" type="button" data-filter-val="mba">MBA</button>
+            <button className="menu-filter-chip" type="button" data-filter-val="graphic design">Graphic design</button>
           </div>
         </section>
 

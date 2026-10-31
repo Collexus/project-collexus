@@ -4801,3 +4801,110 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
   .event-results-status{margin-top:-14px;margin-bottom:15px}
 }
 @media(prefers-reduced-motion:reduce){.event-search-result,.global-search-clear{transition:none!important}}
+
+/* Calendar refinement: quieter surfaces, even spacing, and readable event labels. */
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-dialog{
+  width:min(960px,calc(100% - 32px))!important;max-height:min(88vh,820px)!important;padding:24px!important;
+  border-radius:20px!important;box-shadow:0 24px 64px rgba(13,35,47,.18)!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-top{align-items:flex-start!important;gap:24px!important;margin-bottom:22px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-top>div:first-child{max-width:650px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-top h2{font-size:clamp(26px,3.5vw,34px)!important;letter-spacing:-.035em!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-top p:not(.category-eyebrow){max-width:620px!important;line-height:1.6!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-nav{gap:8px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-nav button,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-nav button:hover{width:44px!important;height:44px!important;border-radius:12px!important;box-shadow:none!important}
+body.warm-editorial-theme.vivid-nightfall-theme #calendarMonthLabel{margin:4px 0 14px!important;font:700 18px/1.3 "Space Grotesk",sans-serif!important;letter-spacing:-.02em!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-legend{gap:14px!important;margin:0 0 12px!important;font-size:11px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays{margin-bottom:8px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays span{min-width:0!important;padding:9px 4px!important;border-radius:9px!important;font-size:10px!important;letter-spacing:.06em!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered{
+  box-sizing:border-box!important;min-width:0!important;min-height:86px!important;padding:8px!important;border-radius:12px!important;
+  box-shadow:none!important;transform:none!important;transition:background-color .16s ease,border-color .16s ease!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .day-num{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:27px!important;height:27px!important;border-radius:8px!important;font-size:12px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot.public-dot,
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot.registered-dot{
+  display:-webkit-box!important;width:100%!important;max-width:100%!important;max-height:2.5em!important;margin-top:5px!important;padding:4px 5px!important;
+  overflow:hidden!important;border-radius:7px!important;font:600 9px/1.25 "Space Grotesk",sans-serif!important;
+  white-space:normal!important;text-overflow:clip!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow-wrap:anywhere!important
+}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-dialog{border-color:#d3e1e4!important;background:#f7fbfb!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays span{color:#4f6c77!important;background:#eaf2f3!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.muted{border-color:#dce7e9!important;background:#fff!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.muted{background:#f2f6f7!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .day-num{color:#37535f!important;background:#e9f0f2!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.today{border-color:#087e83!important;background:#edf8f7!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.today .day-num{color:#fff!important;background:#087e83!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day{border-color:#9bc9c9!important;background:#edf7f6!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day .day-num{color:#fff!important;background:#16868a!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered{border-color:#bfcbe2!important;background:#f2f4fa!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered .day-num{color:#fff!important;background:#6878a8!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot{border-color:#d4e3e4!important;color:#315d66!important;background:#f8ffff!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-dialog{border-color:#314955!important;background:#101a23!important;box-shadow:0 24px 64px rgba(0,0,0,.46)!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays span{color:#b9cbd2!important;background:#1a2a34!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered{border-color:#2d424e!important;color:#e7f0f4!important;background:#14232d!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.muted{color:#8697a1!important;background:#101820!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .day-num{color:#dce8ed!important;background:#22343f!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.today{border-color:#4b9292!important;background:#142a31!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.today .day-num,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day .day-num{color:#071c22!important;background:#59d4cc!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day{border-color:#347c80!important;background:#132c32!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered{border-color:#555d8a!important;background:#20263a!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered .day-num{color:#fff!important;background:#6878a8!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot{border-color:#344d5b!important;color:#dce7ef!important;background:#1b2d38!important}
+@media(max-width:700px){
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-dialog{width:calc(100% - 20px)!important;max-height:90vh!important;padding:16px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-top{gap:12px!important;margin-bottom:17px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-weekdays,
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid{gap:5px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.event-day,
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-day.registered{min-height:67px!important;padding:5px!important;border-radius:9px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .day-num{width:24px!important;height:24px!important;font-size:11px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-day .event-dot{max-height:1.25em!important;padding:2px 3px!important;font-size:7px!important;white-space:nowrap!important}
+}
+@media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,body.warm-editorial-theme.vivid-nightfall-theme .calendar-nav button{transition:none!important}}
+
+/* Make event labels on photography legible in both display themes. */
+body.warm-editorial-theme.vivid-nightfall-theme main.details-page .details-image-label{
+  color:#f7fcff!important;background:rgba(7,19,28,.94)!important;border-color:rgba(117,221,232,.72)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.3)!important;text-shadow:0 1px 2px rgba(0,0,0,.55)!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme main.details-page .details-image-label span{color:#75dde8!important}
+
+/* Shared back links read as calm, tactile controls across event and checkout pages. */
+body.warm-editorial-theme.vivid-nightfall-theme .back-link,
+body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;min-height:43px!important;
+  padding:0 14px!important;border:1px solid #c5d9dd!important;border-radius:12px!important;color:#315766!important;
+  background:rgba(248,252,252,.96)!important;font:700 11px/1 "Plus Jakarta Sans",sans-serif!important;text-decoration:none!important;
+  box-shadow:0 3px 10px rgba(16,49,63,.06)!important;transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme .back-link svg,
+body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link svg{flex:none!important;color:#087e83!important}
+body.warm-editorial-theme.vivid-nightfall-theme .back-link:hover,
+body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link:hover{
+  border-color:#8bbfc0!important;color:#123d4c!important;background:#eef8f7!important;box-shadow:0 7px 16px rgba(8,126,131,.12)!important;transform:translateY(-1px)!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme .back-link:focus-visible,
+body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link:focus-visible{outline:3px solid #087e83!important;outline-offset:3px!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .back-link,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{
+  border-color:#344d59!important;color:#e1edf1!important;background:#15232d!important;box-shadow:0 3px 12px rgba(0,0,0,.24)!important
+}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .back-link svg,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link svg{color:#75dde8!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .back-link:hover,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link:hover{
+  border-color:#4a8288!important;color:#f5fcff!important;background:#1a333a!important;box-shadow:0 7px 18px rgba(0,0,0,.3)!important
+}
+@media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .back-link,body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{transition:none!important}}

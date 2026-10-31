@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,11 +15,11 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
-  Store,
   UsersRound,
 } from "lucide-react";
 import styles from "./host-event.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
@@ -97,13 +98,45 @@ function formatDate(value: string) {
     : new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(parsed);
 }
 
+function createSubmission(form: FormState) {
+  return {
+    schemaVersion: 1,
+    organizer: {
+      name: form.organizerName.trim(),
+      occupation: form.occupation,
+      institution: form.institution === "Other institution" ? form.institutionOther.trim() : form.institution,
+      batch: form.batch,
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+    },
+    event: {
+      name: form.eventName.trim(),
+      category: form.category,
+      template: form.template,
+      description: form.about.trim(),
+      expectedParticipants: form.expectedParticipants ? Number(form.expectedParticipants) : null,
+      startDate: form.startDate || null,
+      endDate: form.endDate || null,
+      startTime: form.startTime || null,
+      endTime: form.endTime || null,
+      mode: form.mode,
+      venue: form.venue.trim(),
+      pricing: form.pricing,
+      price: form.pricing === "paid" ? Number(form.price) : 0,
+    },
+  };
+}
+
 export function HostEventForm() {
+  const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [reviewed, setReviewed] = useState(false);
   const [dateError, setDateError] = useState("");
   const [draftStatus, setDraftStatus] = useState("");
   const [posterPreview, setPosterPreview] = useState("");
   const [posterError, setPosterError] = useState("");
+  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => () => {
     if (posterPreview) URL.revokeObjectURL(posterPreview);
@@ -116,6 +149,7 @@ export function HostEventForm() {
       setReviewed(false);
       setDateError("");
       setDraftStatus("");
+      setSubmissionStatus("");
     };
   }
 
@@ -210,33 +244,7 @@ export function HostEventForm() {
   }
 
   function downloadSubmission() {
-    const payload = {
-      schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
-      organizer: {
-        name: form.organizerName,
-        occupation: form.occupation,
-        institution: form.institution === "Other institution" ? form.institutionOther : form.institution,
-        batch: form.batch,
-        email: form.email,
-        phone: form.phone,
-      },
-      event: {
-        name: form.eventName,
-        category: form.category,
-        template: form.template,
-        description: form.about,
-        expectedParticipants: form.expectedParticipants ? Number(form.expectedParticipants) : null,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
-        startTime: form.startTime || null,
-        endTime: form.endTime || null,
-        mode: form.mode,
-        venue: form.venue,
-        pricing: form.pricing,
-        price: form.pricing === "paid" ? Number(form.price) : 0,
-      },
-    };
+    const payload = { ...createSubmission(form), exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -244,6 +252,34 @@ export function HostEventForm() {
     link.download = `${form.eventName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "event-submission"}.json`;
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function submitForReview() {
+    setSubmissionStatus("");
+    setIsSubmitting(true);
+    try {
+      const supabase = getSupabaseClient();
+      if (!supabase) throw new Error("Event submissions are not configured yet. Please contact the Collexus team.");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw new Error("Could not confirm your sign-in. Please sign in again and retry.");
+      if (!session) {
+        saveDraft();
+        router.push(`${publicBasePath}/login/?next=%2Fhost-event%2F`);
+        return;
+      }
+      const submissionId = crypto.randomUUID();
+      const { error } = await supabase.from("event_submissions").insert({
+        id: submissionId,
+        organizer_id: session.user.id,
+        submission: createSubmission(form),
+      });
+      if (error) throw new Error("We couldn’t save this event. Please try again later.");
+      setSubmissionStatus(`Submission received for review. Reference: ${submissionId}.`);
+    } catch (error) {
+      setSubmissionStatus(error instanceof Error ? error.message : "We couldn’t save this event. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const dates = form.startDate
@@ -438,7 +474,7 @@ export function HostEventForm() {
             </section>
 
             <div className={styles.submitArea}>
-              <p className={styles.reviewPrompt}><ShieldCheck aria-hidden="true" size={18} /><span><strong>Before you share:</strong> check the dates, venue, contact details, price, and poster in the preview. This page saves locally and exports a file; it does not publish events.</span></p>
+              <p className={styles.reviewPrompt}><ShieldCheck aria-hidden="true" size={18} /><span><strong>Before you submit:</strong> check the dates, venue, contact details, and price in the preview. New events are stored privately for review and will not appear publicly until approved.</span></p>
               <button className={styles.submitButton} onClick={scrollToPreview} type="button"><Eye aria-hidden="true" size={18} /> Show live preview <ArrowRight aria-hidden="true" size={18} /></button>
               <div className={styles.draftActions}>
                 <button className={styles.draftButton} onClick={saveDraft} type="button">Save draft on this device</button>
@@ -447,8 +483,12 @@ export function HostEventForm() {
               </div>
               <p>Your draft stays in this browser until you export it.</p>
               {draftStatus && <p className={styles.draftStatus} role="status">{draftStatus}</p>}
-              {reviewed && <div className={styles.successMessage} role="status"><ShieldCheck aria-hidden="true" size={18} /><span>Required fields and date/time checks passed. Review the full preview below, then download the submission when you’re ready.</span></div>}
-              {reviewed && <button className={styles.draftButton} onClick={downloadSubmission} type="button">Download event submission JSON</button>}
+              {reviewed && <div className={styles.successMessage} role="status"><ShieldCheck aria-hidden="true" size={18} /><span>Required fields and date/time checks passed. Review the full preview below, then submit it for the Collexus team to review.</span></div>}
+              {reviewed && <div className={styles.draftActions}>
+                <button className={styles.submitButton} disabled={isSubmitting} onClick={submitForReview} type="button">{isSubmitting ? "Submitting…" : "Submit for review"} <ArrowRight aria-hidden="true" size={18} /></button>
+                <button className={styles.draftButton} onClick={downloadSubmission} type="button">Download JSON copy</button>
+              </div>}
+              {submissionStatus && <p className={submissionStatus.startsWith("Submission received") ? styles.draftStatus : styles.formError} role={submissionStatus.startsWith("Submission received") ? "status" : "alert"}>{submissionStatus}</p>}
             </div>
           </form>
 
@@ -477,7 +517,7 @@ export function HostEventForm() {
             </div>
             <div className={styles.checklist}>
               <ShieldCheck aria-hidden="true" size={19} />
-              <div><strong>What happens next?</strong><p>Review the event card, then export a JSON summary for your event team. Publishing is not connected on this page.</p></div>
+              <div><strong>What happens next?</strong><p>Submit your event to the private review queue. It will only be published after the Collexus team approves it.</p></div>
             </div>
             <button className={styles.previewButton} onClick={() => document.querySelector<HTMLFormElement>("#host-event-form")?.requestSubmit()} type="button" aria-controls="host-event-form">
               <Send aria-hidden="true" size={17} /> Prepare submission <ArrowRight aria-hidden="true" size={16} />

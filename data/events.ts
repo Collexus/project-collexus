@@ -227,7 +227,7 @@ export const events: CampusEvent[] = [
   },
   {
     slug: "kreya-26-cultural-fest",
-    title: "KREYA ’27 — RCE(A) Cultural Fest",
+    title: "KREYA ’26 — RCE(A) Cultural Fest",
     category: "Cultural",
     specialEvent: true,
     branch: "Campus",
@@ -238,13 +238,13 @@ export const events: CampusEvent[] = [
     venue: "Ramachandra College of Engineering, Eluru",
     organizer: "Ramachandra College of Engineering",
     description:
-      "The fifth edition of RCEE’s annual cultural fest, described by the college as a celebration spanning art, music, literature, culture and technical excellence. The public report does not give the exact fest dates or schedule.",
+      "The fifth edition of RCEE’s annual cultural fest took place in 2026. The college describes Kreya as a celebration spanning art, music, literature, culture and technical excellence. Its public report does not give the exact fest dates or schedule.",
     fee: "Not specified in the official report.",
     format: "On-campus cultural fest",
     image: `${publicBasePath}/assets/event-art/cultural.webp`,
     source: "https://www.rcee.ac.in/news/nas-628259225",
     highlights: [
-      "The college described this as the fifth edition of its annual cultural fest.",
+      "The college described this as the fifth edition of its annual cultural fest in 2026.",
       "The program spans art, music, literature, culture and technical excellence.",
       "Exact event dates and schedule are not stated in the public report.",
     ],

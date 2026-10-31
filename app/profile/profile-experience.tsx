@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, BookOpen, BriefcaseBusiness, Check,
-  ChevronDown, CircleUserRound, Compass, GraduationCap, Heart, Lightbulb,
-  LoaderCircle, Plus, ShieldCheck, Sparkles, X,
+  ArrowLeft, ArrowRight, BadgeCheck, Check,
+  ChevronDown, CircleUserRound, Compass, Heart, ImagePlus,
+  LoaderCircle, Plus, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
 import { getUserProfile, updateUserProfile } from "../../lib/user-profile";
@@ -14,22 +13,29 @@ import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import styles from "./profile.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const localDraftKey = "collexus:account-profile-draft";
 const domains = ["Artificial intelligence & data", "Web & app development", "Robotics & IoT", "Cybersecurity", "Design & creative media", "Business & entrepreneurship", "Research & academia", "Mechanical & manufacturing", "Electrical & electronics", "Other"];
-const skillsList = ["Communication", "Leadership", "Problem solving", "JavaScript", "Python", "UI/UX design", "Public speaking", "Project management"];
-const interestsList = ["Hackathons", "Workshops", "Design", "Technology", "Volunteering", "Research", "Entrepreneurship", "Arts & culture", "Sports", "Community"];
+const skillsList = ["Communication", "Leadership", "Problem solving", "JavaScript", "Python", "UI/UX design", "Public speaking", "Project management", "Teamwork", "Data analysis", "Research", "Critical thinking", "Graphic design", "Content writing", "Event planning", "Time management", "Presentation design", "Video editing", "Photography", "C++", "Java", "SQL", "Web development", "Git & GitHub", "Figma", "Prototyping", "Digital marketing", "Product thinking"];
+const interestsList = ["Hackathons", "Workshops", "Design", "Technology", "Volunteering", "Research", "Entrepreneurship", "Arts & culture", "Sports", "Community", "Music", "Dance", "Photography", "Gaming", "Reading", "Creative writing", "Film & cinema", "Travel", "Fitness", "Debate", "Open source", "Robotics", "Startups", "Sustainability", "Mentoring", "Theatre", "Fashion", "Cooking", "Animation", "Social impact", "Public speaking", "Product design", "Board games"];
 
 function readStringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
 export function ProfileExperience() {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(isSupabaseConfigured);
   const [profileReady, setProfileReady] = useState(false);
   const [configured] = useState(isSupabaseConfigured);
   const [accountType, setAccountType] = useState("member");
   const [name, setName] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [campusId, setCampusId] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [address, setAddress] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarPath, setAvatarPath] = useState("");
   const [domain, setDomain] = useState("");
   const [otherDomain, setOtherDomain] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -43,7 +49,35 @@ export function ProfileExperience() {
   useEffect(() => {
     let active = true;
     const supabase = getSupabaseClient();
-    if (!supabase) return;
+    if (!supabase) {
+      try {
+        const stored = window.localStorage.getItem(localDraftKey);
+        if (stored) {
+          const draft = JSON.parse(stored) as Record<string, unknown>;
+          if (typeof draft.full_name === "string") setName(draft.full_name);
+          if (typeof draft.email === "string") setEmailAddress(draft.email);
+          if (typeof draft.account_type === "string") setAccountType(draft.account_type);
+          if (typeof draft.profile_phone === "string") setPhone(draft.profile_phone);
+          if (typeof draft.campus_id === "string") setCampusId(draft.campus_id);
+          if (typeof draft.profile_organization === "string") setOrganization(draft.profile_organization);
+          if (typeof draft.profile_address === "string") setAddress(draft.profile_address);
+          if (typeof draft.profile_avatar_url === "string") setAvatarUrl(draft.profile_avatar_url);
+          if (typeof draft.profile_domain === "string") {
+            const savedDomain = draft.profile_domain;
+            setDomain(domains.includes(savedDomain) ? savedDomain : savedDomain ? "Other" : "");
+            setOtherDomain(domains.includes(savedDomain) ? "" : savedDomain);
+          }
+          setSkills(readStringArray(draft.profile_skills));
+          setInterests(readStringArray(draft.profile_interests));
+          if (typeof draft.profile_about === "string") setAbout(draft.profile_about);
+        }
+      } catch {
+        window.localStorage.removeItem(localDraftKey);
+      }
+      setProfileReady(true);
+      setChecking(false);
+      return () => { active = false; };
+    }
     void supabase.auth.getUser().then(async ({ data, error: authError }) => {
       if (!active) return;
       if (authError || !data.user) {
@@ -61,7 +95,19 @@ export function ProfileExperience() {
         return;
       }
       setName(profile.full_name ?? String(metadata.full_name ?? metadata.name ?? ""));
-      setAccountType(profile.account_type ?? "member");
+      setEmailAddress(current.email ?? "");
+      setAccountType(profile.account_type ?? String(metadata.account_type ?? "student"));
+      setPhone(profile.profile_phone ?? String(metadata.phone_number ?? current.phone ?? ""));
+      setCampusId(profile.campus_id ?? String(metadata.campus_id ?? ""));
+      setOrganization(profile.profile_organization ?? "");
+      setAddress(profile.profile_address ?? "");
+      const savedAvatar = profile.profile_avatar_url ?? String(metadata.avatar_url ?? "");
+      if (savedAvatar.startsWith("http") || savedAvatar.startsWith("data:")) setAvatarUrl(savedAvatar);
+      else if (savedAvatar) {
+        setAvatarPath(savedAvatar);
+        const { data: signedPhoto } = await supabase.storage.from("profile-photos").createSignedUrl(savedAvatar, 3600);
+        if (active) setAvatarUrl(signedPhoto?.signedUrl ?? "");
+      }
       const savedDomain = profile.profile_domain ?? "";
       setDomain(savedDomain && !domains.includes(savedDomain) ? "Other" : savedDomain);
       setOtherDomain(savedDomain && !domains.includes(savedDomain) ? savedDomain : "");
@@ -105,6 +151,67 @@ export function ProfileExperience() {
     setSaved(false);
   }
 
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setError("Choose a JPEG, PNG or WebP image up to 5 MB.");
+      return;
+    }
+    setError("");
+    setSaved(false);
+    let optimizedPhoto: Blob | null = null;
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 420 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Canvas is unavailable");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      optimizedPhoto = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", .82));
+    } catch {
+      setError("We couldn’t prepare that image. Choose another photo and try again.");
+      return;
+    }
+    if (!optimizedPhoto) {
+      setError("We couldn’t prepare that image. Choose another photo and try again.");
+      return;
+    }
+    const supabase = getSupabaseClient();
+    if (supabase && user) {
+      setBusy(true);
+      const path = `${user.id}/profile.jpg`;
+      const { error: uploadError } = await supabase.storage.from("profile-photos").upload(path, optimizedPhoto, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
+      if (uploadError) {
+        setError("We couldn’t upload your photo. Apply the profile photo storage migration and try again.");
+        setBusy(false);
+        return;
+      }
+      const { data: signedPhoto, error: signedError } = await supabase.storage.from("profile-photos").createSignedUrl(path, 3600);
+      setBusy(false);
+      if (signedError || !signedPhoto) {
+        setError("Your photo uploaded, but its preview couldn’t be created. Refresh this page to try again.");
+        return;
+      }
+      setAvatarPath(path);
+      setAvatarUrl(signedPhoto.signedUrl);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatarPath("");
+        setAvatarUrl(reader.result);
+      }
+    };
+    reader.onerror = () => setError("We couldn’t read that image. Choose another photo and try again.");
+    reader.readAsDataURL(optimizedPhoto);
+  }
+
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -116,7 +223,17 @@ export function ProfileExperience() {
     }
     const supabase = getSupabaseClient();
     if (!supabase) {
-      setError("Secure profile saving is not configured yet. Add the Supabase project URL and publishable key first.");
+      try {
+        window.localStorage.setItem(localDraftKey, JSON.stringify({
+          full_name: name.trim(), email: emailAddress.trim(), account_type: accountType,
+          profile_phone: phone.trim(), campus_id: campusId.trim(), profile_organization: organization.trim(),
+          profile_address: address.trim(), profile_avatar_url: avatarUrl.trim(), profile_domain: domainValue,
+          profile_skills: skills, profile_interests: interests, profile_about: about.trim(),
+        }));
+        setSaved(true);
+      } catch {
+        setError("This browser couldn’t save your profile draft. Check available site storage and try again.");
+      }
       return;
     }
     if (!user) {
@@ -126,6 +243,11 @@ export function ProfileExperience() {
     setBusy(true);
     const { profile, error: updateError } = await updateUserProfile(supabase, user.id, {
       full_name: name.trim(),
+      profile_phone: phone.trim(),
+      campus_id: campusId.trim(),
+      profile_organization: organization.trim(),
+      profile_address: address.trim(),
+      profile_avatar_url: avatarPath || avatarUrl.trim(),
       profile_domain: domainValue,
       profile_skills: skills,
       profile_interests: interests,
@@ -138,72 +260,72 @@ export function ProfileExperience() {
       return;
     }
     setSaved(true);
-    router.replace(`${basePath}/`);
   }
 
-  const contactEmail = typeof user?.user_metadata.personal_email === "string"
-    ? user.user_metadata.personal_email
-    : user?.email ?? "WhatsApp account";
-  const displayName = name.trim() || user?.email?.split("@")[0] || "Your name";
+  const contactEmail = emailAddress || user?.email || "";
+  const displayName = name.trim() || user?.email?.split("@")[0] || "Your profile";
+  const accountLabel = accountType === "guest" ? "Campus guest" : accountType === "faculty" ? "Faculty" : "Student";
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={basePath} />
         </a>
-        <a className={styles.backLink} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
+        <a className={styles.backLink} href={`${basePath}/profile/`}><ArrowLeft size={16} aria-hidden="true" /> Back to profile</a>
       </header>
 
       <div className={styles.shell}>
-        <section className={styles.intro}>
-          <div className={styles.introCopy}>
-            <p className={styles.eyebrow}><Sparkles size={15} aria-hidden="true" /> YOUR COLLEXUS PROFILE</p>
-            <h1>Make campus<br /><em>feel a little smaller.</em></h1>
-            <p className={styles.introText}>Tell the community what you’re curious about. Your profile helps you find the people, events and opportunities that fit.</p>
-            <div className={styles.accountPill}><ShieldCheck size={15} aria-hidden="true" /> Your details stay with your account</div>
-          </div>
-          <div className={styles.illustration}>
-            <img src={`${basePath}/profile-community.webp`} alt="Three students sharing ideas around a tablet" />
-            <span className={styles.illustrationNote}><Lightbulb size={15} aria-hidden="true" /> Curious minds meet here</span>
-          </div>
-        </section>
-
-        <div className={styles.progressWrap} aria-label="Profile setup progress">
-          <ol className={styles.progress}>
-            <li aria-current="step"><span>01</span><div><strong>Your focus</strong><small>Domain & skills</small></div></li>
-            <li><span>02</span><div><strong>Your interests</strong><small>What you enjoy</small></div></li>
-            <li><span>03</span><div><strong>Your story</strong><small>A short introduction</small></div></li>
-          </ol>
-          <p>About 1 minute</p>
-        </div>
-
         {checking ? (
           <div className={styles.loading}><LoaderCircle size={22} aria-hidden="true" /> Checking your account…</div>
-        ) : !user ? (
+        ) : !user && configured ? (
           <section className={styles.noticeCard}>
             <ShieldCheck size={22} aria-hidden="true" />
             <div><h2>{configured ? "Sign in to create your profile" : "Account setup is almost ready"}</h2><p>{configured ? "We’ll take you to sign in, then bring you right back here." : "Supabase needs a project URL and publishable key before an account can be loaded or saved."}</p><a className={styles.primaryButton} href={`${basePath}/login/`}>Go to sign in <ArrowRight size={17} aria-hidden="true" /></a></div>
           </section>
-        ) : !profileReady ? (
+        ) : configured && !profileReady ? (
           <section className={styles.noticeCard}>
             <ShieldCheck size={22} aria-hidden="true" />
             <div><h2>Profile storage isn’t ready yet</h2><p>{error || "Apply the Collexus profiles migration, then refresh this page."}</p><a className={styles.primaryButton} href={`${basePath}/#featured-events`}>Back to events <ArrowRight size={17} aria-hidden="true" /></a></div>
           </section>
         ) : (
-          <div className={styles.contentGrid}>
+          <div className={styles.editorShell}>
             <form className={styles.form} id="profile" onSubmit={saveProfile}>
               <div className={styles.formHeading}>
                 <span className={styles.headingIcon}><CircleUserRound size={20} aria-hidden="true" /></span>
-                <div><p className={styles.sectionKicker}>PROFILE DETAILS</p><h2>Start with what makes you, you.</h2><p>Choose a domain, add a few skills and share what you’re into.</p></div>
+                <div><p className={styles.sectionKicker}>PROFILE DETAILS</p><h2>About you</h2><p>Account details are filled from sign-up. Add the rest whenever you’re ready.</p></div>
               </div>
 
-              <label className={styles.field}>
-                <span>Your name <small>Shown on your profile</small></span>
-                <input autoComplete="name" maxLength={80} value={name} onChange={(event) => { setName(event.target.value); setSaved(false); }} placeholder="e.g. Ananya Rao" />
-              </label>
+              <section className={styles.profileGroup} id="personal-heading" aria-labelledby="personal-heading">
+                <div className={styles.groupTitle}><span className={styles.sectionKicker}>01 · PERSONAL</span><h3 id="personal-heading">Personal details</h3></div>
+                <div className={styles.photoField}>
+                  <div className={styles.photoCircle}>{avatarUrl ? <img src={avatarUrl} alt="Your selected profile" /> : <CircleUserRound size={29} aria-hidden="true" />}</div>
+                  <div className={styles.photoCopy}><strong>Profile picture</strong><small>JPEG, PNG or WebP up to 5 MB. It will be cropped into a circle.</small>
+                    <label className={styles.photoButton}><ImagePlus size={15} aria-hidden="true" /> {busy ? "Uploading…" : avatarUrl ? "Change photo" : "Upload photo"}<input className={styles.photoFileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={busy} /></label>
+                  </div>
+                  {avatarUrl && <button className={styles.photoRemove} type="button" onClick={() => { setAvatarUrl(""); setAvatarPath(""); setSaved(false); }}><Trash2 size={14} aria-hidden="true" /> Remove</button>}
+                </div>
+                <div className={styles.fieldGrid}>
+                  <label className={styles.field}><span>Full name</span><input autoComplete="name" maxLength={80} value={name} onChange={(event) => { setName(event.target.value); setSaved(false); }} placeholder="Your name" /></label>
+                  <label className={styles.field}><span>Email address <small>{user ? "Sign-in email" : "Optional preview detail"}</small></span><input autoComplete="email" type="email" maxLength={254} value={contactEmail} onChange={(event) => { if (!user) setEmailAddress(event.target.value); }} readOnly={Boolean(user)} placeholder={user ? "Signed-in email" : "you@example.com"} /></label>
+                  <label className={styles.field}><span>Phone number</span><input autoComplete="tel" inputMode="tel" maxLength={24} value={phone} onChange={(event) => { setPhone(event.target.value); setSaved(false); }} placeholder="Add a phone number" /></label>
+                  <label className={styles.field}><span>Account type</span><input value={accountLabel} readOnly /></label>
+                  <label className={`${styles.field} ${styles.fieldWide}`}><span>Address <small>Optional</small></span><input autoComplete="street-address" maxLength={240} value={address} onChange={(event) => { setAddress(event.target.value); setSaved(false); }} placeholder="City, state or address" /></label>
+                </div>
+              </section>
 
+              <section className={styles.profileGroup} id="education-heading" aria-labelledby="education-heading">
+                <div className={styles.groupTitle}><span className={styles.sectionKicker}>02 · CAMPUS</span><h3 id="education-heading">College & organization</h3></div>
+                <div className={styles.fieldGrid}>
+                  <label className={styles.field}><span>College / organization ID <small>Required</small></span><input autoComplete="off" maxLength={100} value={campusId} onChange={(event) => { setCampusId(event.target.value); setSaved(false); }} placeholder="Your college, campus or organization ID" required /></label>
+                  <label className={styles.field}><span>College / organization</span><input autoComplete="organization" maxLength={140} value={organization} onChange={(event) => { setOrganization(event.target.value); setSaved(false); }} placeholder="College, club or organization" /></label>
+                </div>
+                <small className={styles.profileHint}>Campus ID and organization are self-reported and don’t verify enrollment.</small>
+              </section>
+
+              <section className={styles.profileGroup} id="interests-heading" aria-labelledby="interests-heading">
+              <div className={styles.groupTitle}><span className={styles.sectionKicker}>03 · YOUR DIRECTION</span><h3 id="interests-heading">Interests, skills & domain</h3></div>
               <div className={styles.field}>
-                <span id="profile-domain-label">Which domain are you in? <b>*</b></span>
+                <span id="profile-domain-label">Which domain are you in? <small>Required</small></span>
                 <span className={styles.selectWrap}><Compass size={17} aria-hidden="true" /><select aria-labelledby="profile-domain-label" value={domain} onChange={(event) => { const value = event.target.value; setDomain(value); if (value !== "Other") setOtherDomain(""); setSaved(false); }} required>
                   <option value="">Choose your main domain</option>{domains.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select><ChevronDown size={16} aria-hidden="true" /></span>
@@ -221,7 +343,7 @@ export function ProfileExperience() {
                   <input aria-label="Add a skill" value={skillDraft} maxLength={32} onChange={(event) => setSkillDraft(event.target.value)} onKeyDown={handleSkillKey} onBlur={() => { if (skillDraft.trim()) addSkill(skillDraft); }} placeholder={skills.length ? "Add another skill…" : "Type a skill and press Enter"} />
                   <button className={styles.addSkill} type="button" aria-label="Add skill" onClick={() => addSkill(skillDraft)}><Plus size={16} aria-hidden="true" /></button>
                 </div>
-                <div className={styles.suggestions} aria-label="Suggested skills">{skillsList.filter((item) => !skills.includes(item)).slice(0, 6).map((item) => <button type="button" key={item} onClick={() => addSkill(item)} disabled={skills.length >= 10}>{item}<Plus size={12} aria-hidden="true" /></button>)}</div>
+                <div className={styles.suggestions} aria-label="Suggested skills">{skillsList.filter((item) => !skills.includes(item)).slice(0, 12).map((item) => <button type="button" key={item} onClick={() => addSkill(item)} disabled={skills.length >= 10}>{item}<Plus size={12} aria-hidden="true" /></button>)}</div>
                 <small>Up to 10 skills. Press Enter or comma to add one.</small>
               </fieldset>
 
@@ -238,56 +360,20 @@ export function ProfileExperience() {
                 <textarea value={about} onChange={(event) => { setAbout(event.target.value); setSaved(false); }} maxLength={280} rows={4} placeholder="A few lines about what you’re learning, building or hoping to meet…" />
                 <small className={styles.counter}>{about.length}/280 · Keep it friendly and brief</small>
               </label>
+              </section>
 
               {error && <p className={styles.error} role="alert">{error}</p>}
-              {saved && <p className={styles.success} role="status"><BadgeCheck size={17} aria-hidden="true" /> Profile saved. You’re ready to explore Collexus.</p>}
-              {!configured && <p className={styles.setupNotice}>Supabase is not configured yet, so saving is disabled until its project URL and publishable key are added.</p>}
+              {saved && <p className={styles.success} role="status"><BadgeCheck size={17} aria-hidden="true" /> {configured ? "Profile saved to your account." : "Profile draft saved on this device."} <a href={`${basePath}/profile/`}>View profile</a></p>}
+              {!configured && <p className={styles.setupNotice}><ShieldCheck size={16} aria-hidden="true" /> Preview mode: profile edits save on this device. Connect an account service to sync details between devices.</p>}
 
               <div className={styles.formActions}>
-                <button className={styles.primaryButton} type="submit" disabled={busy || !configured}>{busy ? <><LoaderCircle className={styles.spinner} size={17} aria-hidden="true" /> Saving profile…</> : <>Save profile <ArrowRight size={17} aria-hidden="true" /></>}</button>
+                <button className={styles.primaryButton} type="submit" disabled={busy || (configured && !profileReady)}>{busy ? <><LoaderCircle className={styles.spinner} size={17} aria-hidden="true" /> Saving profile…</> : <>{configured ? "Save profile" : "Save profile draft"} <ArrowRight size={17} aria-hidden="true" /></>}</button>
                 <a href={`${basePath}/#featured-events`}>I’ll do this later</a>
               </div>
             </form>
 
-            <aside className={styles.preview} aria-label="Profile preview">
-              <div className={styles.previewTop}><span>PROFILE PREVIEW</span><span className={styles.live}><i /> LIVE</span></div>
-              <div className={styles.previewBody}>
-                <div className={styles.avatar}><span>{displayName.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase() || "C"}</span><i><Check size={12} aria-hidden="true" /></i></div>
-                <span className={styles.roleBadge}>{accountType === "guest" ? "CAMPUS GUEST" : accountType === "faculty" ? "FACULTY" : "STUDENT"}</span>
-                <h3>{displayName}</h3>
-                <p className={styles.previewEmail}>{contactEmail}</p>
-                <div className={styles.previewDivider} />
-                <p className={styles.previewLabel}><BookOpen size={14} aria-hidden="true" /> DOMAIN</p>
-                <p className={styles.previewValue}>{domain === "Other" ? otherDomain || "Tell us your area of focus" : domain || "Your area of focus"}</p>
-                <p className={styles.previewLabel}><BriefcaseBusiness size={14} aria-hidden="true" /> SKILLS</p>
-                {skills.length ? <div className={styles.previewChips}>{skills.slice(0, 4).map((item) => <span key={item}>{item}</span>)}{skills.length > 4 && <span>+{skills.length - 4}</span>}</div> : <p className={styles.previewEmpty}>Your skills will show up here.</p>}
-                <p className={styles.previewLabel}><Heart size={14} aria-hidden="true" /> INTERESTS</p>
-                {interests.length ? <div className={styles.previewChips}>{interests.slice(0, 4).map((item) => <span key={item}>{item}</span>)}{interests.length > 4 && <span>+{interests.length - 4}</span>}</div> : <p className={styles.previewEmpty}>Pick a few things you enjoy.</p>}
-                <div className={styles.aboutPreview}>{about || "Your introduction will appear here once you add a little about yourself."}</div>
-              </div>
-              <div className={styles.previewFoot}><GraduationCap size={16} aria-hidden="true" /> <span>A little more connected, already.</span></div>
-              <div className={styles.privacyNote}><ShieldCheck size={16} aria-hidden="true" /><p><strong>Your profile, your choice.</strong><br />Only share what you’re comfortable sharing. You can edit these details any time.</p></div>
-            </aside>
           </div>
         )}
-
-        <section className={styles.accountSections} aria-label="Your Collexus account">
-          <article className={styles.accountSection} id="registered-orders">
-            <p className={styles.sectionKicker}>EVENT ACTIVITY</p>
-            <h2>Registered / Orders</h2>
-            <p>Your event registrations and orders will appear here when they’re connected to your account.</p>
-          </article>
-          <article className={styles.accountSection} id="my-vouchers">
-            <p className={styles.sectionKicker}>REWARDS</p>
-            <h2>My vouchers</h2>
-            <p>Vouchers linked to your Collexus account will be listed here.</p>
-          </article>
-          <article className={styles.accountSection} id="certificates">
-            <p className={styles.sectionKicker}>ACHIEVEMENTS</p>
-            <h2>Certificates</h2>
-            <p>Certificates issued for your event participation will appear here.</p>
-          </article>
-        </section>
 
         <footer className={styles.footer}><span>© 2026 Collexus</span><span>Campus events, in one place.</span></footer>
       </div>

@@ -65,6 +65,8 @@
 .brandLogoFrame img { position: absolute; top: -13px; left: 50%; width: 86px; height: 86px; max-width: none; object-fit: contain; clip-path: inset(0 0 38%); transform: translateX(-50%); }
 .backLink { gap: 8px; min-height: 42px; padding: 0 13px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; font-weight: 700; transition: color .16s ease, border-color .16s ease, background .16s ease; }
 .backLink:hover { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }
+.backLink { min-height: 44px; padding-inline: 15px; border-radius: 12px; box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent); }
+.backLink:hover { transform: translateY(-1px); box-shadow: 0 7px 16px color-mix(in srgb, var(--accent) 16%, transparent); }
 
 .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: clamp(28px, 4.5vw, 58px) 0 30px; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(300px, .96fr); align-items: center; gap: 22px; margin-bottom: 26px; padding: clamp(24px, 4vw, 42px); overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line)); border-radius: 23px; background: linear-gradient(116deg, color-mix(in srgb, var(--surface) 94%, var(--accent-soft)) 0%, var(--surface) 56%, color-mix(in srgb, var(--surface) 86%, #d9eef0) 100%); box-shadow: var(--shadow); }

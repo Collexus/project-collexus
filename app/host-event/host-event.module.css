@@ -83,6 +83,10 @@
 .brandLogoFrame img { position: absolute; top: -13px; left: 50%; width: 86px; height: 86px; max-width: none; object-fit: contain; clip-path: inset(0 0 38%); transform: translateX(-50%); }
 .backLink { gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 650; transition: color .18s ease, border-color .18s ease, background .18s ease; }
 .backLink:hover, .backToEvents:hover { color: var(--accent-strong); border-color: var(--accent); }
+.backLink { min-height: 44px; padding-inline: 15px; border-radius: 12px; box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent); }
+.backLink:hover { transform: translateY(-1px); box-shadow: 0 7px 16px color-mix(in srgb, var(--accent) 16%, transparent); }
+.backToEvents { min-height: 44px; padding: 0 13px; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 12px; background: var(--card); box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent); text-decoration: none; }
+.backToEvents:hover { transform: translateY(-1px); background: var(--soft); box-shadow: 0 7px 16px color-mix(in srgb, var(--accent) 16%, transparent); }
 
 .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 30px; }
 .intro {

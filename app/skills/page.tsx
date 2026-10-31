@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { SkillsExperience } from "./skills-experience";
+import { ProfileExperience } from "../profile/profile-experience";
 
 export const metadata: Metadata = {
-  title: "About you",
-  description: "Create your Collexus profile with your branch, experience, skills, interests, culture and favorite foods.",
+  title: "Edit profile",
+  description: "Update your Collexus profile details, interests and skills.",
 };
 
 export default function SkillsPage() {
-  return <SkillsExperience />;
+  return <ProfileExperience />;
 }

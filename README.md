@@ -11,6 +11,8 @@ npm run dev
 
 Open http://localhost:3000. Build for production with `npm run build`, then serve it with `npm start`.
 
+Organizer event submissions use the existing Supabase URL and publishable key. Apply `supabase/migrations/20261030000000_event_submissions.sql` to the Supabase project before accepting submissions. Row-level security restricts inserts to the signed-in organizer and keeps submissions private for review; submissions are not published automatically.
+
 ## Structure
 
 - `app/` contains the home page, shared layout, global theme styles, and the `/events/[slug]` event detail route.

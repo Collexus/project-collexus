@@ -7,6 +7,10 @@ export type UserProfile = {
   full_name: string | null;
   account_type: AccountType | null;
   campus_id: string | null;
+  profile_phone: string | null;
+  profile_avatar_url: string | null;
+  profile_organization: string | null;
+  profile_address: string | null;
   profile_domain: string | null;
   profile_skills: string[];
   profile_technologies: string[];

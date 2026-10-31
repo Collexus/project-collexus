@@ -31,6 +31,8 @@
 .brand { gap: 0; color: var(--ink); font-size: 17px; font-weight: 760; letter-spacing: -.03em; }
 .backLink { gap: 8px; min-height: 42px; padding: 0 13px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; font-weight: 650; transition: color .16s ease, border-color .16s ease, background .16s ease; }
 .backLink:hover { color: var(--teal-dark); border-color: var(--teal); background: var(--teal-soft); }
+.backLink { min-height: 44px; padding-inline: 15px; border-radius: 12px; box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent); }
+.backLink:hover { transform: translateY(-1px); box-shadow: 0 7px 16px color-mix(in srgb, var(--teal) 16%, transparent); }
 
 .shell { display: grid; grid-template-columns: minmax(0, 620px); justify-content: center; align-items: start; width: min(620px, calc(100% - 32px)); min-height: calc(100vh - 135px); margin: 0 auto; padding: clamp(28px, 5vh, 52px) 0; }
 .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--teal); font-size: 10px; font-weight: 800; letter-spacing: .16em; }

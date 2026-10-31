@@ -43,6 +43,8 @@
 .logoFrame img { position: absolute; top: -13px; left: 50%; width: 86px; height: 86px; max-width: none; object-fit: contain; clip-path: inset(0 0 38%); transform: translateX(-50%); }
 .backLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 15px; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; transition: color .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease; }
 .backLink:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.backLink { min-height: 44px; padding-inline: 15px; border-radius: 12px; box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent); }
+.backLink:hover { transform: translateY(-1px); box-shadow: 0 7px 16px color-mix(in srgb, var(--accent) 16%, transparent); }
 
 .shell { width: min(1190px, calc(100% - 42px)); margin: 0 auto; padding: 30px 0 24px; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(280px, .82fr); align-items: center; gap: 20px; min-height: 248px; padding: 22px clamp(22px, 3.5vw, 42px); overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 24px; background: linear-gradient(120deg, color-mix(in srgb, var(--accent-soft) 68%, var(--card)), var(--card) 72%); box-shadow: 0 14px 34px color-mix(in srgb, var(--ink) 7%, transparent); }

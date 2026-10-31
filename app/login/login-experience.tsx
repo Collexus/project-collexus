@@ -26,6 +26,13 @@ import { TurnstileChallenge, turnstileSiteKey } from "./turnstile-challenge";
 import styles from "./login.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const postSignupAboutYouKey = "collexus:post-signup-about-you";
+
+function continueAfterAuthentication(isSignup = false) {
+  const completeProfile = isSignup || window.sessionStorage.getItem(postSignupAboutYouKey) === "yes";
+  window.sessionStorage.removeItem(postSignupAboutYouKey);
+  window.location.assign(`${basePath}${completeProfile ? "/about-you/" : "/profile/"}`);
+}
 
 type AccountMode = "signin" | "signup" | "recovery";
 type PhoneAuthStep = "details" | "verify";
@@ -190,8 +197,11 @@ export function LoginExperience() {
             setCheckingSession(false);
             const recoveryCallback = `${window.location.search}${window.location.hash}`.includes("type=recovery");
             const waitingForAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
-            if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType && !signupPasswordSetupRef.current) {
-              window.location.replace(`${basePath}/profile/`);
+            const onboardingPending = window.sessionStorage.getItem(postSignupAboutYouKey) === "yes";
+            const needsSignupPhone = Boolean(currentUser && pendingGoogleSignup && !savedMobileNumber);
+            if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType && !needsSignupPhone && !signupPasswordSetupRef.current) {
+              if (onboardingPending) window.sessionStorage.removeItem(postSignupAboutYouKey);
+              window.location.replace(`${basePath}${onboardingPending ? "/about-you/" : "/profile/"}`);
             }
           }
         };
@@ -212,6 +222,7 @@ export function LoginExperience() {
 
   function switchMode(nextMode: AccountMode) {
     setMode(nextMode);
+    if (nextMode !== "signup") window.sessionStorage.removeItem(postSignupAboutYouKey);
     if (nextMode === "signup") window.sessionStorage.removeItem("collexus-pending-account-type");
     setPhoneAuthPurpose(null);
     setPhoneAuthStep("details");
@@ -416,6 +427,8 @@ export function LoginExperience() {
         },
       });
       if (otpError) throw otpError;
+      if (isSignup) window.sessionStorage.setItem(postSignupAboutYouKey, "yes");
+      else window.sessionStorage.removeItem(postSignupAboutYouKey);
       setPendingEmail(email);
       setPendingSignup(signup);
       setSignupPassword("");
@@ -501,7 +514,7 @@ export function LoginExperience() {
       }
       signupPasswordSetupRef.current = false;
       window.sessionStorage.removeItem("collexus-pending-account-type");
-      window.location.assign(`${basePath}/profile/`);
+      continueAfterAuthentication(emailAuthPurpose === "signup");
     } catch (authError) {
       if (emailAuthPurpose === "signup" && emailVerified) {
         setMode("recovery");
@@ -585,6 +598,7 @@ export function LoginExperience() {
         await supabase.auth.signOut();
         setError("Verify your email with the one-time code before signing in.");
       } else {
+        window.sessionStorage.removeItem(postSignupAboutYouKey);
         window.location.assign(`${basePath}/profile/`);
       }
     } catch (authError) {
@@ -616,7 +630,7 @@ export function LoginExperience() {
       if (updateError) throw updateError;
       window.sessionStorage.removeItem("collexus-pending-account-type");
       setNeedsMobileNumber(false);
-      window.location.assign(`${basePath}/profile/`);
+      continueAfterAuthentication();
     } catch (authError) {
       setError(friendlyAuthError(authError));
     } finally {
@@ -636,8 +650,10 @@ export function LoginExperience() {
       }
       if (mode === "signup") {
         window.sessionStorage.setItem("collexus-pending-account-type", accountType);
+        window.sessionStorage.setItem(postSignupAboutYouKey, "yes");
       } else {
         window.sessionStorage.removeItem("collexus-pending-account-type");
+        window.sessionStorage.removeItem(postSignupAboutYouKey);
       }
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",

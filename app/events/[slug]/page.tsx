@@ -61,7 +61,7 @@ export default async function EventDetailsPage({ params }: EventPageProps) {
           </div>
           <p>{event.description}</p>
           <div className="details-actions">
-            <Link className="primary-button" href={`/events/${event.slug}/register`}><TicketCheck size={16} aria-hidden="true" /> {event.paymentUrl ? "Payment details" : "Register"} <span className="demo-action-tag">{event.paymentUrl ? "RAZORPAY" : "DEMO"}</span></Link>
+            <Link className="primary-button" href={`/events/${event.slug}/register`}><TicketCheck size={16} aria-hidden="true" /> {event.paymentUrl ? "Get registered" : "Register"} <span className="demo-action-tag">{event.paymentUrl ? "RAZORPAY" : "DEMO"}</span></Link>
           </div>
           <p className="archive-disclaimer">{event.paymentUrl ? "This is a historical event record. The supplied Razorpay link opens a hosted payment page; Collexus does not receive the payment result or confirm registration." : `Registration preview only. This demo does not submit an entry or charge money. ${event.dateStart ? "This dated event has concluded." : "The official listing does not publish an exact event date."}`}</p>
         </div>

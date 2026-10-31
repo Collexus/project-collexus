@@ -131,7 +131,10 @@ export function SiteUtilities() {
           <div className="site-menu-heading"><div><p>COLLEXUS</p><h2 id="site-menu-title">Explore &amp; get help</h2></div><button className="site-menu-close" type="button" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X size={19} /></button></div>
           <nav className="site-menu-links" aria-label="Site navigation">
             <a href={`${basePath}/#home`} onClick={() => setMenuOpen(false)}>Discover events <ChevronRight size={17} /></a>
-            <a href={`${basePath}/#faq`} onClick={() => setMenuOpen(false)}>Frequently asked questions <ChevronRight size={17} /></a>
+            <a href={`${basePath}/profile/`} onClick={() => setMenuOpen(false)}>Your profile <ChevronRight size={17} /></a>
+            <a href={`${basePath}/registrations/`} onClick={() => setMenuOpen(false)}>Registrations &amp; orders <ChevronRight size={17} /></a>
+            <a href={`${basePath}/help/`} onClick={() => setMenuOpen(false)}>Help &amp; frequently asked questions <ChevronRight size={17} /></a>
+            <a href={`${basePath}/about/`} onClick={() => setMenuOpen(false)}>About Collexus <ChevronRight size={17} /></a>
             <a href={`${basePath}/about-you/`} onClick={() => setMenuOpen(false)}>About you <ChevronRight size={17} /></a>
             <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Host an event <ChevronRight size={17} /></a>
             <a href={`${basePath}/stall-registration/`} onClick={() => setMenuOpen(false)}>Register a stall <ChevronRight size={17} /></a>
