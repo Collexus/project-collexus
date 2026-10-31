@@ -4592,7 +4592,7 @@ html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
   header#home .header-search{min-width:0;margin:0!important;flex:1 1 auto}
   header#home #globalSearch{height:42px!important;padding-right:10px!important;font-size:13px!important}
   header#home>div>div:last-child{gap:6px!important}
-  .quick-category-top{position:relative;z-index:40;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;margin-top:68px!important;padding:8px 12px!important;background:rgba(244,248,248,.97);backdrop-filter:blur(12px)}
+  .quick-category-top{position:relative;top:0!important;z-index:40;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;margin-top:86px!important;padding:8px 12px!important;background:rgba(244,248,248,.97);backdrop-filter:blur(12px)}
   .quick-category-top button{min-width:0;justify-content:center;padding:8px 4px!important;font-size:clamp(9px,2.7vw,11px)!important;white-space:nowrap}
   .quick-category-top button .lucide-icon{font-size:13px!important}
 }
@@ -4695,7 +4695,7 @@ body.warm-editorial-theme.vivid-nightfall-theme :is(
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;padding:8px 10px!important;justify-content:stretch!important;overflow:visible!important}
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button{min-width:0;min-height:36px!important;padding:7px 3px;gap:5px;font-size:clamp(9px,2.8vw,11px);letter-spacing:0}
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button .lucide-icon{font-size:14px}
-  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:172px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:92px!important}
 }
 
 /* Keep the light-theme hero actions aligned with the shared Collexus teal. */
