@@ -4542,17 +4542,17 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 .home-back-top{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--collexus-cyan,#087e83);font-size:13px;font-weight:700;line-height:1;text-decoration:none;white-space:nowrap;box-shadow:none;transition:color .2s ease,text-decoration-color .2s ease}
 .home-back-top:hover{color:#075f65;text-decoration:underline;text-underline-offset:4px}
 .site-float-button:hover{transform:translateY(-2px);background:#246174;border-color:#7ccfc6}
-.site-float-button:focus-visible,.home-back-top:focus-visible,.site-menu-close:focus-visible,.site-menu-links a:focus-visible,.site-copy-button:focus-visible,.site-cookie-note button:focus-visible{outline:3px solid #36b9b1;outline-offset:3px}
+.site-float-button:focus-visible,.home-back-top:focus-visible,.site-menu-close:focus-visible,.site-menu-links a:focus-visible,.site-menu-links button:focus-visible,.site-copy-button:focus-visible,.site-cookie-note button:focus-visible{outline:3px solid #36b9b1;outline-offset:3px}
 .site-menu-scrim{position:fixed;z-index:1000;inset:0;display:flex;justify-content:flex-end;background:rgba(8,22,29,.48);backdrop-filter:blur(5px);animation:siteFadeIn .18s ease}
-.site-menu-panel{display:flex;flex-direction:column;width:min(420px,92vw);height:100%;padding:28px clamp(20px,5vw,34px);background:var(--surface,#f5f8f7);color:var(--ink,#203a44);box-shadow:-16px 0 50px rgba(5,22,30,.2);animation:siteSlideIn .22s ease}
+.site-menu-panel{display:flex;flex-direction:column;width:min(360px,88vw);height:100%;padding:26px clamp(18px,4vw,28px);border-left:1px solid rgba(100,139,149,.2);border-radius:24px 0 0 24px;background:linear-gradient(155deg,var(--surface,#f5f8f7),color-mix(in srgb,var(--surface,#f5f8f7) 88%,#bcece7));color:var(--ink,#203a44);box-shadow:-18px 0 55px rgba(5,22,30,.24);animation:siteSlideIn .22s ease}
 .site-menu-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:23px;border-bottom:1px solid rgba(100,139,149,.24)}
 .site-menu-heading p{margin:0 0 7px;color:#07878b;font-size:10px;font-weight:800;letter-spacing:.15em}
 .site-menu-heading h2{margin:0;font-size:24px;line-height:1.15;letter-spacing:-.03em}
-.site-menu-close{display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(112,149,159,.28);border-radius:12px;background:transparent;color:inherit;cursor:pointer;transition:background .18s ease}
+.site-menu-close{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:50%;background:rgba(87,154,160,.1);color:inherit;cursor:pointer;transition:background .18s ease}
 .site-menu-close:hover{background:rgba(87,154,160,.12)}
 .site-menu-links{display:grid;gap:7px;padding:20px 0}
-.site-menu-links a{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 13px;border-radius:12px;color:inherit;text-decoration:none;font-weight:650;transition:background .18s ease,color .18s ease,transform .18s ease}
-.site-menu-links a:hover{background:rgba(55,157,157,.1);color:#007e84;transform:translateX(2px)}
+.site-menu-links a,.site-menu-links button{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 13px;border:0;border-radius:12px;background:transparent;color:inherit;text-align:left;text-decoration:none;font:inherit;font-weight:650;cursor:pointer;transition:background .18s ease,color .18s ease,transform .18s ease}
+.site-menu-links a:hover,.site-menu-links button:hover{background:rgba(55,157,157,.1);color:#007e84;transform:translateX(2px)}
 .site-menu-footer{margin-top:auto;padding-top:18px;border-top:1px solid rgba(100,139,149,.24)}
 .site-menu-footer p{display:flex;align-items:flex-start;gap:9px;margin:0 0 14px;color:#647a82;font-size:13px;line-height:1.55}
 .site-menu-footer p svg{flex:none;margin-top:2px;color:#07878b}
@@ -4586,8 +4586,18 @@ html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
 @keyframes siteFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes siteSlideIn{from{transform:translateX(18px);opacity:.8}to{transform:translateX(0);opacity:1}}
 @media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{left:10px;bottom:66px;width:calc(100vw - 20px);padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
+
+@media(max-width:640px){
+  header#home>div{height:auto!important;min-height:68px;padding:9px 12px!important;gap:8px!important}
+  header#home .header-search{min-width:0;margin:0!important;flex:1 1 auto}
+  header#home #globalSearch{height:42px!important;padding-right:10px!important;font-size:13px!important}
+  header#home>div>div:last-child{gap:6px!important}
+  .quick-category-top{position:relative;z-index:40;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;margin-top:68px!important;padding:8px 12px!important;background:rgba(244,248,248,.97);backdrop-filter:blur(12px)}
+  .quick-category-top button{min-width:0;justify-content:center;padding:8px 4px!important;font-size:clamp(9px,2.7vw,11px)!important;white-space:nowrap}
+  .quick-category-top button .lucide-icon{font-size:13px!important}
+}
 @media(max-width:720px){:root{--site-scroll-offset:184px}.site-route-skeleton-grid{grid-template-columns:1fr}.site-route-skeleton-card{height:92px}}
-@media(prefers-reduced-motion:reduce){.site-skip-link,.site-float-button,.site-menu-links a,.site-menu-panel,.site-cookie-note,.site-route-spinner,.site-route-skeleton,.site-navigation-progress span{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){.site-skip-link,.site-float-button,.site-menu-links a,.site-menu-links button,.site-menu-panel,.site-cookie-note,.site-route-spinner,.site-route-skeleton,.site-navigation-progress span{animation:none!important;transition:none!important}}
 @media print{.site-skip-link,.site-navigation-progress,.site-utility-actions,.site-menu-scrim,.site-cookie-note,header,.quick-category-rail,.announcement-bar,button{display:none!important}body,main,section,article{background:#fff!important;color:#111!important;box-shadow:none!important}.details-page{padding:0!important}.details-page :is(section,article){break-inside:avoid;border-color:#bbb!important}a{color:#111!important;text-decoration:underline!important}}
 
 /* Consistent Collexus action color across the homepage and shared controls. */

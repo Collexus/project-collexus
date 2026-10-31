@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Check, ChevronRight, Copy, HelpCircle, Menu, X } from "lucide-react";
+import { Check, ChevronRight, Copy, HelpCircle, LogOut, X } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
@@ -13,6 +15,20 @@ export function SiteUtilities() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setUser(data.session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -130,15 +146,20 @@ export function SiteUtilities() {
         <section className="site-menu-panel" role="dialog" aria-modal="true" aria-labelledby="site-menu-title">
           <div className="site-menu-heading"><div><p>COLLEXUS</p><h2 id="site-menu-title">Explore &amp; get help</h2></div><button className="site-menu-close" type="button" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X size={19} /></button></div>
           <nav className="site-menu-links" aria-label="Site navigation">
-            <a href={`${basePath}/#home`} onClick={() => setMenuOpen(false)}>Discover events <ChevronRight size={17} /></a>
-            <a href={`${basePath}/profile/`} onClick={() => setMenuOpen(false)}>Your profile <ChevronRight size={17} /></a>
+            <button type="button" onClick={() => { setMenuOpen(false); void copyLink(); }}>Invite a friend <ChevronRight size={17} /></button>
             <a href={`${basePath}/registrations/`} onClick={() => setMenuOpen(false)}>Registrations &amp; orders <ChevronRight size={17} /></a>
-            <a href={`${basePath}/help/`} onClick={() => setMenuOpen(false)}>Help &amp; frequently asked questions <ChevronRight size={17} /></a>
+            <a href={`${basePath}/help/`} onClick={() => setMenuOpen(false)}>Help and contact us <ChevronRight size={17} /></a>
             <a href={`${basePath}/about/`} onClick={() => setMenuOpen(false)}>About Collexus <ChevronRight size={17} /></a>
             <a href={`${basePath}/profile/edit/`} onClick={() => setMenuOpen(false)}>Account &amp; privacy <ChevronRight size={17} /></a>
             <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Host an event <ChevronRight size={17} /></a>
             <a href={`${basePath}/stall-registration/`} onClick={() => setMenuOpen(false)}>Register a stall <ChevronRight size={17} /></a>
-            <a href={`${basePath}/login/`} onClick={() => setMenuOpen(false)}>Sign in <ChevronRight size={17} /></a>
+            <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Run ads <ChevronRight size={17} /></a>
+            {user ? <button type="button" onClick={async () => {
+              const supabase = getSupabaseClient();
+              if (!supabase) return;
+              const { error } = await supabase.auth.signOut();
+              if (!error) { setUser(null); setMenuOpen(false); window.location.assign(`${basePath}/`); }
+            }}><LogOut size={17} aria-hidden="true" /> Sign out</button> : <a href={`${basePath}/login/`} onClick={() => setMenuOpen(false)}>Sign in <ChevronRight size={17} /></a>}
           </nav>
           <div className="site-menu-footer"><p><HelpCircle size={16} /> Need a quick reference? Open the FAQ or copy this page link to share it.</p><button className="site-copy-button" type="button" onClick={copyLink}>{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Link copied" : "Copy page link"}</button><small className="site-updated-date">Site updated 19 October 2026</small></div>
         </section>

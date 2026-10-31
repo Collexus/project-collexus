@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, Compass, Info, UserRound } from "lucide-react";
+import { ArrowRight, Compass, UserRound } from "lucide-react";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import styles from "./content-page.module.css";
 
@@ -8,7 +8,6 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const navigation = [
   { href: "/profile/", label: "Profile", icon: UserRound },
-  { href: "/about/", label: "About", icon: Info },
 ];
 
 export function ContentPage({
@@ -48,7 +47,7 @@ export function ContentPage({
             <h1>{title}</h1>
             <p className={styles.lede}>{description}</p>
           </div>
-          {illustration ? <aside className={styles.heroIllustration}>{illustration}</aside> : <aside className={styles.heroNote}>
+          {illustration ? <aside className={styles.heroIllustration}>{illustration}<Link href="/#featured-events" className={styles.noteLink}>Browse events <ArrowRight size={16} aria-hidden="true" /></Link></aside> : <aside className={styles.heroNote}>
             <span className={styles.noteIcon}><Compass size={20} aria-hidden="true" /></span>
             <p className={styles.noteKicker}>YOUR CAMPUS, IN ONE PLACE</p>
             <p className={styles.noteCopy}>Find events, keep your details close, and get answers when you need them.</p>
