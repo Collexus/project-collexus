@@ -1,16 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, Compass, HelpCircle, Info, TicketCheck, UserRound } from "lucide-react";
+import { ArrowRight, Compass, Info, UserRound } from "lucide-react";
+import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import styles from "./content-page.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const navigation = [
-  { href: "/#featured-events", label: "Explore events", icon: Compass },
   { href: "/profile/", label: "Profile", icon: UserRound },
-  { href: "/registrations/", label: "My registrations", icon: TicketCheck },
-  { href: "/help/", label: "Help", icon: HelpCircle },
   { href: "/about/", label: "About", icon: Info },
 ];
 
@@ -19,20 +16,21 @@ export function ContentPage({
   eyebrow,
   title,
   description,
+  illustration,
   children,
 }: {
   active: string;
   eyebrow: string;
   title: ReactNode;
   description: string;
+  illustration?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <main className={styles.page} id="main-content" tabIndex={-1}>
       <header className={styles.header}>
         <Link className={styles.brand} href="/" aria-label="Collexus home">
-          <span className={styles.logoFrame}><Image src={`${basePath}/collexus-logo.svg`} alt="" width={36} height={36} /></span>
-          <span>Collexus</span>
+          <CollexusHomeLogo basePath={basePath} wordmarkClassName={styles.brandWord} />
         </Link>
         <nav className={styles.navigation} aria-label="Account and site navigation">
           {navigation.map(({ href, label, icon: Icon }) => (
@@ -50,12 +48,12 @@ export function ContentPage({
             <h1>{title}</h1>
             <p className={styles.lede}>{description}</p>
           </div>
-          <aside className={styles.heroNote}>
+          {illustration ? <aside className={styles.heroIllustration}>{illustration}</aside> : <aside className={styles.heroNote}>
             <span className={styles.noteIcon}><Compass size={20} aria-hidden="true" /></span>
             <p className={styles.noteKicker}>YOUR CAMPUS, IN ONE PLACE</p>
             <p className={styles.noteCopy}>Find events, keep your details close, and get answers when you need them.</p>
             <Link href="/#featured-events" className={styles.noteLink}>Browse the event feed <ArrowRight size={16} aria-hidden="true" /></Link>
-          </aside>
+          </aside>}
         </section>
         {children}
         <footer className={styles.footer}>
