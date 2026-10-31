@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Download,
+  ImagePlus,
   MapPin,
   Megaphone,
+  Plus,
   ShieldCheck,
   Store,
+  Trash2,
   UsersRound,
   Zap,
 } from "lucide-react";
 import styles from "./stall-registration.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
+import { events } from "@/data/events";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftKey = "collexus-stall-request-v1";
@@ -26,32 +30,42 @@ type StallForm = {
   email: string;
   phone: string;
   eventName: string;
+  customEventName: string;
   eventDate: string;
   stallName: string;
   stallType: string;
-  description: string;
   stallSize: string;
   locationPreference: string;
   teamSize: string;
   sellsProducts: string;
   power: boolean;
   water: boolean;
-  table: boolean;
+  stallBox: boolean;
   setupNotes: string;
   foodSafety: string;
   confirmed: boolean;
 };
 
 const initialForm: StallForm = {
-  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", eventDate: "",
-  stallName: "", stallType: "", description: "", stallSize: "", locationPreference: "", teamSize: "",
-  sellsProducts: "", power: false, water: false, table: false, setupNotes: "", foodSafety: "", confirmed: false,
+  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", eventDate: "",
+  stallName: "", stallType: "", stallSize: "", locationPreference: "", teamSize: "",
+  sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", foodSafety: "", confirmed: false,
 };
+
+type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
+const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
 
 export function StallRegistrationForm() {
   const [form, setForm] = useState<StallForm>(initialForm);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
+  const [menuTemplateImage, setMenuTemplateImage] = useState<File | null>(null);
+  const [menuTemplatePreview, setMenuTemplatePreview] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
+
+  useEffect(() => () => {
+    if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
+  }, [menuTemplatePreview]);
 
   function update<K extends keyof StallForm>(key: K) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -61,6 +75,20 @@ export function StallRegistrationForm() {
       setReviewed(false);
       setDraftMessage("");
     };
+  }
+
+  function updateMenuItem(index: number, key: keyof MenuItem, value: string) {
+    setMenuItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item));
+    setReviewed(false);
+    setDraftMessage("");
+  }
+
+  function selectMenuTemplate(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0] ?? null;
+    setMenuTemplateImage(file);
+    setMenuTemplatePreview(file ? URL.createObjectURL(file) : "");
+    setReviewed(false);
+    setDraftMessage("");
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -76,7 +104,7 @@ export function StallRegistrationForm() {
 
   function saveDraft() {
     try {
-      localStorage.setItem(draftKey, JSON.stringify(form));
+      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, menuTemplateImageName: menuTemplateImage?.name ?? "" }));
       setDraftMessage("Draft saved on this device.");
     } catch {
       setDraftMessage("This browser could not save the draft. You can still download a request after reviewing it.");
@@ -92,6 +120,10 @@ export function StallRegistrationForm() {
       }
       const parsed = JSON.parse(saved) as Partial<StallForm>;
       setForm({ ...initialForm, ...parsed });
+      const parsedMenuItems = (parsed as { menuItems?: unknown }).menuItems;
+      setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
+      setMenuTemplateImage(null);
+      setMenuTemplatePreview("");
       setReviewed(false);
       setDraftMessage("Saved draft restored.");
     } catch {
@@ -105,6 +137,8 @@ export function StallRegistrationForm() {
       createdAt: new Date().toISOString(),
       notice: "Local request file. This page does not submit or publish the application.",
       application: form,
+      menuItems: menuItems.filter((item) => item.name.trim()),
+      menuTemplateImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected image separately when sharing this request." } : null,
     };
     const file = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(file);
@@ -117,7 +151,8 @@ export function StallRegistrationForm() {
   }
 
   const isFood = form.stallType === "Food & beverages";
-  const facilities = [form.power && "Power outlet", form.water && "Water access", form.table && "Table and chairs"].filter(Boolean);
+  const facilities = [form.power && "Power outlet", form.water && "Water access", form.stallBox && "Stall box / storage"].filter(Boolean);
+  const selectedEventName = form.eventName === "Other / not listed" ? form.customEventName || form.eventName : form.eventName;
 
   return (
     <main className={styles.page}>
@@ -132,7 +167,7 @@ export function StallRegistrationForm() {
             <div className={styles.eyebrow}><Store size={15} aria-hidden="true" /> CAMPUS MARKET · STALL REQUEST</div>
             <h1 id="stall-title">Bring your idea<br />to the <em>campus market.</em></h1>
             <p>Tell us what you’d like to share. We’ll collect your setup preferences so the event team can review the request.</p>
-            <div className={styles.heroMeta}><span><CheckCircle2 size={15} aria-hidden="true" /> One short application</span><span><ShieldCheck size={15} aria-hidden="true" /> No payment collected here</span></div>
+            <div className={styles.heroMeta}><span><CheckCircle2 size={15} aria-hidden="true" /> One short application</span></div>
             <a className={styles.runAdButton} href="#stall-registration-form"><Megaphone size={17} aria-hidden="true" /> Run an ad <ArrowRight size={16} aria-hidden="true" /></a>
           </div>
           <div className={styles.heroArt}>
@@ -159,10 +194,22 @@ export function StallRegistrationForm() {
               <div className={styles.fields}>
                 <label className={styles.field}><span>Stall name <b>*</b></span><input name="stallName" onChange={update("stallName")} placeholder="e.g. Little Loom Studio" required value={form.stallName} /></label>
                 <label className={styles.field}><span>Stall category <b>*</b></span><select name="stallType" onChange={update("stallType")} required value={form.stallType}><option value="" disabled hidden>Choose a category</option><option>Food &amp; beverages</option><option>Art &amp; handmade goods</option><option>Student startup</option><option>Books &amp; merchandise</option><option>Club / community</option><option>Games &amp; activities</option><option>Other</option></select></label>
-                <label className={`${styles.field} ${styles.spanTwo}`}><span>What will you offer? <b>*</b></span><textarea maxLength={500} name="description" onChange={update("description")} placeholder="Describe your products, activity, or idea in a few sentences." required rows={4} value={form.description} /><small className={styles.counter}>{form.description.length}/500</small></label>
-                <label className={styles.field}><span>Campus event / market <b>*</b></span><input name="eventName" onChange={update("eventName")} placeholder="Event name or ‘Open campus market’" required value={form.eventName} /></label>
+                <div className={`${styles.menuBuilder} ${styles.spanTwo}`}>
+                  <div className={styles.menuBuilderHeading}><div><strong>Menu items &amp; pricing</strong><small>Add each item with its regular offer and event-day price.</small></div><button className={styles.addMenuItem} onClick={() => setMenuItems((current) => [...current, blankMenuItem()])} type="button"><Plus size={15} aria-hidden="true" /> Add item</button></div>
+                  <div className={styles.menuTable} role="group" aria-label="Menu items and prices">
+                    <div className={styles.menuTableHeader}><span>Menu item</span><span>Offer price (₹)</span><span>Event-day price (₹)</span><span className={styles.menuActionHeader}>Remove</span></div>
+                    {menuItems.map((item, index) => <div className={styles.menuRow} key={index}>
+                      <label className={styles.menuCell}><span className={styles.mobileMenuLabel}>Menu item</span><span className={styles.srOnly}>Menu item {index + 1}</span><input aria-label={`Menu item ${index + 1}`} onChange={(event) => updateMenuItem(index, "name", event.currentTarget.value)} placeholder="e.g. Veg wrap" required={index === 0} value={item.name} /></label>
+                      <label className={styles.menuCell}><span className={styles.mobileMenuLabel}>Offer price (₹)</span><span className={styles.srOnly}>Offer price for item {index + 1}, rupees</span><input aria-label={`Offer price for item ${index + 1}, rupees`} inputMode="decimal" min="0" onChange={(event) => updateMenuItem(index, "offerPrice", event.currentTarget.value)} placeholder="120" required={index === 0 || Boolean(item.name.trim())} type="number" value={item.offerPrice} /></label>
+                      <label className={styles.menuCell}><span className={styles.mobileMenuLabel}>Event-day price (₹)</span><span className={styles.srOnly}>Event-day price for item {index + 1}, rupees</span><input aria-label={`Event-day price for item ${index + 1}, rupees`} inputMode="decimal" min="0" onChange={(event) => updateMenuItem(index, "eventDayPrice", event.currentTarget.value)} placeholder="100" required={index === 0 || Boolean(item.name.trim())} type="number" value={item.eventDayPrice} /></label>
+                      <button aria-label={`Remove menu item ${index + 1}`} className={styles.removeMenuItem} disabled={menuItems.length === 1} onClick={() => setMenuItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} type="button"><Trash2 size={15} aria-hidden="true" /></button>
+                    </div>)}
+                  </div>
+                </div>
+                <label className={styles.field}><span>Campus event / market <b>*</b></span><select name="eventName" onChange={update("eventName")} required value={form.eventName}><option value="" disabled hidden>Select an event</option>{events.map((event) => <option key={event.slug} value={event.title}>{event.title}</option>)}<option>Open campus market</option><option>Other / not listed</option></select></label>
+                {form.eventName === "Other / not listed" && <label className={styles.field}><span>Event name <b>*</b></span><input name="customEventName" onChange={update("customEventName")} placeholder="Enter the event name" required value={form.customEventName} /></label>}
                 <label className={styles.field}><span>Preferred event date</span><input name="eventDate" onChange={update("eventDate")} type="date" value={form.eventDate} /></label>
-                <label className={styles.field}><span>Preferred stall space <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option value="" disabled hidden>Select a size</option><option>Compact table (about 1.5 × 1.5 m)</option><option>Standard stall (about 2 × 2 m)</option><option>Large stall (about 3 × 3 m)</option><option>Flexible — please advise</option></select><small>Final stall dimensions depend on venue availability.</small></label>
+                <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option value="" disabled hidden>Select a stall type</option><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>The event team will confirm final stall dimensions and placement.</small></label>
                 <label className={styles.field}><span>Location preference <b>*</b></span><select name="locationPreference" onChange={update("locationPreference")} required value={form.locationPreference}><option value="" disabled hidden>Choose a preference</option><option>Indoor</option><option>Outdoor</option><option>No preference</option></select></label>
                 <label className={styles.field}><span>People staffing the stall <b>*</b></span><select name="teamSize" onChange={update("teamSize")} required value={form.teamSize}><option value="" disabled hidden>Select team size</option><option>1–2 people</option><option>3–4 people</option><option>5–6 people</option><option>7 or more</option></select></label>
                 <label className={styles.field}><span>Will you sell items?</span><select name="sellsProducts" onChange={update("sellsProducts")} value={form.sellsProducts}><option value="" disabled hidden>Select one</option><option>Yes, products or food</option><option>No, information or activities only</option></select></label>
@@ -177,9 +224,10 @@ export function StallRegistrationForm() {
                 <div className={styles.facilityOptions}>
                   <label className={styles.facility}><input checked={form.power} name="power" onChange={update("power")} type="checkbox" /><span><Zap size={16} aria-hidden="true" /> Power outlet</span></label>
                   <label className={styles.facility}><input checked={form.water} name="water" onChange={update("water")} type="checkbox" /><span><MapPin size={16} aria-hidden="true" /> Water access</span></label>
-                  <label className={styles.facility}><input checked={form.table} name="table" onChange={update("table")} type="checkbox" /><span><Store size={16} aria-hidden="true" /> Table &amp; chairs</span></label>
+                  <label className={styles.facility}><input checked={form.stallBox} name="stallBox" onChange={update("stallBox")} type="checkbox" /><span><Store size={16} aria-hidden="true" /> Stall box / storage</span></label>
                 </div>
               </fieldset>
+              <label className={`${styles.imageUpload} ${styles.spanTwo}`}><span><ImagePlus size={18} aria-hidden="true" /><span><strong>Menu template image</strong><small>Optional · add a photo or menu design (JPG, PNG, or WebP).</small></span></span><input accept="image/*" name="menuTemplateImage" onChange={selectMenuTemplate} type="file" />{menuTemplateImage && <small>{menuTemplateImage.name}</small>}{menuTemplatePreview && <img className={styles.menuImagePreview} src={menuTemplatePreview} alt="Selected menu template preview" />}</label>
               <label className={`${styles.field} ${styles.spanTwo}`}><span>Other setup notes</span><textarea maxLength={400} name="setupNotes" onChange={update("setupNotes")} placeholder="Accessibility needs, equipment details, or anything else the team should know." rows={3} value={form.setupNotes} /></label>
               <label className={styles.confirm}><input checked={form.confirmed} onChange={update("confirmed")} required type="checkbox" /><span>I confirm these details are accurate. I understand this is a request, and the event team will confirm space, requirements, and any fees.</span></label>
             </section>
@@ -200,10 +248,12 @@ export function StallRegistrationForm() {
               <div className={styles.summaryBody}>
                 <span className={styles.category}>{form.stallType || "STALL CATEGORY"}</span>
                 <h2>{form.stallName || "Your stall name"}</h2>
-                <p>{form.description || "A short description of your products or activity will appear here."}</p>
-                <div className={styles.summaryMeta}><MapPin size={16} aria-hidden="true" /><span>{form.eventName || "Campus event / market"}</span></div>
+                <p>{menuItems.find((item) => item.name.trim())?.name || "Your menu and pricing will appear here."}</p>
+                <div className={styles.summaryMeta}><MapPin size={16} aria-hidden="true" /><span>{selectedEventName || "Campus event / market"}</span></div>
                 <div className={styles.summaryMeta}><UsersRound size={16} aria-hidden="true" /><span>{form.teamSize || "Stall team size"}</span></div>
-                <div className={styles.summaryMeta}><Store size={16} aria-hidden="true" /><span>{form.stallSize || "Preferred stall space"}</span></div>
+                <div className={styles.summaryMeta}><Store size={16} aria-hidden="true" /><span>{form.stallSize || "Stall type"}</span></div>
+                {menuItems.some((item) => item.name.trim()) && <div className={styles.summaryMenu}><strong>Menu &amp; pricing</strong>{menuItems.filter((item) => item.name.trim()).map((item, index) => <p key={index}>{item.name}<span>{item.offerPrice ? `₹${item.offerPrice}` : "—"}{item.eventDayPrice ? ` · ₹${item.eventDayPrice} event day` : ""}</span></p>)}</div>}
+                {menuTemplateImage && <div className={styles.summaryMeta}><ImagePlus size={16} aria-hidden="true" /><span>{menuTemplateImage.name}</span></div>}
                 <div className={styles.summaryFooter}><span>{form.locationPreference || "Location preference"}</span><span>{facilities.length ? facilities.join(" · ") : "Setup needs"}</span></div>
                 {reviewed && <div className={styles.reviewed}><CheckCircle2 size={18} aria-hidden="true" /> Request details reviewed</div>}
               </div>
