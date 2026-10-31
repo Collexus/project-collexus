@@ -23,7 +23,7 @@ import { getSupabaseClient } from "@/lib/supabase-client";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
-type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[] };
+type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
 type FormState = {
   organizerName: string;
@@ -131,7 +131,7 @@ function createSubmission(form: FormState) {
 export function HostEventForm() {
   const router = useRouter();
   const [form, setForm] = useState(initialForm);
-  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [] });
+  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [], listingName: "" });
   const [reviewed, setReviewed] = useState(false);
   const [dateError, setDateError] = useState("");
   const [draftStatus, setDraftStatus] = useState("");
@@ -143,10 +143,11 @@ export function HostEventForm() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
-    const animation = window.requestAnimationFrame(() => setCollexusPackage({
-      plan: plan === "normal" || plan === "pro" ? plan : "",
-      addons: (params.get("addons") ?? "").split(",").filter(Boolean),
-    }));
+    const listingName = params.get("listingName") ?? "";
+    const animation = window.requestAnimationFrame(() => {
+      setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
+      if (listingName) setForm((current) => ({ ...current, eventName: listingName }));
+    });
     return () => window.cancelAnimationFrame(animation);
   }, []);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -54,14 +54,19 @@ const initialForm: StallForm = {
 
 type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
 const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
-type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[] };
+type EventPerson = { id: number; name: string; stallName: string; phone: string; photoFile: File | null; photoPreview: string };
+const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName: "", phone: "", photoFile: null, photoPreview: "" });
+type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
 export function StallRegistrationForm() {
   const [form, setForm] = useState<StallForm>(initialForm);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
+  const [eventPeople, setEventPeople] = useState<EventPerson[]>([blankEventPerson(1)]);
+  const nextPersonId = useRef(2);
+  const personPhotoUrls = useRef(new Set<string>());
   const [menuTemplateImage, setMenuTemplateImage] = useState<File | null>(null);
   const [menuTemplatePreview, setMenuTemplatePreview] = useState("");
-  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [] });
+  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [], listingName: "" });
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
 
@@ -69,13 +74,19 @@ export function StallRegistrationForm() {
     if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
   }, [menuTemplatePreview]);
 
+  useEffect(() => () => {
+    personPhotoUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    personPhotoUrls.current.clear();
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
-    const animation = window.requestAnimationFrame(() => setCollexusPackage({
-      plan: plan === "normal" || plan === "pro" ? plan : "",
-      addons: (params.get("addons") ?? "").split(",").filter(Boolean),
-    }));
+    const listingName = params.get("listingName") ?? "";
+    const animation = window.requestAnimationFrame(() => {
+      setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
+      if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
+    });
     return () => window.cancelAnimationFrame(animation);
   }, []);
 
@@ -103,6 +114,49 @@ export function StallRegistrationForm() {
     setDraftMessage("");
   }
 
+  function updateEventPerson(id: number, key: "name" | "stallName" | "phone", value: string) {
+    setEventPeople((current) => current.map((person) => person.id === id ? { ...person, [key]: value } : person));
+    setReviewed(false);
+    setDraftMessage("");
+  }
+
+  function selectPersonPhoto(id: number, event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0] ?? null;
+    const person = eventPeople.find((item) => item.id === id);
+    if (person?.photoPreview) {
+      URL.revokeObjectURL(person.photoPreview);
+      personPhotoUrls.current.delete(person.photoPreview);
+    }
+    const preview = file ? URL.createObjectURL(file) : "";
+    if (preview) personPhotoUrls.current.add(preview);
+    setEventPeople((current) => current.map((person) => {
+      if (person.id !== id) return person;
+      return { ...person, photoFile: file, photoPreview: preview };
+    }));
+    setReviewed(false);
+    setDraftMessage("");
+  }
+
+  function removeEventPerson(id: number) {
+    const person = eventPeople.find((item) => item.id === id);
+    if (person?.photoPreview) {
+      URL.revokeObjectURL(person.photoPreview);
+      personPhotoUrls.current.delete(person.photoPreview);
+    }
+    const replacementPerson = blankEventPerson(nextPersonId.current++);
+    setEventPeople((current) => {
+      const remaining = current.filter((item) => item.id !== id);
+      return remaining.length ? remaining : [replacementPerson];
+    });
+    setReviewed(false);
+    setDraftMessage("");
+  }
+
+  function addEventPerson() {
+    const person = blankEventPerson(nextPersonId.current++);
+    setEventPeople((current) => [...current, person]);
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReviewed(true);
@@ -116,7 +170,7 @@ export function StallRegistrationForm() {
 
   function saveDraft() {
     try {
-      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
+      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, eventPeople: eventPeople.map((person) => ({ id: person.id, name: person.name, stallName: person.stallName || form.stallName, phone: person.phone, photoFileName: person.photoFile?.name ?? "" })), menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
       setDraftMessage("Draft saved on this device.");
     } catch {
       setDraftMessage("This browser could not save the draft. You can still download a request after reviewing it.");
@@ -130,12 +184,16 @@ export function StallRegistrationForm() {
         setDraftMessage("No saved stall request was found on this device.");
         return;
       }
-      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
-      const { menuItems: parsedMenuItems, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
+      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
+      const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
       void _menuTemplateImageName;
       setForm({ ...initialForm, ...savedForm });
       if (savedPackage) setCollexusPackage(savedPackage);
       setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
+      const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
+      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: person.phone ?? "" }));
+      setEventPeople(people.length ? people : [blankEventPerson(1)]);
+      nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
       setMenuTemplateImage(null);
       setMenuTemplatePreview("");
       setReviewed(false);
@@ -154,6 +212,7 @@ export function StallRegistrationForm() {
       collexusPackage,
       menuItems: menuItems.filter((item) => item.name.trim()),
       menuTemplateImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected image separately when sharing this request." } : null,
+      eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
     };
     const file = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(file);
@@ -233,8 +292,30 @@ export function StallRegistrationForm() {
               </div>
             </section>
 
+            <section className={styles.formSection} aria-labelledby="event-people-heading">
+              <div className={styles.peopleSectionHeading}>
+                <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="event-people-heading">Event people registration</h2><p>Register each person representing your stall at the event.</p></div></div>
+                <button className={styles.addPersonButton} onClick={addEventPerson} type="button"><Plus size={15} aria-hidden="true" /> Add person</button>
+              </div>
+              <div className={styles.eventPeopleList}>
+                {eventPeople.map((person, index) => <article className={styles.eventPerson} key={person.id}>
+                  <div className={styles.eventPersonTop}><strong>Person {String(index + 1).padStart(2, "0")}</strong>{eventPeople.length > 1 && <button aria-label={`Remove person ${index + 1}`} className={styles.removePersonButton} onClick={() => removeEventPerson(person.id)} type="button"><Trash2 size={15} aria-hidden="true" /> Remove</button>}</div>
+                  <div className={styles.eventPersonFields}>
+                    <label className={styles.personPhoto}>
+                      {person.photoPreview ? <img src={person.photoPreview} alt={`Photo of ${person.name || `person ${index + 1}`}`} /> : <span className={styles.personPhotoPlaceholder}><ImagePlus size={20} aria-hidden="true" /><span>Person photo</span><small>Optional</small></span>}
+                      <input accept="image/*" aria-label={`Choose person ${index + 1} photo`} onChange={(event) => selectPersonPhoto(person.id, event)} type="file" />
+                    </label>
+                    <label className={styles.field}><span>Person name <b>*</b></span><input autoComplete="name" onChange={(event) => updateEventPerson(person.id, "name", event.currentTarget.value)} placeholder="Full name" required value={person.name} /></label>
+                    <label className={styles.field}><span>Stall name <b>*</b></span><input onChange={(event) => updateEventPerson(person.id, "stallName", event.currentTarget.value)} placeholder="Stall or event name" required value={person.stallName || form.stallName} /></label>
+                    <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" inputMode="tel" onChange={(event) => updateEventPerson(person.id, "phone", event.currentTarget.value)} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={person.phone} /></label>
+                  </div>
+                </article>)}
+              </div>
+              <p className={styles.peoplePrivacy}>Person photos stay on this device. Include the original photo files when sharing the downloaded request.</p>
+            </section>
+
             <section className={styles.formSection} aria-labelledby="setup-heading">
-              <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="setup-heading">Setup &amp; access</h2><p>Help us understand what you need at the venue.</p></div></div>
+              <div className={styles.sectionHeading}><span className={styles.step}>04</span><div><h2 id="setup-heading">Setup &amp; access</h2><p>Help us understand what you need at the venue.</p></div></div>
               <fieldset className={styles.facilities}>
                 <legend>Facilities requested <span>(select all that apply)</span></legend>
                 <div className={styles.facilityOptions}>
@@ -268,6 +349,7 @@ export function StallRegistrationForm() {
                 <div className={styles.summaryMeta}><MapPin size={16} aria-hidden="true" /><span>{selectedEventName || "Campus event / market"}</span></div>
                 <div className={styles.summaryMeta}><UsersRound size={16} aria-hidden="true" /><span>{form.teamSize || "Stall team size"}</span></div>
                 <div className={styles.summaryMeta}><Store size={16} aria-hidden="true" /><span>{form.stallSize || "Stall type"}</span></div>
+                {eventPeople.some((person) => person.name.trim()) && <div className={styles.summaryPeople}><strong>Registered people</strong>{eventPeople.filter((person) => person.name.trim()).map((person) => <span key={person.id}>{person.name} · {person.stallName || form.stallName}</span>)}</div>}
                 {menuItems.some((item) => item.name.trim()) && <div className={styles.summaryMenu}><strong>Menu &amp; pricing</strong>{menuItems.filter((item) => item.name.trim()).map((item, index) => <p key={index}>{item.name}<span>{item.offerPrice ? `₹${item.offerPrice}` : "—"}{item.eventDayPrice ? ` · ₹${item.eventDayPrice} event day` : ""}</span></p>)}</div>}
                 {menuTemplateImage && <div className={styles.summaryMeta}><ImagePlus size={16} aria-hidden="true" /><span>{menuTemplateImage.name}</span></div>}
                 <div className={styles.summaryFooter}><span>{form.locationPreference || "Location preference"}</span><span>{facilities.length ? facilities.join(" · ") : "Setup needs"}</span></div>

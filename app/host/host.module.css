@@ -70,8 +70,8 @@
 .planActions > a { min-height: 45px; padding-inline: 9px; font-size: 10px; }
 .planActions > button { width: 100%; grid-column: 1 / -1; cursor: pointer; }
 .planNext { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; grid-column: 1 / -1; }
-.planNext a { display: grid; min-height: 40px; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: var(--accent-dark); background: var(--surface-soft); font-size: 10px; font-weight: 750; text-decoration: none; }
-.planNext a:hover { border-color: var(--accent); background: var(--accent-soft); }
+.planNext a, .planNext button { display: grid; min-height: 44px; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: var(--accent-dark); background: var(--surface-soft); cursor: pointer; font: inherit; font-size: 10px; font-weight: 750; text-decoration: none; }
+.planNext a:hover, .planNext button:hover, .planNext button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
 .pricingNote { margin: 13px 0 0; color: var(--muted); font-size: 10px; }
 .addOnGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
 .addOnCard { display: flex; min-width: 0; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 19px; background: var(--surface); box-shadow: 0 9px 24px color-mix(in srgb, var(--ink) 5%, transparent); }
@@ -84,7 +84,35 @@
 .addOnButton, .addOnAdded { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; border: 1px solid color-mix(in srgb, var(--accent) 47%, var(--line)); border-radius: 11px; color: var(--accent-dark); background: var(--surface); cursor: pointer; font: inherit; font-size: 10px; font-weight: 750; }
 .addOnButton:hover { background: var(--accent-soft); }
 .addOnAdded { border-color: var(--accent); color: #fff; background: var(--accent); }
-.quietSpace { min-height: clamp(110px, 15vw, 180px); }
+.checkout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: clamp(20px, 4vw, 42px); margin-top: clamp(55px, 8vw, 95px); padding: clamp(22px, 4vw, 38px); border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 26px; background: linear-gradient(130deg, color-mix(in srgb, var(--surface) 96%, var(--accent-soft)), var(--surface)); box-shadow: 0 18px 44px color-mix(in srgb, var(--ink) 7%, transparent); scroll-margin-top: 92px; }
+.checkoutForm { min-width: 0; }
+.checkoutForm h2 { margin: 8px 0 6px; font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: clamp(24px, 3vw, 34px); line-height: 1.12; letter-spacing: -.045em; }
+.checkoutForm > p { margin: 0 0 22px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.checkoutField { display: grid; gap: 7px; color: var(--ink); font-size: 10px; font-weight: 750; }
+.checkoutField input { box-sizing: border-box; width: 100%; min-height: 48px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; outline: 0; color: var(--ink); background: var(--surface-soft); font: inherit; font-size: 12px; font-weight: 450; }
+.checkoutField input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.checkoutField input::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
+.checkoutChoice { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 45px; margin-top: 11px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); font-size: 10px; }
+.checkoutChoice span { color: var(--muted); }
+.checkoutChoice strong { color: var(--accent-dark); text-align: right; }
+.orderSummary { align-self: start; padding: 19px; border: 1px solid var(--line); border-radius: 19px; background: var(--surface-soft); }
+.orderSummary h3 { margin: 0 0 14px; font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: 15px; }
+.orderLine { display: flex; align-items: flex-start; justify-content: space-between; gap: 13px; padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10px; line-height: 1.45; }
+.orderLine strong { flex: 0 0 auto; color: var(--ink); text-align: right; }
+.orderAddOns { padding: 9px 0 2px; color: var(--muted); font-size: 10px; }
+.orderAddOns > span { display: block; margin-bottom: 2px; font-weight: 750; }
+.orderAddOns > small { display: block; padding: 8px 0; color: var(--muted); }
+.orderAddOns .orderLine { padding-left: 8px; }
+.orderTotal { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 9px; padding-top: 13px; border-top: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); color: var(--ink); font-size: 11px; font-weight: 800; }
+.orderTotal strong { color: var(--accent-dark); text-align: right; }
+.orderTotal small { display: block; margin-top: 4px; color: var(--muted); font-size: 8px; font-weight: 550; }
+.checkoutNote { display: block; margin-top: 12px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.checkoutButton { display: inline-flex; width: 100%; min-height: 46px; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; margin-top: 16px; padding: 0 13px; border: 1px solid var(--accent); border-radius: 12px; color: #fff; background: linear-gradient(120deg, #087e83, #137f9d); cursor: pointer; font: inherit; font-size: 11px; font-weight: 800; text-decoration: none; }
+.checkoutButton:disabled { border-color: var(--line); color: var(--muted); background: #e1e9ea; cursor: not-allowed; box-shadow: none; }
+.checkoutButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset: 3px; }
+.plansSection, .addOnsSection { padding-inline: clamp(4px, 1.4vw, 16px); }
+.planGrid { grid-auto-rows: 1fr; }
+.planCard { border-radius: 25px; }
 .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .steps article { padding: 19px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 88%, var(--accent-soft)); }
 .steps article > span { color: var(--accent); font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: 13px; font-weight: 800; }
@@ -99,4 +127,5 @@
 @media (max-width: 850px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(270px, .8fr); padding: 27px; } .addOnGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bottomCta { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 650px) { .header { min-height: 60px; padding: 7px 13px; } .brand { font-size: 15px; } .headerNav { gap: 11px; } .headerNav > a:not(.headerCta) { font-size: 10px; } .headerCta { min-height: 36px; padding-inline: 9px; font-size: 9px; } .shell { width: calc(100% - 26px); padding-top: 17px; } .hero { grid-template-columns: minmax(0, 1fr); gap: 19px; padding: 22px 18px; border-radius: 22px; } .hero h1 { font-size: clamp(37px, 10.2vw, 51px); } .heroCopy > p { font-size: 12px; } .heroPanel { padding: 13px; border-radius: 19px; } .panelIllustration, .panelIllustration img { min-height: 190px; } .plansSection, .addOnsSection { padding-top: 48px; } .planGrid { grid-template-columns: minmax(0, 1fr); } .planCard { padding: 21px 18px; border-radius: 19px; } .planDescription { min-height: auto; } .addOnGrid { gap: 9px; } .addOnCard { padding: 14px; border-radius: 16px; } .addOnTop h3 { font-size: 13px; } .addOnPrice { font-size: 16px; } .footer { gap: 10px 16px; padding: 14px; } }
 @media (max-width: 390px) { .headerNav { gap: 8px; } .headerNav > a:not(.headerCta) { font-size: 9px; } .headerCta svg { display: none; } .addOnGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 650px) { .checkout { grid-template-columns: minmax(0, 1fr); gap: 17px; margin-top: 50px; padding: 20px 15px; border-radius: 21px; } .orderSummary { padding: 15px; border-radius: 16px; } }
 @media (prefers-reduced-motion: reduce) { .headerCta, .textLink, .outlineButton, .secondaryButton, .primaryButton { transition: none; } .primaryButton:hover, .secondaryButton:hover, .outlineButton:hover, .headerCta:hover { transform: none; } }
