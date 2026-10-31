@@ -94,7 +94,7 @@ export default function HostWithCollexusPage() {
               <div className={styles.planActions}><Link className={styles.primaryButton} href="/host-event/">Plan an event <ArrowRight size={16} aria-hidden="true" /></Link><Link className={styles.primaryButton} href="/stall-registration/">Plan a stall <ArrowRight size={16} aria-hidden="true" /></Link></div>
             </article>
           </div>
-          <p className={styles.pricingNote}>Plan pricing and availability are confirmed with the event team after reviewing your request.</p>
+          <p className={styles.pricingNote}>Plan pricing and availability are confirmed with the event team after reviewing your request. Request forms create a local file to share; they do not publish an event or reserve a stall.</p>
         </section>
 
         <section className={styles.addOnsSection} id="add-ons" aria-labelledby="addons-title">
