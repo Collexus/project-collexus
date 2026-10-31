@@ -13,6 +13,8 @@ Open http://localhost:3000. Build for production with `npm run build`, then serv
 
 Organizer event submissions use the existing Supabase URL and publishable key. Apply `supabase/migrations/20261030000000_event_submissions.sql` to the Supabase project before accepting submissions. Row-level security restricts inserts to the signed-in organizer and keeps submissions private for review; submissions are not published automatically.
 
+Profile contact fields and photo uploads also need their database setup applied to the same Supabase project, in order: `supabase/migrations/20261031000000_profile_contact_fields.sql`, then `supabase/migrations/20261101000000_profile_photo_storage.sql`. These add profile columns and the private `profile-photos` bucket with per-user storage policies.
+
 ## Structure
 
 - `app/` contains the home page, shared layout, global theme styles, and the `/events/[slug]` event detail route.

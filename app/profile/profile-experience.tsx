@@ -184,21 +184,50 @@ export function ProfileExperience() {
     const supabase = getSupabaseClient();
     if (supabase && user) {
       setBusy(true);
-      const path = `${user.id}/profile.jpg`;
-      const { error: uploadError } = await supabase.storage.from("profile-photos").upload(path, optimizedPhoto, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
-      if (uploadError) {
-        setError("We couldn’t upload your photo. Apply the profile photo storage migration and try again.");
+      const bucket = supabase.storage.from("profile-photos");
+      const path = `${user.id}/${crypto.randomUUID()}-profile.jpg`;
+      try {
+        const { error: uploadError } = await bucket.upload(path, optimizedPhoto, { contentType: "image/jpeg", cacheControl: "3600" });
+        if (uploadError) {
+          const message = uploadError.message.toLowerCase();
+          setError(message.includes("bucket not found")
+            ? "Collexus photo storage isn’t set up yet. Apply the profile photo storage migration in Supabase, then retry."
+            : message.includes("row-level security") || message.includes("not allowed")
+              ? "Your account can’t upload to its photo folder yet. Apply the profile photo storage policies in Supabase."
+              : "We couldn’t upload your photo. Check your connection and try again.");
+          return;
+        }
+
+        const { profile, error: profileError } = await updateUserProfile(supabase, user.id, { profile_avatar_url: path });
+        if (profileError || !profile) {
+          await bucket.remove([path]);
+          const message = profileError?.message.toLowerCase() ?? "";
+          setError(message.includes("profile_avatar_url") || message.includes("column")
+            ? "The profile photo field is missing from the Collexus database. Apply the profile contact fields migration, then retry."
+            : "The photo uploaded but couldn’t be connected to your profile. Try again after checking your connection.");
+          return;
+        }
+
+        const { data: signedPhoto, error: signedError } = await bucket.createSignedUrl(path, 3600);
+        if (signedError || !signedPhoto) {
+          setAvatarPath(path);
+          setAvatarUrl("");
+          setSaved(true);
+          setError("Your photo is saved to your profile, but its preview couldn’t be loaded. Refresh this page to retry.");
+          return;
+        }
+
+        if (avatarPath && avatarPath !== path && !avatarPath.startsWith("http") && !avatarPath.startsWith("data:")) {
+          await bucket.remove([avatarPath]);
+        }
+        setAvatarPath(path);
+        setAvatarUrl(signedPhoto.signedUrl);
+        setSaved(true);
+      } catch {
+        setError("We couldn’t finish uploading your photo. Check your connection and try again.");
+      } finally {
         setBusy(false);
-        return;
       }
-      const { data: signedPhoto, error: signedError } = await supabase.storage.from("profile-photos").createSignedUrl(path, 3600);
-      setBusy(false);
-      if (signedError || !signedPhoto) {
-        setError("Your photo uploaded, but its preview couldn’t be created. Refresh this page to try again.");
-        return;
-      }
-      setAvatarPath(path);
-      setAvatarUrl(signedPhoto.signedUrl);
       return;
     }
     const reader = new FileReader();
@@ -206,10 +235,45 @@ export function ProfileExperience() {
       if (typeof reader.result === "string") {
         setAvatarPath("");
         setAvatarUrl(reader.result);
+        try {
+          const currentDraft = JSON.parse(window.localStorage.getItem(localDraftKey) ?? "{}") as Record<string, unknown>;
+          window.localStorage.setItem(localDraftKey, JSON.stringify({ ...currentDraft, profile_avatar_url: reader.result }));
+          setSaved(true);
+        } catch {
+          setError("Your photo preview is ready, but this browser couldn’t save it. Save your profile draft to retry.");
+        }
       }
     };
     reader.onerror = () => setError("We couldn’t read that image. Choose another photo and try again.");
     reader.readAsDataURL(optimizedPhoto);
+  }
+
+  async function removeAvatar() {
+    const supabase = getSupabaseClient();
+    if (supabase && user) {
+      setBusy(true);
+      const { error: updateError } = await updateUserProfile(supabase, user.id, { profile_avatar_url: null });
+      if (updateError) {
+        setError("We couldn’t remove the saved profile photo. Try again after checking your connection.");
+        setBusy(false);
+        return;
+      }
+      if (avatarPath && !avatarPath.startsWith("http") && !avatarPath.startsWith("data:")) {
+        await supabase.storage.from("profile-photos").remove([avatarPath]);
+      }
+      setBusy(false);
+    } else {
+      try {
+        const currentDraft = JSON.parse(window.localStorage.getItem(localDraftKey) ?? "{}") as Record<string, unknown>;
+        window.localStorage.setItem(localDraftKey, JSON.stringify({ ...currentDraft, profile_avatar_url: "" }));
+      } catch {
+        setError("This browser couldn’t update your profile draft. Try again.");
+        return;
+      }
+    }
+    setAvatarUrl("");
+    setAvatarPath("");
+    setSaved(true);
   }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
@@ -302,7 +366,7 @@ export function ProfileExperience() {
                   <div className={styles.photoCopy}><strong>Profile picture</strong><small>JPEG, PNG or WebP up to 5 MB. It will be cropped into a circle.</small>
                     <label className={styles.photoButton}><ImagePlus size={15} aria-hidden="true" /> {busy ? "Uploading…" : avatarUrl ? "Change photo" : "Upload photo"}<input className={styles.photoFileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={busy} /></label>
                   </div>
-                  {avatarUrl && <button className={styles.photoRemove} type="button" onClick={() => { setAvatarUrl(""); setAvatarPath(""); setSaved(false); }}><Trash2 size={14} aria-hidden="true" /> Remove</button>}
+                  {avatarUrl && <button className={styles.photoRemove} type="button" disabled={busy} onClick={() => void removeAvatar()}><Trash2 size={14} aria-hidden="true" /> Remove</button>}
                 </div>
                 <div className={styles.fieldGrid}>
                   <label className={styles.field}><span>Full name</span><input autoComplete="name" maxLength={80} value={name} onChange={(event) => { setName(event.target.value); setSaved(false); }} placeholder="Your name" /></label>
