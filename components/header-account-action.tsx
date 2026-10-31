@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { BadgeCheck, CircleHelp, ClipboardList, Info, LogOut, UserRound } from "lucide-react";
+import { BadgeCheck, CircleHelp, ClipboardList, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import styles from "./header-account-action.module.css";
@@ -60,7 +60,7 @@ export function HeaderAccountAction() {
     const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "C";
     const profileLinks = [
       { label: "Profile", href: `${basePath}/profile/`, Icon: UserRound },
-      { label: "About you", href: `${basePath}/profile/edit/#about`, Icon: Info },
+      { label: "Account & privacy", href: `${basePath}/profile/edit/`, Icon: ShieldCheck },
       { label: "Registrations & orders", href: `${basePath}/registrations/`, Icon: ClipboardList },
       { label: "Help", href: `${basePath}/help/`, Icon: CircleHelp },
       { label: "About Collexus", href: `${basePath}/about/`, Icon: UserRound },

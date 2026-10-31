@@ -135,7 +135,7 @@ export function SiteUtilities() {
             <a href={`${basePath}/registrations/`} onClick={() => setMenuOpen(false)}>Registrations &amp; orders <ChevronRight size={17} /></a>
             <a href={`${basePath}/help/`} onClick={() => setMenuOpen(false)}>Help &amp; frequently asked questions <ChevronRight size={17} /></a>
             <a href={`${basePath}/about/`} onClick={() => setMenuOpen(false)}>About Collexus <ChevronRight size={17} /></a>
-            <a href={`${basePath}/about-you/`} onClick={() => setMenuOpen(false)}>About you <ChevronRight size={17} /></a>
+            <a href={`${basePath}/profile/edit/`} onClick={() => setMenuOpen(false)}>Account &amp; privacy <ChevronRight size={17} /></a>
             <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Host an event <ChevronRight size={17} /></a>
             <a href={`${basePath}/stall-registration/`} onClick={() => setMenuOpen(false)}>Register a stall <ChevronRight size={17} /></a>
             <a href={`${basePath}/login/`} onClick={() => setMenuOpen(false)}>Sign in <ChevronRight size={17} /></a>
