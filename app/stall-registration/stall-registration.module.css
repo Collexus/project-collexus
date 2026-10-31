@@ -79,6 +79,7 @@
 .heroMeta { display: flex; flex-wrap: wrap; gap: 9px; }
 .heroMeta span { display: inline-flex; min-height: 34px; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: color-mix(in srgb, var(--surface) 82%, var(--accent-soft)); font-size: 10px; font-weight: 650; }
 .heroMeta svg { color: var(--accent); }
+.packageSelection { margin: 11px 0 0; color: var(--accent-strong); font-size: 11px; font-weight: 700; }
 .runAdButton { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; margin-top: 17px; padding: 0 15px; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 11px; color: var(--accent-strong); background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface)); font-size: 12px; font-weight: 750; text-decoration: none; transition: border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease; }
 .runAdButton:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); background: var(--accent-soft); box-shadow: 0 5px 12px color-mix(in srgb, var(--accent) 10%, transparent); }
 .runAdButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset: 3px; }

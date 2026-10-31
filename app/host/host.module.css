@@ -20,12 +20,13 @@
 .headerNav { display: flex; align-items: center; gap: clamp(12px, 2.5vw, 28px); }
 .headerNav > a:not(.headerCta) { color: var(--muted); font-size: 12px; font-weight: 650; text-decoration: none; }
 .headerNav > a:hover, .footer a:hover { color: var(--accent); }
-.headerCta, .textLink, .secondaryButton, .primaryButton { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--accent-dark); background: var(--surface); font-size: 11px; font-weight: 750; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease; }
+.headerCta, .textLink, .outlineButton, .secondaryButton, .primaryButton { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--accent-dark); background: var(--surface); font-size: 11px; font-weight: 750; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease; }
 .headerCta { min-height: 39px; padding-inline: 12px; }
 .primaryButton { border-color: transparent; color: #fff; background: linear-gradient(120deg, #087e83, #137f9d); box-shadow: 0 8px 20px rgba(8, 126, 131, .15); }
-.secondaryButton:hover, .headerCta:hover { border-color: var(--accent); background: var(--accent-soft); }
-.primaryButton:hover, .secondaryButton:hover, .headerCta:hover { transform: translateY(-1px); }
-.primaryButton:focus-visible, .secondaryButton:focus-visible, .headerCta:focus-visible, .textLink:focus-visible, .headerNav > a:focus-visible, .footer a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset: 3px; }
+.outlineButton { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--accent-dark); background: transparent; }
+.secondaryButton:hover, .outlineButton:hover, .headerCta:hover { border-color: var(--accent); background: var(--accent-soft); }
+.primaryButton:hover, .secondaryButton:hover, .outlineButton:hover, .headerCta:hover { transform: translateY(-1px); }
+.primaryButton:focus-visible, .secondaryButton:focus-visible, .outlineButton:focus-visible, .headerCta:focus-visible, .textLink:focus-visible, .headerNav > a:focus-visible, .footer a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset: 3px; }
 .shell { width: min(1170px, calc(100% - 40px)); margin: 0 auto; padding: clamp(26px, 4.2vw, 52px) 0 30px; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr); align-items: center; gap: clamp(24px, 5vw, 62px); padding: clamp(26px, 5vw, 55px); overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 28px; background: linear-gradient(120deg, color-mix(in srgb, var(--surface) 97%, var(--accent-soft)), var(--surface) 58%, color-mix(in srgb, var(--surface) 82%, #c9e8ed)); box-shadow: 0 20px 55px color-mix(in srgb, var(--ink) 8%, transparent); }
 .heroCopy { min-width: 0; }
@@ -42,12 +43,8 @@
 .panelTop { display: flex; align-items: center; justify-content: space-between; color: var(--accent-dark); font-size: 8px; font-weight: 850; letter-spacing: .14em; }
 .liveDot { width: 9px; height: 9px; border-radius: 50%; background: #28b89c; box-shadow: 0 0 0 5px color-mix(in srgb, #28b89c 14%, transparent); }
 .panelIllustration { position: relative; display: grid; min-height: 236px; place-items: center; margin: 14px 0; overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line)); border-radius: 19px; background: radial-gradient(circle at 51% 45%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 42%), linear-gradient(145deg, color-mix(in srgb, var(--accent-soft) 86%, var(--surface)), color-mix(in srgb, var(--surface) 80%, #d7eaf2)); }
-.orb { position: absolute; top: -33px; right: 14%; width: 150px; height: 150px; border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 50%; }
-.panelIcon, .panelIconAlt { position: absolute; z-index: 1; display: grid; width: 72px; height: 72px; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 27%, var(--line)); border-radius: 22px; color: var(--accent); background: color-mix(in srgb, var(--surface) 88%, var(--accent-soft)); box-shadow: 0 13px 22px color-mix(in srgb, var(--ink) 11%, transparent); }
-.panelIcon { transform: translate(-39px, -4px) rotate(-8deg); }
-.panelIconAlt { width: 57px; height: 57px; border-radius: 18px; transform: translate(48px, 23px) rotate(8deg); }
-.panelLine { position: absolute; bottom: 52px; width: 64%; height: 2px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 52%, #9fcfcb); }
-.floatingTag { position: absolute; bottom: 18px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface); font-size: 7px; font-weight: 800; letter-spacing: .09em; }
+.panelIllustration img { width: 100%; height: 100%; min-height: 236px; object-fit: cover; object-position: center 48%; }
+.floatingTag { position: absolute; bottom: 12px; left: 50%; max-width: calc(100% - 24px); padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: color-mix(in srgb, var(--surface) 92%, transparent); font-size: 7px; font-weight: 800; letter-spacing: .09em; white-space: nowrap; transform: translateX(-50%); }
 .panelFooter { display: grid; gap: 4px; }
 .panelFooter strong { font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: 14px; }
 .panelFooter span { color: var(--muted); font-size: 10px; }
@@ -71,6 +68,10 @@
 .planCard li svg { flex: 0 0 auto; color: var(--accent); }
 .planActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: auto; }
 .planActions > a { min-height: 45px; padding-inline: 9px; font-size: 10px; }
+.planActions > button { width: 100%; grid-column: 1 / -1; cursor: pointer; }
+.planNext { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; grid-column: 1 / -1; }
+.planNext a { display: grid; min-height: 40px; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: var(--accent-dark); background: var(--surface-soft); font-size: 10px; font-weight: 750; text-decoration: none; }
+.planNext a:hover { border-color: var(--accent); background: var(--accent-soft); }
 .pricingNote { margin: 13px 0 0; color: var(--muted); font-size: 10px; }
 .addOnGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
 .addOnCard { display: flex; min-width: 0; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 19px; background: var(--surface); box-shadow: 0 9px 24px color-mix(in srgb, var(--ink) 5%, transparent); }
@@ -80,6 +81,10 @@
 .addOnPrice { color: var(--accent); font-size: 18px; font-weight: 800; }
 .addOnCard > p { flex: 1; margin: 9px 0 15px; color: var(--muted); font-size: 10px; line-height: 1.6; }
 .addOnFoot { padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: 7px; font-weight: 850; letter-spacing: .13em; }
+.addOnButton, .addOnAdded { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; border: 1px solid color-mix(in srgb, var(--accent) 47%, var(--line)); border-radius: 11px; color: var(--accent-dark); background: var(--surface); cursor: pointer; font: inherit; font-size: 10px; font-weight: 750; }
+.addOnButton:hover { background: var(--accent-soft); }
+.addOnAdded { border-color: var(--accent); color: #fff; background: var(--accent); }
+.quietSpace { min-height: clamp(110px, 15vw, 180px); }
 .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .steps article { padding: 19px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 88%, var(--accent-soft)); }
 .steps article > span { color: var(--accent); font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: 13px; font-weight: 800; }
@@ -88,11 +93,10 @@
 .bottomCta { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-top: clamp(45px, 6vw, 70px); padding: clamp(22px, 4vw, 38px); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 23px; background: linear-gradient(115deg, color-mix(in srgb, var(--accent-soft) 76%, var(--surface)), var(--surface)); }
 .bottomCta h2 { font-size: clamp(24px, 3vw, 32px); }
 .bottomActions { display: flex; flex-wrap: wrap; gap: 9px; }
-.bottomActions a { white-space: nowrap; }
 .footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 25px; padding: 17px; border: 1px solid var(--line); border-radius: 16px; color: var(--muted); background: color-mix(in srgb, var(--surface) 75%, var(--accent-soft)); font-size: 10px; }
 .footer > :first-child { margin-right: auto; color: var(--accent-dark); font-size: 12px; font-weight: 800; text-decoration: none; }
 .footer > a:not(:first-child) { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); text-decoration: none; }
 @media (max-width: 850px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(270px, .8fr); padding: 27px; } .addOnGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bottomCta { align-items: flex-start; flex-direction: column; } }
-@media (max-width: 650px) { .header { min-height: 60px; padding: 7px 13px; } .brand { font-size: 15px; } .headerNav { gap: 11px; } .headerNav > a:not(.headerCta) { font-size: 10px; } .headerCta { min-height: 36px; padding-inline: 9px; font-size: 9px; } .shell { width: calc(100% - 26px); padding-top: 17px; } .hero { grid-template-columns: minmax(0, 1fr); gap: 19px; padding: 22px 18px; border-radius: 22px; } .hero h1 { font-size: clamp(37px, 10.2vw, 51px); } .heroCopy > p { font-size: 12px; } .heroPanel { padding: 13px; border-radius: 19px; } .panelIllustration { min-height: 190px; } .plansSection, .addOnsSection, .howSection { padding-top: 48px; } .planGrid { grid-template-columns: minmax(0, 1fr); } .planCard { padding: 21px 18px; border-radius: 19px; } .planDescription { min-height: auto; } .addOnGrid { gap: 9px; } .addOnCard { padding: 14px; border-radius: 16px; } .addOnTop h3 { font-size: 13px; } .addOnPrice { font-size: 16px; } .steps { grid-template-columns: minmax(0, 1fr); } .bottomActions { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr); } .footer { gap: 10px 16px; padding: 14px; } }
-@media (max-width: 390px) { .headerNav { gap: 8px; } .headerNav > a:not(.headerCta) { font-size: 9px; } .headerCta svg { display: none; } .planActions { grid-template-columns: minmax(0, 1fr); } .addOnGrid { grid-template-columns: minmax(0, 1fr); } }
-@media (prefers-reduced-motion: reduce) { .headerCta, .textLink, .secondaryButton, .primaryButton { transition: none; } .primaryButton:hover, .secondaryButton:hover, .headerCta:hover { transform: none; } }
+@media (max-width: 650px) { .header { min-height: 60px; padding: 7px 13px; } .brand { font-size: 15px; } .headerNav { gap: 11px; } .headerNav > a:not(.headerCta) { font-size: 10px; } .headerCta { min-height: 36px; padding-inline: 9px; font-size: 9px; } .shell { width: calc(100% - 26px); padding-top: 17px; } .hero { grid-template-columns: minmax(0, 1fr); gap: 19px; padding: 22px 18px; border-radius: 22px; } .hero h1 { font-size: clamp(37px, 10.2vw, 51px); } .heroCopy > p { font-size: 12px; } .heroPanel { padding: 13px; border-radius: 19px; } .panelIllustration, .panelIllustration img { min-height: 190px; } .plansSection, .addOnsSection { padding-top: 48px; } .planGrid { grid-template-columns: minmax(0, 1fr); } .planCard { padding: 21px 18px; border-radius: 19px; } .planDescription { min-height: auto; } .addOnGrid { gap: 9px; } .addOnCard { padding: 14px; border-radius: 16px; } .addOnTop h3 { font-size: 13px; } .addOnPrice { font-size: 16px; } .footer { gap: 10px 16px; padding: 14px; } }
+@media (max-width: 390px) { .headerNav { gap: 8px; } .headerNav > a:not(.headerCta) { font-size: 9px; } .headerCta svg { display: none; } .addOnGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .headerCta, .textLink, .outlineButton, .secondaryButton, .primaryButton { transition: none; } .primaryButton:hover, .secondaryButton:hover, .outlineButton:hover, .headerCta:hover { transform: none; } }

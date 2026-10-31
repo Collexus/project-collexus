@@ -23,6 +23,7 @@ import { getSupabaseClient } from "@/lib/supabase-client";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
+type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[] };
 
 type FormState = {
   organizerName: string;
@@ -130,6 +131,7 @@ function createSubmission(form: FormState) {
 export function HostEventForm() {
   const router = useRouter();
   const [form, setForm] = useState(initialForm);
+  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [] });
   const [reviewed, setReviewed] = useState(false);
   const [dateError, setDateError] = useState("");
   const [draftStatus, setDraftStatus] = useState("");
@@ -137,6 +139,16 @@ export function HostEventForm() {
   const [posterError, setPosterError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    const animation = window.requestAnimationFrame(() => setCollexusPackage({
+      plan: plan === "normal" || plan === "pro" ? plan : "",
+      addons: (params.get("addons") ?? "").split(",").filter(Boolean),
+    }));
+    return () => window.cancelAnimationFrame(animation);
+  }, []);
 
   useEffect(() => () => {
     if (posterPreview) URL.revokeObjectURL(posterPreview);
@@ -207,7 +219,7 @@ export function HostEventForm() {
 
   function saveDraft() {
     try {
-      window.localStorage.setItem(draftStorageKey, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), form }));
+      window.localStorage.setItem(draftStorageKey, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), form, collexusPackage }));
       setDraftStatus("Draft saved on this device.");
     } catch {
       setDraftStatus("Could not save the draft. Check this browser’s storage settings.");
@@ -223,9 +235,10 @@ export function HostEventForm() {
       }
       const parsed: unknown = JSON.parse(saved);
       if (!parsed || typeof parsed !== "object" || !("version" in parsed) || !("form" in parsed)) throw new Error("Invalid draft");
-      const record = parsed as { version: unknown; form: unknown };
+      const record = parsed as { version: unknown; form: unknown; collexusPackage?: unknown };
       if (record.version !== 1 || !isSavedForm(record.form)) throw new Error("Invalid draft");
       setForm(record.form);
+      if (record.collexusPackage && typeof record.collexusPackage === "object") setCollexusPackage(record.collexusPackage as CollexusPackage);
       setReviewed(false);
       setDateError("");
       setDraftStatus("Saved draft restored.");
@@ -244,7 +257,7 @@ export function HostEventForm() {
   }
 
   function downloadSubmission() {
-    const payload = { ...createSubmission(form), exportedAt: new Date().toISOString() };
+    const payload = { ...createSubmission(form), collexusPackage, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -271,7 +284,7 @@ export function HostEventForm() {
       const { error } = await supabase.from("event_submissions").insert({
         id: submissionId,
         organizer_id: session.user.id,
-        submission: createSubmission(form),
+        submission: { ...createSubmission(form), collexusPackage },
       });
       if (error) throw new Error("We couldn’t save this event. Please try again later.");
       setSubmissionStatus(`Submission received for review. Reference: ${submissionId}.`);
@@ -307,6 +320,7 @@ export function HostEventForm() {
             <p>Share the details with students and faculty. We’ll help make your event easy to find.</p>
             <div className={styles.introActions}>
               <div className={styles.formNote}><span>*</span> Required fields</div>
+              {collexusPackage.plan && <div className={styles.formNote}>Collexus {collexusPackage.plan === "pro" ? "Pro" : "Normal"} · {collexusPackage.addons.length} add-on{collexusPackage.addons.length === 1 ? "" : "s"} selected</div>}
               <a className={styles.stallRegistrationLink} href={`${publicBasePath}/stall-registration/`}>
                 <Megaphone aria-hidden="true" size={16} />
                 <span>Run an ad</span>

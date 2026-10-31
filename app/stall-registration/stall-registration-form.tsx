@@ -54,18 +54,30 @@ const initialForm: StallForm = {
 
 type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
 const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
+type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[] };
 
 export function StallRegistrationForm() {
   const [form, setForm] = useState<StallForm>(initialForm);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
   const [menuTemplateImage, setMenuTemplateImage] = useState<File | null>(null);
   const [menuTemplatePreview, setMenuTemplatePreview] = useState("");
+  const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [] });
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
 
   useEffect(() => () => {
     if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
   }, [menuTemplatePreview]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    const animation = window.requestAnimationFrame(() => setCollexusPackage({
+      plan: plan === "normal" || plan === "pro" ? plan : "",
+      addons: (params.get("addons") ?? "").split(",").filter(Boolean),
+    }));
+    return () => window.cancelAnimationFrame(animation);
+  }, []);
 
   function update<K extends keyof StallForm>(key: K) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -104,7 +116,7 @@ export function StallRegistrationForm() {
 
   function saveDraft() {
     try {
-      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, menuTemplateImageName: menuTemplateImage?.name ?? "" }));
+      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
       setDraftMessage("Draft saved on this device.");
     } catch {
       setDraftMessage("This browser could not save the draft. You can still download a request after reviewing it.");
@@ -118,9 +130,11 @@ export function StallRegistrationForm() {
         setDraftMessage("No saved stall request was found on this device.");
         return;
       }
-      const parsed = JSON.parse(saved) as Partial<StallForm>;
-      setForm({ ...initialForm, ...parsed });
-      const parsedMenuItems = (parsed as { menuItems?: unknown }).menuItems;
+      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
+      const { menuItems: parsedMenuItems, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
+      void _menuTemplateImageName;
+      setForm({ ...initialForm, ...savedForm });
+      if (savedPackage) setCollexusPackage(savedPackage);
       setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
       setMenuTemplateImage(null);
       setMenuTemplatePreview("");
@@ -137,6 +151,7 @@ export function StallRegistrationForm() {
       createdAt: new Date().toISOString(),
       notice: "Local request file. This page does not submit or publish the application.",
       application: form,
+      collexusPackage,
       menuItems: menuItems.filter((item) => item.name.trim()),
       menuTemplateImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected image separately when sharing this request." } : null,
     };
@@ -168,6 +183,7 @@ export function StallRegistrationForm() {
             <h1 id="stall-title">Bring your idea<br />to the <em>campus market.</em></h1>
             <p>Tell us what you’d like to share. We’ll collect your setup preferences so the event team can review the request.</p>
             <div className={styles.heroMeta}><span><CheckCircle2 size={15} aria-hidden="true" /> One short application</span></div>
+              {collexusPackage.plan && <p className={styles.packageSelection}>Collexus {collexusPackage.plan === "pro" ? "Pro" : "Normal"} · {collexusPackage.addons.length} add-on{collexusPackage.addons.length === 1 ? "" : "s"} selected</p>}
             <a className={styles.runAdButton} href="#stall-registration-form"><Megaphone size={17} aria-hidden="true" /> Run an ad <ArrowRight size={16} aria-hidden="true" /></a>
           </div>
           <div className={styles.heroArt}>
