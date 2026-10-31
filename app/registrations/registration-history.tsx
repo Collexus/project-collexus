@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowRight,
+  Gift,
   CalendarDays,
   Check,
   CircleAlert,
@@ -13,6 +14,7 @@ import {
   LockKeyhole,
   ReceiptText,
   RotateCcw,
+  Sparkles,
   TicketCheck,
   UtensilsCrossed,
 } from "lucide-react";
@@ -73,6 +75,9 @@ export function RegistrationHistory() {
 
   const visibleEvents = useMemo(() => eventFilter === "All" ? events : events.filter((event) => event.status === eventFilter), [eventFilter]);
   const visibleOrders = useMemo(() => orderFilter === "All" ? orders : orders.filter((order) => order.status === orderFilter), [orderFilter]);
+  const completedOrders = orders.filter((order) => order.status === "Completed").length;
+  const rewardTarget = 5;
+  const rewardProgress = Math.min(100, Math.round((completedOrders / rewardTarget) * 100));
 
   return (
     <ContentPage
@@ -138,9 +143,20 @@ export function RegistrationHistory() {
             ) : (
               <>
                 <div className={styles.sectionHeading}>
-                  <div><p className={styles.kicker}>ORDER ACTIVITY</p><h2>Campus orders, made clear</h2><p>Review sample item and payment outcomes.</p></div>
+                  <div><p className={styles.kicker}><Sparkles size={13} aria-hidden="true" /> ORDER ACTIVITY</p><h2>Little orders, lovely rewards</h2><p>Your campus purchases and payment updates, all in one place.</p></div>
                   <div className={styles.countCard}><strong>{orders.length}</strong><span>sample orders</span></div>
                 </div>
+                <section className={styles.rewardCard} aria-label="Coupon reward progress">
+                  <div className={styles.rewardIcon}><Gift size={22} aria-hidden="true" /></div>
+                  <div className={styles.rewardCopy}>
+                    <p className={styles.rewardEyebrow}>CAMPUS PERK <span>·</span> EVERY 5 COMPLETED ORDERS</p>
+                    <h3>{completedOrders >= rewardTarget ? "A little treat is yours" : `${rewardTarget - completedOrders} more ${rewardTarget - completedOrders === 1 ? "order" : "orders"} to your coupon`}</h3>
+                    <div className={styles.rewardTrack} role="progressbar" aria-label="Completed orders toward a coupon" aria-valuemin={0} aria-valuemax={rewardTarget} aria-valuenow={Math.min(completedOrders, rewardTarget)}><span style={{ width: `${rewardProgress}%` }} /></div>
+                    <div className={styles.rewardMeta}><span>{Math.min(completedOrders, rewardTarget)} of {rewardTarget} completed orders</span><span>{rewardProgress}%</span></div>
+                  </div>
+                  <div className={styles.rewardBadge}><Gift size={16} aria-hidden="true" /><span>{completedOrders >= rewardTarget ? "Coupon unlocked" : "Next reward"}</span></div>
+                  <p className={styles.rewardDisclaimer}>Preview tracker · sample orders only</p>
+                </section>
                 <div className={styles.filterRow} aria-label="Filter orders">
                   {orderFilters.map((filter) => <button type="button" key={filter} aria-pressed={orderFilter === filter} className={orderFilter === filter ? styles.filterActive : styles.filter} onClick={() => setOrderFilter(filter)}>{filter}<span>{filter === "All" ? orders.length : orders.filter((order) => order.status === filter).length}</span></button>)}
                 </div>
