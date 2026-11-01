@@ -259,11 +259,64 @@ export function OriginalInteractions() {
        document.getElementById('categoryPassesNav')?.addEventListener('click',()=>document.getElementById('digitalPasses')?.scrollIntoView({behavior:'smooth',block:'start'}));
        // Event registration form inside the login panel.
        const loginEventSelect=document.getElementById('loginEventSelect');
-       if(loginEventSelect){ Object.values(categoryData).forEach(group=>group.cards.forEach(c=>{ if(![...loginEventSelect.options].some(o=>o.value===c[1])){const o=document.createElement('option');o.value=c[1];o.textContent=c[1];o.dataset.date=c[5] || '';loginEventSelect.appendChild(o);} })); }
+       if(loginEventSelect){
+         const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose an event';placeholder.disabled=true;placeholder.selected=true;loginEventSelect.appendChild(placeholder);
+         Object.values(categoryData).forEach(group=>group.cards.forEach(c=>{ if(![...loginEventSelect.options].some(o=>o.value===c[1])){const o=document.createElement('option');o.value=c[1];o.textContent=c[1];o.dataset.date=c[5] || '';loginEventSelect.appendChild(o);} }));
+       }
+       const eventPassTypeField=document.getElementById('eventPassTypeField');
+       const eventFriendsCountField=document.getElementById('eventFriendsCountField');
+       const eventFriendsNamesField=document.getElementById('eventFriendsNamesField');
+       const eventFriendCount=document.getElementById('eventFriendCount');
+       const eventFriendNames=document.getElementById('eventFriendNames');
+       const feeStatus=document.getElementById('registrationFeeStatus');
+       const setFeeLine=(id,value)=>{const node=document.getElementById(id);if(node)node.textContent=value;};
+       function refreshRegistrationEvent(){
+         const selected=loginEventSelect?.selectedOptions?.[0];
+         const event=events.find(item=>item.title===selected?.value);
+         const isFest=Boolean(event&&(event.category==='Cultural'||event.category==='Special event'||event.specialEvent));
+         eventPassTypeField?.classList.toggle('hidden',!isFest);
+         eventFriendsCountField?.classList.toggle('hidden',!isFest);
+         if(!isFest){if(eventFriendCount)eventFriendCount.value='0';if(eventFriendNames)eventFriendNames.value='';const passType=document.getElementById('eventPassType');if(passType)passType.value='student';}
+         const friendCount=Number(eventFriendCount?.value||0);
+         eventFriendsNamesField?.classList.toggle('hidden',!isFest||friendCount===0);
+         if(eventFriendNames){eventFriendNames.required=isFest&&friendCount>0;}
+         const rule=document.getElementById('eventPassRule');
+         if(rule)rule.textContent=isFest?'Fest pass requests can include you and up to five friends. Guest access and availability are confirmed by the organizer.':'Technical and academic events issue one student pass per registration. Guest and friend passes are not available here.';
+         if(!selected?.value){
+           if(feeStatus){feeStatus.textContent='Select an event';feeStatus.classList.remove('is-closed');}
+           setFeeLine('registrationEventFee','The official event fee will appear here when it is published.');
+           ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayAmount','registrationTaxAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
+           setFeeLine('registrationFeeDisclaimer','Fees and add-ons are a preview. No payment is taken here.');
+           return;
+         }
+         const fee=event?.fee||'Not specified in the official listing.';
+         const isClosed=/closed/i.test(fee);
+         if(feeStatus){feeStatus.textContent=isClosed?'Registration closed':'Fee not confirmed';feeStatus.classList.toggle('is-closed',isClosed);}
+         setFeeLine('registrationEventFee',fee);
+         ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayAmount','registrationTaxAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
+         setFeeLine('registrationFeeDisclaimer',isClosed?'This published fee is historical; registration is closed. No payment is taken here.':'The official listing does not provide one confirmed fee amount, so a total cannot be calculated. No payment is taken here.');
+       }
+       loginEventSelect?.addEventListener('change',refreshRegistrationEvent);
+       eventFriendCount?.addEventListener('change',refreshRegistrationEvent);
+       const photoInput=document.getElementById('registrationPhotoInput');
+       const avatarImage=document.getElementById('registrationAvatarImage');
+       const avatarInitials=document.getElementById('registrationAvatarInitials');
+       let photoPreviewUrl='';
+       photoInput?.addEventListener('change',()=>{
+         const file=photoInput.files?.[0];
+         if(photoPreviewUrl)URL.revokeObjectURL(photoPreviewUrl);
+         photoPreviewUrl='';
+         if(!file){avatarImage?.classList.add('hidden');avatarInitials?.classList.remove('hidden');return;}
+         if(file.size>5*1024*1024){photoInput.value='';if(hint){hint.textContent='Choose an image smaller than 5 MB.';hint.classList.remove('hidden');}return;}
+         photoPreviewUrl=URL.createObjectURL(file);
+         if(avatarImage){avatarImage.src=photoPreviewUrl;avatarImage.classList.remove('hidden');}
+         avatarInitials?.classList.add('hidden');
+       });
        document.getElementById('eventRegistrationForm')?.addEventListener('submit',e=>{
-         e.preventDefault(); const fd=new FormData(e.currentTarget); const opt=loginEventSelect?.selectedOptions?.[0]; const name=fd.get('event'); const date=opt?.dataset.date||''; const regs=getRegs();
-         if(!regs.some(r=>r.name===name)){regs.push({name,date,registeredAt:new Date().toISOString(),passType:fd.get('passType'),registrant:fd.get('name'),email:fd.get('email')});} else {const r=regs.find(r=>r.name===name);r.passType=fd.get('passType');r.registrant=fd.get('name');r.email=fd.get('email');}
-         saveRegs(regs); hint.textContent=`Registration successful for ${name}. Your event date is highlighted in Calendar.`; hint.classList.remove('hidden'); e.currentTarget.reset(); renderCalendar();
+         e.preventDefault(); const form=e.currentTarget; const fd=new FormData(form); const opt=loginEventSelect?.selectedOptions?.[0]; const name=fd.get('event'); const date=opt?.dataset.date||''; const regs=getRegs();
+         const record={name,date,registeredAt:new Date().toISOString(),passType:fd.get('passType')||'student',friendCount:Number(fd.get('friendCount')||0),previewOnly:true};
+         if(!regs.some(r=>r.name===name)){regs.push(record);}else{Object.assign(regs.find(r=>r.name===name),record);}
+         saveRegs(regs); if(hint){hint.textContent=`${name} was saved in this browser preview. It was not sent to the organizer and no place or payment was confirmed.`;hint.classList.remove('hidden');} form.reset();refreshRegistrationEvent(); if(avatarImage){avatarImage.removeAttribute('src');avatarImage.classList.add('hidden');}avatarInitials?.classList.remove('hidden');if(photoPreviewUrl){URL.revokeObjectURL(photoPreviewUrl);photoPreviewUrl='';}
        });
       
       

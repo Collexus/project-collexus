@@ -34,10 +34,16 @@ function formatTrack(track: string) {
   return labels[track] ?? track.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function isRegistrationClosed(event: (typeof events)[number]) {
+  const eventEnd = event.dateEnd ?? event.dateStart;
+  return /registration is closed/i.test(event.fee) || Boolean(eventEnd && eventEnd < new Date().toISOString().slice(0, 10));
+}
+
 export default async function EventDetailsPage({ params }: EventPageProps) {
   const { slug } = await params;
   const event = getEvent(slug);
   if (!event) notFound();
+  const registrationClosed = isRegistrationClosed(event);
 
   return (
     <main className="details-page">
@@ -61,9 +67,9 @@ export default async function EventDetailsPage({ params }: EventPageProps) {
           </div>
           <p>{event.description}</p>
           <div className="details-actions">
-            <Link className="primary-button" href={`/events/${event.slug}/register`}><TicketCheck size={16} aria-hidden="true" /> {event.paymentUrl ? "Get registered" : "Register"} <span className="demo-action-tag">{event.paymentUrl ? "RAZORPAY" : "DEMO"}</span></Link>
+            <Link className="primary-button" href={`/events/${event.slug}/register`}><TicketCheck size={16} aria-hidden="true" /> {registrationClosed ? "View registration details" : "Register"} <span className="demo-action-tag">{registrationClosed ? "CLOSED" : "PREVIEW"}</span></Link>
           </div>
-          <p className="archive-disclaimer">{event.paymentUrl ? "This is a historical event record. The supplied Razorpay link opens a hosted payment page; Collexus does not receive the payment result or confirm registration." : `Registration preview only. This demo does not submit an entry or charge money. ${event.dateStart ? "This dated event has concluded." : "The official listing does not publish an exact event date."}`}</p>
+          <p className="archive-disclaimer">{registrationClosed ? "This is a historical event record. Registration is closed, and this preview cannot reserve a place or accept payment." : `Registration preview only. This demo does not submit an entry or charge money. ${event.dateStart ? "See the organizer source for current availability." : "The official listing does not publish an exact event date."}`}</p>
         </div>
       </section>
 

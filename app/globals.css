@@ -3598,6 +3598,49 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 
 /* Login selection is a single step: hide the other roles after choosing one. */
 .login-options.hidden,.login-registration-panel.hidden,.login-back-icon.hidden{display:none!important}
+
+/* Event registration preview */
+#eventRegistrationPanel .registration-panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 14px}
+#eventRegistrationPanel .registration-panel-heading .login-auth-title{margin:3px 0 5px}
+#eventRegistrationPanel .registration-eyebrow{margin:0;color:#087e83;font:800 9px/1.3 "Space Grotesk",sans-serif;letter-spacing:.14em}
+#eventRegistrationPanel .registration-secure-mark{display:grid;place-items:center;width:38px;height:38px;flex:none;border:1px solid #c8e4e2;border-radius:13px;background:#eff9f8;color:#087e83}
+#eventRegistrationPanel .login-registration-form{display:grid;gap:13px;padding:14px;border-color:#d5e4e5;border-radius:19px;background:#f8fbfb;color:#183541}
+#eventRegistrationPanel .registration-person-row{display:flex;align-items:center;gap:11px;padding-bottom:12px;border-bottom:1px solid #e0ebec}
+#eventRegistrationPanel .registration-avatar{display:grid;place-items:center;width:48px;height:48px;overflow:hidden;flex:none;border:1px solid #b8d6d7;border-radius:50%;background:#e6f3f3;color:#087e83;font:800 12px "Space Grotesk",sans-serif}
+#eventRegistrationPanel .registration-avatar img{width:100%;height:100%;object-fit:cover}
+#eventRegistrationPanel .registration-photo-copy{display:grid;gap:3px;min-width:0;flex:1}
+#eventRegistrationPanel .registration-photo-copy strong{color:#183541;font:700 12px "Space Grotesk",sans-serif}
+#eventRegistrationPanel .registration-photo-copy small{color:#637b82;font:500 10px Inter,sans-serif}
+#eventRegistrationPanel .registration-photo-button{padding:8px 10px;border:1px solid #c8dcde;border-radius:10px;background:#fff;color:#087e83;font:700 10px Inter,sans-serif;letter-spacing:0;text-transform:none;cursor:pointer}
+#eventRegistrationPanel .registration-photo-button:hover{border-color:#087e83;background:#eff9f8}
+#eventRegistrationPanel .registration-photo-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+#eventRegistrationPanel .registration-photo-input:focus-visible + *{outline:2px solid #087e83}
+#eventRegistrationPanel .registration-form-grid{gap:11px}
+#eventRegistrationPanel .login-registration-form label{color:#38545d;font:700 10px Inter,sans-serif;letter-spacing:0;text-transform:none}
+#eventRegistrationPanel .login-registration-form input,#eventRegistrationPanel .login-registration-form select,#eventRegistrationPanel .login-registration-form textarea{margin-top:6px;padding:10px 11px;border:1px solid #d2e0e2;border-radius:11px;background:#fff;color:#183541;font:500 12px Inter,sans-serif}
+#eventRegistrationPanel .login-registration-form textarea{width:100%;resize:vertical;min-height:64px}
+#eventRegistrationPanel .login-registration-form input:focus,#eventRegistrationPanel .login-registration-form select:focus,#eventRegistrationPanel .login-registration-form textarea:focus{border-color:#168e92;box-shadow:0 0 0 3px rgba(8,126,131,.12)}
+#eventRegistrationPanel .registration-pass-note{padding:10px 11px;border:1px solid #cce6e4;border-radius:11px;background:#eff9f8;color:#315e62;font:500 11px/1.5 Inter,sans-serif}
+#eventRegistrationPanel .registration-fee-card{padding:13px;border:1px solid #d7e5e6;border-radius:14px;background:#fff}
+#eventRegistrationPanel .registration-fee-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#eventRegistrationPanel .registration-fee-heading h4{margin:4px 0 0;color:#183541;font:700 15px "Space Grotesk",sans-serif}
+#eventRegistrationPanel .registration-fee-status{padding:5px 8px;border-radius:999px;background:#edf7f2;color:#337056;font:700 9px Inter,sans-serif;white-space:nowrap}
+#eventRegistrationPanel .registration-fee-status.is-closed{background:#fff1ec;color:#a45135}
+#eventRegistrationPanel .registration-event-fee{margin:10px 0 5px;color:#526b74;font:500 11px/1.5 Inter,sans-serif}
+#eventRegistrationPanel .registration-fee-lines{margin:0}
+#eventRegistrationPanel .registration-fee-lines>div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #edf1f1;color:#526b74;font:500 10px Inter,sans-serif}
+#eventRegistrationPanel .registration-fee-lines dt span{color:#809398}
+#eventRegistrationPanel .registration-fee-lines dd{margin:0;color:#29444f;font-weight:700;text-align:right}
+#eventRegistrationPanel .registration-fee-lines .registration-fee-total{padding-top:10px;border-bottom:0;color:#183541;font-weight:800}
+#eventRegistrationPanel .registration-fee-total dd{color:#087e83;font-size:12px}
+#eventRegistrationPanel .registration-fee-disclaimer,#eventRegistrationPanel .registration-demo-note{margin:5px 0 0;color:#72868b;font:500 9px/1.5 Inter,sans-serif}
+#eventRegistrationPanel .registration-policy-note{margin:0;padding:10px 11px;border-left:3px solid #168e92;border-radius:0 9px 9px 0;background:#f0f7f7;color:#526b74;font:500 10px/1.55 Inter,sans-serif}
+#eventRegistrationPanel .registration-policy-note strong{color:#294e54}
+#eventRegistrationPanel .login-register-submit{margin:0;background:#087e83;color:#fff;font:800 11px "Space Grotesk",sans-serif;letter-spacing:.04em;text-transform:none}
+#eventRegistrationPanel .login-register-submit:hover{background:#066b70}
+#eventRegistrationPanel .login-auth-back{margin:0}
+@media(max-width:700px){#eventRegistrationPanel .login-registration-form{padding:12px}#eventRegistrationPanel .registration-form-grid{grid-template-columns:1fr 1fr}#eventRegistrationPanel .registration-friends-names{grid-column:1/-1}}
+@media(max-width:420px){#eventRegistrationPanel .registration-form-grid{grid-template-columns:1fr}}
 .login-close{width:44px!important;height:44px!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;transform:none!important}
 .login-close:hover{color:#087e83!important;background:transparent!important;box-shadow:none!important;transform:none!important}
 .login-close:focus-visible,.login-back-icon:focus-visible{outline:2px solid #328d92!important;outline-offset:2px}
@@ -3919,6 +3962,38 @@ body.warm-editorial-theme.vivid-nightfall-theme main .reference-mood-backdrop .h
 .demo-form input{width:100%;min-height:46px;padding:0 13px;border:1px solid #355462;border-radius:10px;background:#09131c;color:#f2f8fa;font:500 13px "Plus Jakarta Sans",sans-serif;outline:none}
 .demo-form input::placeholder{color:#879ba5}
 .demo-form input:focus{border-color:#4de0d6;box-shadow:0 0 0 3px rgba(77,224,214,.16)}
+.demo-profile-row{display:flex;align-items:center;gap:12px;margin:2px 0 5px;padding:0 0 14px;border-bottom:1px solid #29414d}
+.demo-avatar{display:grid;place-items:center;width:50px;height:50px;flex:none;overflow:hidden;border:1px solid #3a6972;border-radius:50%;background:#12323b;color:#65e7dd;font:800 11px "Space Grotesk",sans-serif}
+.demo-avatar img{width:100%;height:100%;object-fit:cover}
+.demo-profile-copy{display:grid;gap:4px;flex:1;color:#e4f0f2}
+.demo-profile-copy strong{font:700 12px "Space Grotesk",sans-serif}
+.demo-profile-copy small{color:#9db3bb;font-size:10px;line-height:1.4}
+.demo-photo-button{margin:0!important;padding:9px 11px;border:1px solid #355462;border-radius:10px;background:#122630;color:#cce5e6!important;font-size:10px!important;cursor:pointer}
+.demo-photo-button:hover{border-color:#4de0d6;background:#15353c}
+.demo-photo-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}
+.demo-registration-grid{display:grid;gap:8px}
+.demo-registration-grid label{margin:4px 0 0!important}
+.demo-registration-grid input,.demo-registration-grid select,.demo-registration-grid textarea{width:100%;min-height:44px;padding:10px 13px;border:1px solid #355462;border-radius:10px;background:#09131c;color:#f2f8fa;font:500 13px "Plus Jakarta Sans",sans-serif;outline:none}
+.demo-registration-grid select{color-scheme:dark}
+.demo-registration-grid textarea{min-height:66px;resize:vertical}
+.demo-registration-grid :is(input,select,textarea):focus{border-color:#4de0d6;box-shadow:0 0 0 3px rgba(77,224,214,.16)}
+.demo-registration-grid :is(input,select,textarea)::placeholder{color:#879ba5}
+.demo-registration-grid .demo-friends-label{margin-top:3px!important}
+.demo-registration-grid .demo-friends-label small{color:#9db3bb;font-weight:500}
+.demo-pass-rule,.demo-registration-note{margin:6px 0 0;padding:11px 13px;border:1px solid #294954;border-radius:10px;background:rgba(25,100,102,.12);color:#b8d4d9;font-size:11px;line-height:1.6}
+.demo-fee-card{margin-top:8px;padding:15px;border:1px solid #294957;border-radius:14px;background:rgba(5,15,23,.42)}
+.demo-fee-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.demo-fee-heading h2{margin:5px 0 0;color:#e9f3f6;font:700 17px "Space Grotesk",sans-serif}
+.demo-fee-status{padding:5px 8px;border-radius:999px;background:rgba(61,170,127,.14);color:#9be1bd;font-size:9px;font-weight:800;white-space:nowrap}
+.demo-fee-status.closed{background:rgba(214,132,94,.16);color:#ffc399}
+.demo-published-fee{margin:12px 0 5px;color:#b2c5cc;font-size:11px;line-height:1.6}
+.demo-fee-card dl{margin:0}
+.demo-fee-card dl>div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #243b47;color:#afc2ca;font-size:10px}
+.demo-fee-card dt span{color:#839ba5}
+.demo-fee-card dd{margin:0;color:#dce9ed;font-weight:700;text-align:right}
+.demo-fee-card dl .demo-fee-total{border:0;color:#eff8fa;font-weight:800}
+.demo-fee-card .demo-fee-total dd{color:#69e6dd;font-size:12px}
+.demo-fee-disclaimer{margin:4px 0 0;color:#93aab3;font-size:9px;line-height:1.55}
 .demo-form-error{margin:4px 0 0;color:#ffb4a9;font-size:12px}
 .demo-submit{width:100%;min-height:48px;margin-top:10px;justify-content:center;background:linear-gradient(120deg,#087e83,#087db1)!important;box-shadow:0 8px 20px rgba(8,126,131,.2)!important}
 .demo-fee-line{display:grid;gap:6px;margin:24px 0 0;padding-top:17px;border-top:1px solid #2c424e;color:#a8bac2;font-size:11px;line-height:1.6}
@@ -3960,6 +4035,17 @@ html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-them
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-event-meta span{color:#31505b;background:#e5f1f2;border-color:#c4dadd}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-form label{color:#29444f}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-form input{color:#183541;background:#fff;border-color:#b8d1d5}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme :is(.demo-registration-grid input,.demo-registration-grid select,.demo-registration-grid textarea){color:#183541;background:#fff;border-color:#b8d1d5}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-registration-grid select{color-scheme:light}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme :is(.demo-profile-copy,.demo-fee-heading h2){color:#29444f}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-profile-copy small{color:#536771}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-photo-button{color:#31505b!important;background:#e5f1f2;border-color:#c4dadd}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme :is(.demo-pass-rule,.demo-registration-note){color:#31505b;background:#e7f3f3;border-color:#c4dadd}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-card{background:#f5f9fa;border-color:#c7dadd}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-card dl>div{color:#536771;border-color:#d8e4e6}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-card dd{color:#29444f}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-card .demo-fee-total dd{color:#087e83}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-disclaimer{color:#536771}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-line{color:#536771;border-color:#d0dfe1}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-order-summary{background:#f5f9fa;border-color:#c7dadd}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-order-summary>div{border-color:#d8e4e6}

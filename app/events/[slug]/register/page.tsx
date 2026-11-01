@@ -20,5 +20,8 @@ export default async function RegistrationPage({ params }: RegistrationPageProps
   const event = getEvent(slug);
   if (!event) notFound();
 
-  return <RegistrationDemoForm event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, audience: event.audience, fee: event.fee, paymentUrl: event.paymentUrl }} />;
+  const eventEnd = event.dateEnd ?? event.dateStart;
+  const registrationClosed = /registration is closed/i.test(event.fee) || Boolean(eventEnd && eventEnd < new Date().toISOString().slice(0, 10));
+
+  return <RegistrationDemoForm event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, category: event.category, dateStart: event.dateStart, dateEnd: event.dateEnd, registrationClosed, audience: event.audience, fee: event.fee }} />;
 }

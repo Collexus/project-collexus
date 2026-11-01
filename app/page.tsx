@@ -416,20 +416,42 @@ export default function HomePage() {
       <button className="login-auth-back" type="button" data-login-back><Icon name="arrow_back" /> Choose another login</button>
     </form>
     <div id="eventRegistrationPanel" className="login-registration-panel hidden">
-      <h3 className="login-auth-title">Register Event</h3>
-      <p className="login-auth-sub">Choose an event and submit your details to register.</p>
-    <form id="eventRegistrationForm" className="login-registration-form">
-      <div className="login-form-grid">
-        <label>Full name<input name="name" required placeholder="Your full name" /></label>
-        <label>Email<input name="email" type="email" required placeholder="you@example.com" /></label>
-        <label>College / Organization<input name="college" required placeholder="College name" /></label>
-        <label>Phone<input name="phone" required placeholder="10-digit mobile number" /></label>
-        <label>Event<select name="event" id="loginEventSelect" required></select></label>
-        <label>Pass type<select name="passType"><option value="student">Student Pass</option><option value="outer">Outer Pass</option></select></label>
-      </div>
-      <button className="login-register-submit" type="submit">Register for Event <Icon name="arrow_forward" /></button>
-      <button className="login-auth-back" type="button" data-event-register-back><Icon name="arrow_back" /> Choose another option</button>
-    </form>
+      <div className="registration-panel-heading"><div><p className="registration-eyebrow">EVENT REGISTRATION</p><h3 className="login-auth-title">Your event pass</h3><p className="login-auth-sub">Add your details and review the event fee before continuing.</p></div><span className="registration-secure-mark"><Icon name="verified_user" /></span></div>
+      <form id="eventRegistrationForm" className="login-registration-form">
+        <div className="registration-person-row">
+          <div className="registration-avatar" id="registrationAvatarPreview" aria-hidden="true"><span id="registrationAvatarInitials">You</span><img id="registrationAvatarImage" alt="" className="hidden" /></div>
+          <div className="registration-photo-copy"><strong>Profile photo</strong><small>Optional · JPG, PNG or WebP</small></div>
+          <label className="registration-photo-button" htmlFor="registrationPhotoInput">Add image</label>
+          <input className="registration-photo-input" id="registrationPhotoInput" name="photo" type="file" accept="image/png,image/jpeg,image/webp" />
+        </div>
+        <div className="login-form-grid registration-form-grid">
+          <label>Full name<input name="name" autoComplete="name" required maxLength={100} placeholder="Your full name" /></label>
+          <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" /></label>
+          <label>College ID<input name="collegeId" required maxLength={40} placeholder="Your student ID" /></label>
+          <label>Phone number<input name="phone" type="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" /></label>
+          <label className="registration-event-field">Event name<select name="event" id="loginEventSelect" required></select></label>
+          <label className="registration-pass-field hidden" id="eventPassTypeField">Pass type<select name="passType" id="eventPassType"><option value="student">Student pass</option><option value="outer">Guest pass</option></select></label>
+          <label className="registration-friends-count hidden" id="eventFriendsCountField">Extra fest passes<select name="friendCount" id="eventFriendCount"><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select></label>
+          <label className="registration-friends-names hidden" id="eventFriendsNamesField">Friends’ names<textarea name="friendNames" id="eventFriendNames" rows={2} maxLength={500} placeholder="Add one name per line"></textarea></label>
+        </div>
+        <div className="registration-pass-note" id="eventPassRule" role="status">Technical and academic events issue one student pass per registration.</div>
+        <section className="registration-fee-card" aria-labelledby="registrationFeeHeading">
+          <div className="registration-fee-heading"><div><p className="registration-eyebrow">PAYMENT DETAILS</p><h4 id="registrationFeeHeading">Fee breakdown</h4></div><span id="registrationFeeStatus" className="registration-fee-status">Select an event</span></div>
+          <p className="registration-event-fee" id="registrationEventFee">The official event fee will appear here when it is published.</p>
+          <dl className="registration-fee-lines">
+            <div><dt>Event registration fee</dt><dd id="registrationBaseAmount">—</dd></div>
+            <div><dt>Platform fee <span>(0.5%)</span></dt><dd id="registrationPlatformAmount">—</dd></div>
+            <div><dt>Payment gateway fee <span>(2%)</span></dt><dd id="registrationGatewayAmount">—</dd></div>
+            <div><dt>GST on gateway fee <span>(18% of 2%)</span></dt><dd id="registrationTaxAmount">—</dd></div>
+            <div className="registration-fee-total"><dt>Total payable</dt><dd id="registrationTotalAmount">—</dd></div>
+          </dl>
+          <p className="registration-fee-disclaimer" id="registrationFeeDisclaimer">Fees and add-ons are a preview. No payment is taken here.</p>
+        </section>
+        <p className="registration-policy-note"><strong>Pass rules:</strong> Technical and academic events are for your student pass only. At fests, you can request a student or guest pass and add passes for friends. Friends’ details and availability must be confirmed by the organizer.</p>
+        <p className="registration-demo-note">Preview only: your personal details and image are not sent or saved. Only the selected event appears in this browser’s calendar preview. No place is reserved and no payment is taken.</p>
+        <button className="login-register-submit" type="submit">Get registered <Icon name="arrow_forward" /></button>
+        <button className="login-auth-back" type="button" data-event-register-back><Icon name="arrow_back" /> Choose another option</button>
+      </form>
     </div>
     <div id="loginFormHint" className="login-form-hint hidden" role="status" aria-live="polite"></div>
   </div>

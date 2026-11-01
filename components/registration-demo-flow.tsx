@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
 
 type EventSummary = {
   slug: string;
   title: string;
   dateLabel: string;
+  category?: string;
+  dateStart?: string | null;
+  dateEnd?: string | null;
+  registrationClosed?: boolean;
   audience: string;
   fee: string;
-  paymentUrl?: string;
 };
 
-type Registration = { slug: string; name: string; email: string };
+type Registration = { slug: string; name: string; email: string; collegeId: string; phone: string; passType: string; friendCount: number; friendNames: string };
 
 const registrationKey = (slug: string) => `collexus-demo-registration:${slug}`;
 
@@ -41,30 +45,20 @@ function DemoFrame({ event, step, children }: { event: EventSummary; step: strin
 export function RegistrationDemoForm({ event }: { event: EventSummary }) {
   const router = useRouter();
   const [error, setError] = useState("");
+  const isFest = event.category === "Cultural" || event.category === "Special event";
+  const [photoUrl, setPhotoUrl] = useState("");
+  useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
 
-  if (event.paymentUrl) {
-    return (
-      <main className="details-page demo-page">
-        <div className="details-topline">
-          <Link href={`/events/${event.slug}`} className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link>
-          <span className="record-label"><CreditCard size={14} aria-hidden="true" /> RAZORPAY PAYMENT PAGE</span>
-        </div>
-        <section className="demo-card">
-          <span className="demo-kicker"><LockKeyhole size={15} aria-hidden="true" /> SECURE HOSTED CHECKOUT</span>
-          <h1>Continue to Razorpay</h1>
-          <p className="demo-event-title">{event.title}</p>
-          <div className="demo-event-meta"><span>{event.dateLabel}</span><span>{event.audience}</span></div>
-          <div className="demo-order-summary">
-            <div><span>Published entry information</span><strong>{event.fee}</strong></div>
-            <div><span>Payment processing</span><strong>Razorpay hosted page</strong></div>
-          </div>
-          <p className="demo-archive-notice">This is a historical event record. Review the amount and organizer instructions on the hosted page before paying. Collexus does not receive payment status or create a registration from this payment link.</p>
-          <a className="primary-button demo-submit" href={event.paymentUrl} target="_blank" rel="noreferrer">
-            Open Razorpay payment page <ArrowUpRight size={16} aria-hidden="true" />
-          </a>
-        </section>
-      </main>
-    );
+  function previewPhoto(change: ChangeEvent<HTMLInputElement>) {
+    const file = change.currentTarget.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      change.currentTarget.value = "";
+      setError("Choose a profile image smaller than 5 MB.");
+      return;
+    }
+    setError("");
+    setPhotoUrl(URL.createObjectURL(file));
   }
 
   function submit(eventForm: FormEvent<HTMLFormElement>) {
@@ -74,9 +68,14 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
       slug: event.slug,
       name: String(values.get("name") ?? "").trim(),
       email: String(values.get("email") ?? "").trim(),
+      collegeId: String(values.get("collegeId") ?? "").trim(),
+      phone: String(values.get("phone") ?? "").trim(),
+      passType: String(values.get("passType") ?? "student"),
+      friendCount: isFest ? Number(values.get("friendCount") ?? 0) : 0,
+      friendNames: isFest ? String(values.get("friendNames") ?? "").trim() : "",
     };
-    if (!registration.name || !registration.email) {
-      setError("Enter your name and email to continue.");
+    if (!registration.name || !registration.email || !registration.collegeId || !registration.phone || (isFest && registration.friendCount > 0 && !registration.friendNames)) {
+      setError("Complete the required details to continue.");
       return;
     }
     try {
@@ -91,19 +90,25 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
   return (
     <DemoFrame event={event} step="1">
       <span className="demo-kicker"><TicketCheck size={15} aria-hidden="true" /> EVENT REGISTRATION</span>
-      <h1>Register for this event</h1>
+      <h1>{event.registrationClosed ? "Registration preview" : "Register for this event"}</h1>
       <p className="demo-event-title">{event.title}</p>
       <div className="demo-event-meta"><span>{event.dateLabel}</span><span>{event.audience}</span></div>
-      <p className="demo-archive-notice">This is a historical event record. Continue only to preview the registration and checkout screens; it will not reserve a place.</p>
+      <p className="demo-archive-notice">{event.registrationClosed ? "Registration for this historical event is closed. You can preview the form and fee layout, but this will not create an entry, reserve a place, or take payment." : "Preview only. This form does not send an entry to the organizer or reserve a place."}</p>
       <form className="demo-form" onSubmit={submit}>
-        <label htmlFor="demo-name">Full name</label>
-        <input id="demo-name" name="name" autoComplete="name" required maxLength={90} placeholder="Your name" />
-        <label htmlFor="demo-email">Email address</label>
-        <input id="demo-email" name="email" type="email" autoComplete="email" required maxLength={160} placeholder="you@example.com" />
+        <div className="demo-profile-row"><div className="demo-avatar">{photoUrl ? <Image src={photoUrl} alt="Selected profile preview" width={50} height={50} unoptimized /> : <span aria-hidden="true">YOU</span>}</div><div className="demo-profile-copy"><strong>Profile photo</strong><small>Optional · JPG, PNG or WebP · up to 5 MB</small></div><label className="demo-photo-button" htmlFor="demo-photo">Add image</label><input className="demo-photo-input" id="demo-photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" onChange={previewPhoto} /></div>
+        <div className="demo-registration-grid">
+          <label htmlFor="demo-name">Full name</label><input id="demo-name" name="name" autoComplete="name" required maxLength={90} placeholder="Your name" />
+          <label htmlFor="demo-email">Email address</label><input id="demo-email" name="email" type="email" autoComplete="email" required maxLength={160} placeholder="you@example.com" />
+          <label htmlFor="demo-college-id">College ID</label><input id="demo-college-id" name="collegeId" required maxLength={40} placeholder="Your student ID" />
+          <label htmlFor="demo-phone">Phone number</label><input id="demo-phone" name="phone" type="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" />
+          {isFest ? <><label htmlFor="demo-pass-type">Pass type</label><select id="demo-pass-type" name="passType"><option value="student">Student pass</option><option value="outer">Guest pass</option></select><label htmlFor="demo-friend-count">Extra fest passes</label><select id="demo-friend-count" name="friendCount"><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select><label className="demo-friends-label" htmlFor="demo-friend-names">Friends’ names <small>(if adding passes)</small></label><textarea className="demo-friends-field" id="demo-friend-names" name="friendNames" rows={2} maxLength={500} placeholder="Add one name per line" /></> : null}
+        </div>
+        <p className="demo-pass-rule">{isFest ? "Fest passes can be requested for you and up to five friends. Guest access and availability must be confirmed by the organizer." : "Technical and academic events issue one student pass per registration."}</p>
+        <section className="demo-fee-card" aria-labelledby="demo-fee-heading"><div className="demo-fee-heading"><div><span className="demo-kicker">PAYMENT DETAILS</span><h2 id="demo-fee-heading">Fee breakdown</h2></div><span className={event.registrationClosed ? "demo-fee-status closed" : "demo-fee-status"}>{event.registrationClosed ? "Registration closed" : "Fee not confirmed"}</span></div><p className="demo-published-fee">{event.fee}</p><dl><div><dt>Event registration fee</dt><dd>—</dd></div><div><dt>Platform fee <span>(0.5%)</span></dt><dd>—</dd></div><div><dt>Payment gateway fee <span>(2%)</span></dt><dd>—</dd></div><div><dt>GST on gateway fee <span>(18% of 2%)</span></dt><dd>—</dd></div><div className="demo-fee-total"><dt>Total payable</dt><dd>—</dd></div></dl><p className="demo-fee-disclaimer">A confirmed single fee is not available in the official listing, so the charges cannot be calculated. No payment is taken in this preview.</p></section>
+        <p className="demo-registration-note">{isFest ? "For fests, you may request guest passes for friends and visitors, subject to organizer approval." : "For technical and academic events, a pass is for the registered student only."} Details stay in this browser session and are cleared when it ends; the profile image is previewed locally and never uploaded.</p>
         {error && <p className="demo-form-error" role="alert">{error}</p>}
-        <button className="primary-button demo-submit" type="submit">Continue to payment preview <ArrowRight size={16} aria-hidden="true" /></button>
+        <button className="primary-button demo-submit" type="submit">Continue to registration preview <ArrowRight size={16} aria-hidden="true" /></button>
       </form>
-      <p className="demo-fee-line"><strong>Published entry information</strong><span>{event.fee}</span></p>
     </DemoFrame>
   );
 }
@@ -114,14 +119,17 @@ export function DemoPaymentPanel({ event }: { event: EventSummary }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(registrationKey(event.slug));
-      const parsed = raw ? JSON.parse(raw) as Registration : null;
-      if (parsed?.slug === event.slug && parsed.name && parsed.email) setRegistration(parsed);
-    } catch {
-      setRegistration(null);
-    }
-    setReady(true);
+    const timer = window.setTimeout(() => {
+      let nextRegistration: Registration | null = null;
+      try {
+        const raw = sessionStorage.getItem(registrationKey(event.slug));
+        const parsed = raw ? JSON.parse(raw) as Registration : null;
+        if (parsed?.slug === event.slug && parsed.name && parsed.email) nextRegistration = parsed;
+      } catch { nextRegistration = null; }
+      setRegistration(nextRegistration);
+      setReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [event.slug]);
 
   function simulatePayment() {
@@ -163,15 +171,18 @@ export function DemoPaymentSuccess({ event }: { event: EventSummary }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(registrationKey(event.slug));
-      const parsed = raw ? JSON.parse(raw) as Registration : null;
-      const complete = sessionStorage.getItem(`${registrationKey(event.slug)}:complete`) === "true";
-      if (complete && parsed?.slug === event.slug) setRegistration(parsed);
-    } catch {
-      setRegistration(null);
-    }
-    setReady(true);
+    const timer = window.setTimeout(() => {
+      let nextRegistration: Registration | null = null;
+      try {
+        const raw = sessionStorage.getItem(registrationKey(event.slug));
+        const parsed = raw ? JSON.parse(raw) as Registration : null;
+        const complete = sessionStorage.getItem(`${registrationKey(event.slug)}:complete`) === "true";
+        if (complete && parsed?.slug === event.slug) nextRegistration = parsed;
+      } catch { nextRegistration = null; }
+      setRegistration(nextRegistration);
+      setReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [event.slug]);
 
   return (
