@@ -6,6 +6,7 @@ import { OriginalInteractions } from "@/components/original-interactions";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { OriginalEventCards } from "@/components/original-event-cards";
 import { OriginalTimetable } from "@/components/original-timetable";
+import { FeaturedEventCarousel } from "@/components/featured-event-carousel";
 import { events } from "@/data/events";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -82,7 +83,7 @@ export default function HomePage() {
 <div className="absolute top-1/2 right-10 w-[30rem] h-[30rem] rounded-full bg-secondary-container/40 blur-3xl pointer-events-none -z-10"></div>
 <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
 
-<div className="lg:col-span-6 flex flex-col items-start pr-0 lg:pr-space-md">
+<div className="lg:col-span-5 flex flex-col items-start pr-0 lg:pr-space-md">
 <div className="inline-flex items-center gap-2 px-space-sm py-1 rounded-full bg-surface-container border border-[#f4d3cb] text-secondary font-label-sm text-label-sm uppercase tracking-widest mb-space-sm shadow-sm">
 <Icon name="sensors" className="text-secondary text-[16px]" />
 <span className="font-bold">Unified Collegiate Network v2.4</span>
@@ -131,66 +132,16 @@ export default function HomePage() {
 </div>
 </div>
 
-<div className="lg:col-span-6 relative mt-space-lg lg:mt-0">
-<div className="featured-event-panel relative rounded-xl bg-surface-container-lowest backdrop-blur-md shadow-xl border border-[#f4d3cb] overflow-hidden p-space-md">
-
-<div className="flex items-center justify-between pb-space-sm mb-space-sm border-b border-[#f4d3cb]/50">
-<div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider">
-<span className="w-2 h-2 rounded-full bg-blush animate-ping"></span>
-<span>RCEE cultural event</span>
-</div>
-<div className="flex items-center gap-1 text-secondary font-label-sm text-label-sm uppercase font-semibold">
-<Icon name="location_on" className="text-[16px]" />
-<span>Ramachandra College of Engineering</span>
-</div>
-</div>
-
-<div className="relative w-full h-80 rounded-lg overflow-hidden mb-space-md border border-[#f4d3cb]">
-<img className="w-full h-full object-cover" alt="Students enjoying a live band performance at an outdoor college cultural festival" src={`${publicBasePath}/assets/kreya-26-cultural-fest.webp`}/>
-<div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/40 to-transparent"></div>
-<div className="feature-kind-badge absolute top-3 left-3 px-2 py-1 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold">
-              Annual cultural fest
-            </div>
-<div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-<div>
-<h3 className="font-headline-md text-headline-md text-white font-bold flagship-aura-title">KREYA ’26 Cultural Fest</h3>
-<p className="font-body-sm text-body-sm text-blush">Art, music, literature, culture &amp; technical excellence</p>
-</div>
-<span className="px-2 py-1 rounded bg-blush text-primary font-label-sm text-label-sm font-bold uppercase shrink-0">KREYA ’26</span>
-</div>
-</div>
-
-<div className="bg-surface-container-low rounded-lg p-space-sm mb-space-md border border-[#f4d3cb]/60">
-<div className="flex items-center justify-between mb-2">
-<span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Published event details</span>
-<span className="font-label-sm text-label-sm text-primary font-bold">Date not listed by RCEE</span>
-</div>
-<div className="grid grid-cols-2 gap-2 text-center">
-<div className="featured-detail-stat py-3 rounded shadow-sm border">
-<span className="font-headline-sm text-headline-sm font-bold text-primary block">5th</span>
-<span className="font-label-sm text-label-sm text-secondary uppercase">Edition</span>
-</div>
-<div className="featured-detail-stat py-3 rounded shadow-sm border">
-<span className="font-headline-sm text-headline-sm font-bold text-primary block">RCEE</span>
-<span className="font-label-sm text-label-sm text-secondary uppercase">Organizer</span>
-</div>
-</div>
-</div>
-
-<div className="space-y-space-xs">
-<div className="flex items-center justify-between font-label-sm text-label-sm">
-<span className="text-secondary uppercase font-semibold">KREYA event record</span>
-<span className="text-primary font-bold">Review official details</span>
-</div>
-<div className="pt-space-xs flex items-center justify-between gap-space-sm">
-<div className="flex items-center gap-1.5 text-secondary font-body-sm text-body-sm">
-<Icon name="verified" className="text-[16px] text-emerald-700" />
-<span>Source-linked information</span>
-</div>
-<a className="featured-event-action" href={`${publicBasePath}/events/kreya-26-cultural-fest/`}>View details<Icon name="arrow_forward" aria-hidden="true" /></a>
-</div>
-</div>
-</div>
+<div className="lg:col-span-7 relative mt-space-lg lg:mt-0">
+  <FeaturedEventCarousel
+    events={[
+      "kreya-26-cultural-fest",
+      "prakalp-2026",
+      "technotsav-2k26-project-expo",
+      "sports-cricket-workshop-2026",
+    ].flatMap((slug) => events.filter((event) => event.slug === slug))}
+    basePath={publicBasePath}
+  />
 </div>
 </div>
 </section>

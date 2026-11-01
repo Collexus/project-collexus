@@ -4910,8 +4910,19 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 @media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .back-link,body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{transition:none!important}}
 
 @media(max-width:760px){
-  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{
-    display:none!important;
+  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories.quick-category-top{
+    display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+    top:72px!important;right:0!important;left:0!important;height:60px!important;min-height:60px!important;
+    box-sizing:border-box!important;gap:8px!important;padding:8px 12px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-inline:contain;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    border-top:0!important;border-bottom:1px solid rgba(20,83,110,.14)!important;
+    box-shadow:0 5px 16px rgba(34,76,83,.07)!important;
   }
-  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:92px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories.quick-category-top::-webkit-scrollbar{display:none}
+  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories.quick-category-top button{
+    flex:0 0 auto!important;min-height:44px!important;padding-inline:12px!important;scroll-snap-align:start;
+  }
+  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:132px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme main .reference-mood-backdrop{padding-top:12px!important}
 }
