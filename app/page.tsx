@@ -441,8 +441,7 @@ export default function HomePage() {
           <dl className="registration-fee-lines">
             <div><dt>Event registration fee</dt><dd id="registrationBaseAmount">—</dd></div>
             <div><dt>Platform fee <span>(0.5%)</span></dt><dd id="registrationPlatformAmount">—</dd></div>
-            <div><dt>Payment gateway fee <span>(2%)</span></dt><dd id="registrationGatewayAmount">—</dd></div>
-            <div><dt>GST on gateway fee <span>(18% of 2%)</span></dt><dd id="registrationTaxAmount">—</dd></div>
+            <div><dt>Payment gateway and GST <span>(2% fee + 18% GST)</span></dt><dd id="registrationGatewayGstAmount">—</dd></div>
             <div className="registration-fee-total"><dt>Total payable</dt><dd id="registrationTotalAmount">—</dd></div>
           </dl>
           <p className="registration-fee-disclaimer" id="registrationFeeDisclaimer">Fees and add-ons are a preview. No payment is taken here.</p>

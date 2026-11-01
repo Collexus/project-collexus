@@ -285,7 +285,7 @@ export function OriginalInteractions() {
          if(!selected?.value){
            if(feeStatus){feeStatus.textContent='Select an event';feeStatus.classList.remove('is-closed');}
            setFeeLine('registrationEventFee','The official event fee will appear here when it is published.');
-           ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayAmount','registrationTaxAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
+           ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayGstAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
            setFeeLine('registrationFeeDisclaimer','Fees and add-ons are a preview. No payment is taken here.');
            return;
          }
@@ -293,7 +293,7 @@ export function OriginalInteractions() {
          const isClosed=/closed/i.test(fee);
          if(feeStatus){feeStatus.textContent=isClosed?'Registration closed':'Fee not confirmed';feeStatus.classList.toggle('is-closed',isClosed);}
          setFeeLine('registrationEventFee',fee);
-         ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayAmount','registrationTaxAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
+         ['registrationBaseAmount','registrationPlatformAmount','registrationGatewayGstAmount','registrationTotalAmount'].forEach(id=>setFeeLine(id,'—'));
          setFeeLine('registrationFeeDisclaimer',isClosed?'This published fee is historical; registration is closed. No payment is taken here.':'The official listing does not provide one confirmed fee amount, so a total cannot be calculated. No payment is taken here.');
        }
        loginEventSelect?.addEventListener('change',refreshRegistrationEvent);
