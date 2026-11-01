@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
+import { getSupabaseClient } from "@/lib/supabase-client";
+import { getUserProfile } from "@/lib/user-profile";
 
 type EventSummary = {
   slug: string;
@@ -19,8 +21,11 @@ type EventSummary = {
 };
 
 type Registration = { slug: string; name: string; email: string; collegeId: string; phone: string; passType: string; friendCount: number; friendNames: string };
+type RegistrationDetails = { name: string; email: string; collegeId: string; phone: string };
+type ProfilePrefill = RegistrationDetails & { avatarUrl: string };
 
 const registrationKey = (slug: string) => `collexus-demo-registration:${slug}`;
+const profileDraftKey = "collexus:account-profile-draft";
 
 function DemoFrame({ event, step, children }: { event: EventSummary; step: string; children: ReactNode }) {
   return (
@@ -46,8 +51,83 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const isFest = event.category === "Cultural" || event.category === "Special event";
+  const [details, setDetails] = useState<RegistrationDetails>({ name: "", email: "", collegeId: "", phone: "" });
+  const [profile, setProfile] = useState<ProfilePrefill | null>(null);
+  const [profileStatus, setProfileStatus] = useState("Loading your Collexus profile…");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const detailsTouched = useRef(false);
   const [photoUrl, setPhotoUrl] = useState("");
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      const timer = window.setTimeout(() => {
+        try {
+          const rawDraft = window.localStorage.getItem(profileDraftKey);
+          const draft = rawDraft ? JSON.parse(rawDraft) as Record<string, unknown> : {};
+          const savedProfile: ProfilePrefill = {
+            name: typeof draft.full_name === "string" ? draft.full_name : "",
+            email: typeof draft.email === "string" ? draft.email : "",
+            collegeId: typeof draft.campus_id === "string" ? draft.campus_id : typeof draft.profile_organization_id === "string" ? draft.profile_organization_id : "",
+            phone: typeof draft.profile_phone === "string" ? draft.profile_phone : "",
+            avatarUrl: typeof draft.profile_avatar_url === "string" ? draft.profile_avatar_url : "",
+          };
+          if (active && Object.values(savedProfile).some(Boolean)) {
+            setProfile(savedProfile);
+            if (!detailsTouched.current) setDetails({ name: savedProfile.name, email: savedProfile.email, collegeId: savedProfile.collegeId, phone: savedProfile.phone });
+            setProfileStatus("Details loaded from the profile saved on this device.");
+          } else if (active) setProfileStatus("Sign in to fetch saved details from your Collexus profile.");
+        } catch {
+          if (active) setProfileStatus("Sign in to fetch saved details from your Collexus profile.");
+        }
+        if (active) setProfileLoading(false);
+      }, 0);
+      return () => { active = false; window.clearTimeout(timer); };
+    }
+
+    void (async () => {
+      try {
+        const { data, error: authError } = await supabase.auth.getUser();
+        if (!active) return;
+        if (authError || !data.user) {
+          setProfileStatus("Sign in to fetch saved details from your Collexus profile.");
+          setProfileLoading(false);
+          return;
+        }
+        const { profile: saved, error: profileError } = await getUserProfile(supabase, data.user.id);
+        const metadata = data.user.user_metadata ?? {};
+        const savedProfile: ProfilePrefill = {
+          name: saved?.full_name ?? String(metadata.full_name ?? metadata.name ?? ""),
+          email: data.user.email ?? "",
+          collegeId: saved?.campus_id ?? String(metadata.campus_id ?? ""),
+          phone: data.user.phone_confirmed_at && data.user.phone ? data.user.phone : saved?.profile_phone ?? String(metadata.phone_number ?? data.user.phone ?? ""),
+          avatarUrl: saved?.profile_avatar_url ?? String(metadata.avatar_url ?? ""),
+        };
+        if (savedProfile.avatarUrl && !savedProfile.avatarUrl.startsWith("http") && !savedProfile.avatarUrl.startsWith("data:")) {
+          const { data: signedPhoto } = await supabase.storage.from("profile-photos").createSignedUrl(savedProfile.avatarUrl, 3600);
+          if (signedPhoto?.signedUrl) savedProfile.avatarUrl = signedPhoto.signedUrl;
+        }
+        if (!active) return;
+        setProfile(savedProfile);
+        if (!detailsTouched.current) setDetails({ name: savedProfile.name, email: savedProfile.email, collegeId: savedProfile.collegeId, phone: savedProfile.phone });
+        setProfileStatus(profileError ? "Some saved profile fields could not be loaded. You can fill them in below." : "Details loaded from your Collexus profile. You can edit them before continuing.");
+        setProfileLoading(false);
+      } catch {
+        if (active) {
+          setProfileStatus("We couldn’t load your profile. You can enter your details below.");
+          setProfileLoading(false);
+        }
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  function updateDetail(field: keyof RegistrationDetails, value: string) {
+    detailsTouched.current = true;
+    setDetails((current) => ({ ...current, [field]: value }));
+  }
 
   function previewPhoto(change: ChangeEvent<HTMLInputElement>) {
     const file = change.currentTarget.files?.[0];
@@ -95,12 +175,13 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
       <div className="demo-event-meta"><span>{event.dateLabel}</span><span>{event.audience}</span></div>
       <p className="demo-archive-notice">{event.registrationClosed ? "Registration for this historical event is closed. You can preview the form and fee layout, but this will not create an entry, reserve a place, or take payment." : "Preview only. This form does not send an entry to the organizer or reserve a place."}</p>
       <form className="demo-form" onSubmit={submit}>
-        <div className="demo-profile-row"><div className="demo-avatar">{photoUrl ? <Image src={photoUrl} alt="Selected profile preview" width={50} height={50} unoptimized /> : <span aria-hidden="true">YOU</span>}</div><div className="demo-profile-copy"><strong>Profile photo</strong><small>Optional · JPG, PNG or WebP · up to 5 MB</small></div><label className="demo-photo-button" htmlFor="demo-photo">Add image</label><input className="demo-photo-input" id="demo-photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" onChange={previewPhoto} /></div>
+        <div className="demo-profile-row"><div className="demo-avatar">{photoUrl || profile?.avatarUrl ? <Image src={photoUrl || profile?.avatarUrl || ""} alt="Profile photo preview" width={50} height={50} unoptimized /> : <span aria-hidden="true">{details.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase() || "YOU"}</span>}</div><div className="demo-profile-copy"><strong>Profile photo</strong><small>{profile?.avatarUrl && !photoUrl ? "Using your saved profile photo" : "Optional · JPG, PNG or WebP · up to 5 MB"}</small></div><label className="demo-photo-button" htmlFor="demo-photo">Add image</label><input className="demo-photo-input" id="demo-photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" onChange={previewPhoto} /></div>
+        <p className="demo-profile-status" role="status" aria-live="polite">{profileLoading ? "Loading your Collexus profile…" : <>{profileStatus}{!profile && <Link href={`/login/?next=${encodeURIComponent(`/events/${event.slug}/register/`)}`}> Sign in</Link>}</>}</p>
         <div className="demo-registration-grid">
-          <label htmlFor="demo-name">Full name</label><input id="demo-name" name="name" autoComplete="name" required maxLength={90} placeholder="Your name" />
-          <label htmlFor="demo-email">Email address</label><input id="demo-email" name="email" type="email" autoComplete="email" required maxLength={160} placeholder="you@example.com" />
-          <label htmlFor="demo-college-id">College ID</label><input id="demo-college-id" name="collegeId" required maxLength={40} placeholder="Your student ID" />
-          <label htmlFor="demo-phone">Phone number</label><input id="demo-phone" name="phone" type="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" />
+          <label htmlFor="demo-name">Full name</label><input id="demo-name" name="name" autoComplete="name" required maxLength={90} placeholder="Your name" value={details.name} onChange={(change) => updateDetail("name", change.target.value)} />
+          <label htmlFor="demo-email">Email address</label><input id="demo-email" name="email" type="email" autoComplete="email" required maxLength={160} placeholder="you@example.com" value={details.email} onChange={(change) => updateDetail("email", change.target.value)} />
+          <label htmlFor="demo-college-id">College ID</label><input id="demo-college-id" name="collegeId" required maxLength={40} placeholder="Your student ID" value={details.collegeId} onChange={(change) => updateDetail("collegeId", change.target.value)} />
+          <label htmlFor="demo-phone">Phone number</label><input id="demo-phone" name="phone" type="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" value={details.phone} onChange={(change) => updateDetail("phone", change.target.value)} />
           {isFest ? <><label htmlFor="demo-pass-type">Pass type</label><select id="demo-pass-type" name="passType"><option value="student">Student pass</option><option value="outer">Guest pass</option></select><label htmlFor="demo-friend-count">Extra fest passes</label><select id="demo-friend-count" name="friendCount"><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select><label className="demo-friends-label" htmlFor="demo-friend-names">Friends’ names <small>(if adding passes)</small></label><textarea className="demo-friends-field" id="demo-friend-names" name="friendNames" rows={2} maxLength={500} placeholder="Add one name per line" /></> : null}
         </div>
         <p className="demo-pass-rule">{isFest ? "For fests and cultural events, you may request passes for your friends and outside guests, subject to the event’s rules and organizer approval." : "For technical and academic events, passes are for you only."}</p>

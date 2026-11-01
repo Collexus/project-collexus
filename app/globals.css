@@ -3968,6 +3968,8 @@ body.warm-editorial-theme.vivid-nightfall-theme main .reference-mood-backdrop .h
 .demo-profile-copy{display:grid;gap:4px;flex:1;color:#e4f0f2}
 .demo-profile-copy strong{font:700 12px "Space Grotesk",sans-serif}
 .demo-profile-copy small{color:#9db3bb;font-size:10px;line-height:1.4}
+.demo-profile-status{margin:0;color:#a9c1c8;font-size:10px;line-height:1.5}
+.demo-profile-status a{margin-left:4px;color:#68e9dc;font-weight:800;text-decoration:underline;text-underline-offset:2px}
 .demo-photo-button{margin:0!important;padding:9px 11px;border:1px solid #355462;border-radius:10px;background:#122630;color:#cce5e6!important;font-size:10px!important;cursor:pointer}
 .demo-photo-button:hover{border-color:#4de0d6;background:#15353c}
 .demo-photo-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}
@@ -4039,6 +4041,8 @@ html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-them
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-registration-grid select{color-scheme:light}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme :is(.demo-profile-copy,.demo-fee-heading h2){color:#29444f}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-profile-copy small{color:#536771}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-profile-status{color:#536771}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-profile-status a{color:#087e83}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-photo-button{color:#31505b!important;background:#e5f1f2;border-color:#c4dadd}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme :is(.demo-pass-rule,.demo-registration-note){color:#31505b;background:#e7f3f3;border-color:#c4dadd}
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .demo-fee-card{background:#f5f9fa;border-color:#c7dadd}
