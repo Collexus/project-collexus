@@ -4592,9 +4592,6 @@ html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
   header#home .header-search{min-width:0;margin:0!important;flex:1 1 auto}
   header#home #globalSearch{height:42px!important;padding-right:10px!important;font-size:13px!important}
   header#home>div>div:last-child{gap:6px!important}
-  .quick-category-top{position:relative;top:0!important;z-index:40;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;margin-top:86px!important;padding:8px 12px!important;background:rgba(244,248,248,.97);backdrop-filter:blur(12px)}
-  .quick-category-top button{min-width:0;justify-content:center;padding:8px 4px!important;font-size:clamp(9px,2.7vw,11px)!important;white-space:nowrap}
-  .quick-category-top button .lucide-icon{font-size:13px!important}
 }
 @media(max-width:720px){:root{--site-scroll-offset:184px}.site-route-skeleton-grid{grid-template-columns:1fr}.site-route-skeleton-card{height:92px}}
 @media(prefers-reduced-motion:reduce){.site-skip-link,.site-float-button,.site-menu-links a,.site-menu-links button,.site-menu-panel,.site-cookie-note,.site-route-spinner,.site-route-skeleton,.site-navigation-progress span{animation:none!important;transition:none!important}}
@@ -4691,13 +4688,6 @@ body.warm-editorial-theme.vivid-nightfall-theme :is(
 .profile-icon-btn:hover{transform:translateY(-1px);border-color:#066a70;background:#066a70;box-shadow:0 6px 15px rgba(8,88,94,.2)}
 .profile-icon-btn:focus-visible{outline:3px solid #35a9a5;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.profile-icon-btn{transition:none}}
-@media(max-width:640px){
-  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;padding:8px 10px!important;justify-content:stretch!important;overflow:visible!important}
-  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button{min-width:0;min-height:36px!important;padding:7px 3px;gap:5px;font-size:clamp(9px,2.8vw,11px);letter-spacing:0}
-  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories button .lucide-icon{font-size:14px}
-  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:92px!important}
-}
-
 /* Keep the light-theme hero actions aligned with the shared Collexus teal. */
 html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme main :is(
   .reference-mood-backdrop .hero-cta:not(.hero-cta-high-contrast),
@@ -4919,25 +4909,9 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 }
 @media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .back-link,body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{transition:none!important}}
 
-/* Keep the compact mobile category rail directly under the fixed header. */
-@media(max-width:640px){
-  body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{
-    position:fixed!important;top:86px!important;left:0;right:0;z-index:45;
-    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    flex-wrap:initial!important;justify-content:stretch!important;gap:6px!important;
-    min-height:0!important;margin:0!important;padding:8px 12px!important;
-    overflow:visible!important;border-top:0!important;
-  }
-  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:218px!important}
-}
-
 @media(max-width:760px){
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories{
-    position:fixed!important;top:78px!important;left:0;right:0;z-index:45;
-    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    flex-wrap:initial!important;justify-content:stretch!important;gap:6px!important;
-    min-height:0!important;margin:0!important;padding:0 12px 8px!important;
-    overflow:visible!important;border-top:0!important;
+    display:none!important;
   }
-  body.warm-editorial-theme.vivid-nightfall-theme main.w-full.bg-surface{padding-top:132px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme main.home-main{padding-top:92px!important}
 }
