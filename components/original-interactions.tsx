@@ -281,7 +281,7 @@ export function OriginalInteractions() {
          eventFriendsNamesField?.classList.toggle('hidden',!isFest||friendCount===0);
          if(eventFriendNames){eventFriendNames.required=isFest&&friendCount>0;}
          const rule=document.getElementById('eventPassRule');
-         if(rule)rule.textContent=isFest?'Fest pass requests can include you and up to five friends. Guest access and availability are confirmed by the organizer.':'Technical and academic events issue one student pass per registration. Guest and friend passes are not available here.';
+         if(rule)rule.textContent=isFest?'For fests and cultural events, you may request passes for your friends and outside guests, subject to the event’s rules and organizer approval.':'For technical and academic events, passes are for you only.';
          if(!selected?.value){
            if(feeStatus){feeStatus.textContent='Select an event';feeStatus.classList.remove('is-closed');}
            setFeeLine('registrationEventFee','The official event fee will appear here when it is published.');

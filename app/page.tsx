@@ -434,7 +434,7 @@ export default function HomePage() {
           <label className="registration-friends-count hidden" id="eventFriendsCountField">Extra fest passes<select name="friendCount" id="eventFriendCount"><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select></label>
           <label className="registration-friends-names hidden" id="eventFriendsNamesField">Friends’ names<textarea name="friendNames" id="eventFriendNames" rows={2} maxLength={500} placeholder="Add one name per line"></textarea></label>
         </div>
-        <div className="registration-pass-note" id="eventPassRule" role="status">Technical and academic events issue one student pass per registration.</div>
+        <div className="registration-pass-note" id="eventPassRule" role="status">For technical and academic events, passes are for you only. For fests and cultural events, you may request passes for your friends and outside guests, according to the event’s rules.</div>
         <section className="registration-fee-card" aria-labelledby="registrationFeeHeading">
           <div className="registration-fee-heading"><div><p className="registration-eyebrow">PAYMENT DETAILS</p><h4 id="registrationFeeHeading">Fee breakdown</h4></div><span id="registrationFeeStatus" className="registration-fee-status">Select an event</span></div>
           <p className="registration-event-fee" id="registrationEventFee">The official event fee will appear here when it is published.</p>
@@ -446,7 +446,7 @@ export default function HomePage() {
           </dl>
           <p className="registration-fee-disclaimer" id="registrationFeeDisclaimer">Fees and add-ons are a preview. No payment is taken here.</p>
         </section>
-        <p className="registration-policy-note"><strong>Pass rules:</strong> Technical and academic events are for your student pass only. At fests, you can request a student or guest pass and add passes for friends. Friends’ details and availability must be confirmed by the organizer.</p>
+        <p className="registration-policy-note"><strong>Pass rules:</strong> For technical and academic events, passes are for you only. For fests and cultural events, you may request passes for your friends and outside guests, according to the event’s rules and organizer approval.</p>
         <p className="registration-demo-note">Preview only: your personal details and image are not sent or saved. Only the selected event appears in this browser’s calendar preview. No place is reserved and no payment is taken.</p>
         <button className="login-register-submit" type="submit">Get registered <Icon name="arrow_forward" /></button>
         <button className="login-auth-back" type="button" data-event-register-back><Icon name="arrow_back" /> Choose another option</button>
