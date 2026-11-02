@@ -13,6 +13,16 @@ These are public browser values. Never put a Supabase `service_role` or secret k
 
 The Pages workflow reads these variables at build time. After adding or changing them, run the workflow again (or push a commit) to rebuild the static site.
 
+## Profile database setup
+
+The browser client already uses the Supabase project URL and publishable key above. Profile data is stored in `public.profiles`; sign-in working confirms the client can reach Supabase, but GitHub Pages does not apply database schema changes. Run these SQL files in the Supabase **SQL Editor**, in timestamp order, before enabling profile saves or photo uploads:
+
+1. `supabase/migrations/20261024000000_profiles.sql`
+2. `supabase/migrations/20261031000000_profile_contact_fields.sql`
+3. `supabase/migrations/20261101000000_profile_photo_storage.sql` (profile photos only)
+
+The first migration creates the private profile table and its own-row policies. The second adds contact fields used by the profile editor. The third creates the private photo bucket and per-user storage policies. Keep the publishable key in the browser; never put a service-role key in the site or a `NEXT_PUBLIC_*` variable.
+
 ## Supabase providers and redirects
 
 In Supabase **Authentication → Providers**, enable Email and Google. Configure the Google OAuth client ID and secret in Supabase; Google should redirect to the callback URL shown on that provider settings page.

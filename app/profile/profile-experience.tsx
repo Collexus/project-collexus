@@ -434,7 +434,20 @@ export function ProfileExperience() {
     });
     setBusy(false);
     if (updateError || !profile) {
-      setError("We couldn’t save your profile. Check your connection and try again.");
+      const message = updateError?.message.toLowerCase() ?? "";
+      if ((message.includes("column") || message.includes("schema cache")) && ["profile_phone", "profile_avatar_url", "profile_organization", "profile_address"].some((field) => message.includes(field))) {
+        setError("The profile database is missing contact fields. In Supabase SQL Editor, run 20261031000000_profile_contact_fields.sql, then refresh and try again.");
+      } else if (message.includes("profiles") && (message.includes("column") || message.includes("schema cache") || message.includes("relation"))) {
+        setError("The Collexus profile table is missing or incomplete. In Supabase SQL Editor, run 20261024000000_profiles.sql, then refresh and try again.");
+      } else if (updateError?.code === "42501" || message.includes("row-level security") || message.includes("permission denied")) {
+        setError("Supabase blocked this profile update. Check the Collexus profile table permissions and row-level security policies, then retry.");
+      } else if (!updateError && !profile) {
+        setError("Your profile record wasn’t returned after saving. Refresh the page and try again; if it continues, check the profiles migration in Supabase.");
+      } else if (message.includes("fetch") || message.includes("network")) {
+        setError("Collexus couldn’t reach Supabase. Check the Supabase project URL and publishable key in the live site settings, then retry.");
+      } else {
+        setError("We couldn’t save your profile. Please retry; if it continues, check the Supabase profiles table and permissions.");
+      }
       return;
     }
     setSaved(true);
@@ -476,8 +489,8 @@ export function ProfileExperience() {
               <section className={styles.profileGroup} id="personal-heading" aria-labelledby="personal-heading">
                 <div className={styles.groupTitle}><span className={styles.sectionKicker}>01 · PERSONAL</span><h3 id="personal-heading">Personal details</h3></div>
                 <div className={styles.photoField}>
-                  <div className={styles.photoCircle}>{avatarUrl ? <img src={avatarUrl} alt="Your selected profile" /> : <CircleUserRound size={29} aria-hidden="true" />}</div>
-                  <div className={styles.photoCopy}><strong>Profile picture</strong><small>JPEG, PNG or WebP up to 5 MB. It will be cropped into a circle.</small>
+                  <div className={styles.photoCircle}>{avatarUrl ? <img src={avatarUrl} alt="Your selected profile" /> : <CircleUserRound size={38} strokeWidth={1.6} aria-hidden="true" />}</div>
+                  <div className={styles.photoCopy}><strong>Make this profile yours</strong><small>Add a clear photo · JPEG, PNG or WebP · up to 5 MB</small>
                     <label className={styles.photoButton}><ImagePlus size={15} aria-hidden="true" /> {busy ? "Uploading…" : avatarUrl ? "Change photo" : "Upload photo"}<input className={styles.photoFileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} disabled={busy} /></label>
                   </div>
                   {avatarUrl && <button className={styles.photoRemove} type="button" disabled={busy} onClick={() => void removeAvatar()}><Trash2 size={14} aria-hidden="true" /> Remove</button>}

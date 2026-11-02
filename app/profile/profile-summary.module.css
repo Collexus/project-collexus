@@ -61,6 +61,7 @@
 @media(max-width:680px){.profileCard{border-radius:20px}.hero{padding:20px 17px}.avatar{width:70px;height:70px;flex-basis:70px;box-shadow:0 0 0 4px color-mix(in srgb,var(--teal-soft) 66%,transparent)}.grid{grid-template-columns:minmax(0,1fr);padding:0 13px 13px}.card{padding:18px 8px}.card:nth-child(odd){border-right:0}.card:nth-child(n+2){border-top:1px solid var(--line)}.localNotice,.notice{margin:13px 14px 0}}
 
 .hero{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 82% 16%,color-mix(in srgb,var(--teal) 17%,transparent),transparent 31%),radial-gradient(ellipse at 99% 100%,color-mix(in srgb,#55aee5 13%,transparent),transparent 38%),linear-gradient(115deg,color-mix(in srgb,var(--teal-soft) 70%,var(--card)),var(--card) 74%)}
+.hero .avatar{width:112px;height:112px;flex-basis:112px}
 .hero::before{position:absolute;z-index:0;top:-118px;right:120px;width:310px;height:310px;border:1px solid color-mix(in srgb,var(--teal) 17%,transparent);border-radius:50%;content:"";box-shadow:0 0 0 25px color-mix(in srgb,var(--teal) 3%,transparent),0 0 0 53px color-mix(in srgb,var(--teal) 2%,transparent)}
 .hero::after{position:absolute;z-index:0;right:32%;bottom:15px;width:82px;height:60px;background-image:radial-gradient(color-mix(in srgb,var(--teal) 30%,transparent) 1px,transparent 1px);background-size:10px 10px;content:"";opacity:.42}
 .identity,.heroActions{position:relative;z-index:1}
@@ -79,7 +80,7 @@
 .editButton{background:linear-gradient(112deg,#087e83,#116f91);box-shadow:0 9px 18px rgba(8,126,131,.22)}
 .cardHeading>span{box-shadow:inset 0 1px rgba(255,255,255,.48)}
 .localNotice{border:0;background:color-mix(in srgb,var(--teal-soft) 38%,transparent)}
-@media(max-width:680px){.hero::before{top:-75px;right:-120px;width:240px;height:240px}.hero::after{right:12%;bottom:18px}.completion{width:min(300px,100%)}.identityCopy h1{font-size:28px}}
+@media(max-width:680px){.hero::before{top:-75px;right:-120px;width:240px;height:240px}.hero::after{right:12%;bottom:18px}.completion{width:min(300px,100%)}.identityCopy h1{font-size:28px}.hero .avatar{width:86px;height:86px;flex-basis:86px}}
 
 .highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 22px 0}
 .highlights>div{display:grid;grid-template-columns:34px auto 1fr;align-items:center;gap:9px;min-height:59px;padding:9px 12px;border:1px solid color-mix(in srgb,var(--teal) 11%,var(--line));border-radius:13px;background:linear-gradient(120deg,color-mix(in srgb,var(--teal-soft) 40%,var(--card)),var(--card))}
