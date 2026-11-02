@@ -515,7 +515,7 @@ export function ProfileExperience() {
                   <label className={styles.field}><span>College / organization ID <small>Required</small></span><input autoComplete="off" maxLength={100} value={campusId} onChange={(event) => { setCampusId(event.target.value); setSaved(false); }} placeholder="Your college, campus or organization ID" required /></label>
                   <label className={styles.field}><span>College / organization</span><input autoComplete="organization" maxLength={140} value={organization} onChange={(event) => { setOrganization(event.target.value); setSaved(false); }} placeholder="College, club or organization" /></label>
                 </div>
-                <small className={styles.profileHint}>Campus ID and organization are self-reported and don’t verify enrollment.</small>
+                <small className={styles.profileHint}>Your campus ID is prefilled as your College ID on event registration forms. These details are self-reported and don’t verify enrollment.</small>
               </section>
 
               <section className={styles.profileGroup} id="interests-heading" aria-labelledby="interests-heading">
