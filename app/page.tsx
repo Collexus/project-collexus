@@ -587,15 +587,17 @@ export default function HomePage() {
   <div className="pass-backdrop" data-close-pass></div>
   <div className="pass-dialog" role="dialog" aria-modal="true" aria-labelledby="passTitle">
     <button className="pass-close" type="button" data-close-pass aria-label="Close"><Icon name="close" /></button>
-    <p className="category-eyebrow">LOCAL PASS DEMO</p><h2 id="passTitle">Choose a pass preview</h2><p>This form creates a local reference only; it does not submit registration to RCEE or generate a QR code.</p>
-    <div className="pass-type-tabs"><button className="pass-type-tab active" data-pass-tab="student" aria-pressed="true" type="button"><strong>Student Pass</strong><small>For college students</small></button><button className="pass-type-tab" data-pass-tab="outer" aria-pressed="false" type="button"><strong>Outer Pass</strong><small>For external participants</small></button></div>
+    <p className="category-eyebrow">FEST PASS PREVIEW</p><h2 id="passTitle">Create an event pass</h2><p>Preview a fest guest pass with participant details and a College ID referral. This demo does not register you with RCEE or confirm entry.</p>
+    <div className="pass-type-tabs"><button className="pass-type-tab active" data-pass-tab="student" aria-pressed="true" type="button"><strong>Student Pass</strong><small>For college students</small></button><button className="pass-type-tab" data-pass-tab="outer" aria-pressed="false" type="button"><strong>Fest Guest Pass</strong><small>For friends and outside guests</small></button></div>
     <form id="studentPassForm" className="pass-form">
       <label>Full name<input name="name" required placeholder="Your full name" /></label><label>College email<input name="email" type="email" required placeholder="name@college.edu" /></label><label>College ID<input name="collegeId" required placeholder="Student ID" /></label><label>Phone<input name="phone" required placeholder="10-digit mobile number" /></label><label className="full">Event<select name="event" id="studentEventSelect"></select></label><button className="pass-submit" type="submit">Generate Student Pass <Icon name="arrow_forward" /></button>
     </form>
     <form id="outerPassForm" className="pass-form hidden">
-      <label>Full name<input name="name" required placeholder="Your full name" /></label><label>Email<input name="email" type="email" required placeholder="you@example.com" /></label><label>College / Organization<input name="org" required placeholder="College or organization" /></label><label>Phone<input name="phone" required placeholder="10-digit mobile number" /></label><label className="full">Event<select name="event" id="outerEventSelect"></select></label><button className="pass-submit" type="submit">Generate Outer Pass <Icon name="arrow_forward" /></button>
+      <div className="fest-photo-field full"><div className="fest-photo-preview" id="festPhotoPreview"><span aria-hidden="true">PHOTO</span></div><div className="fest-photo-copy"><strong>Participant photo <small>Required</small></strong><small>JPEG, PNG or WebP · up to 5 MB</small><label className="fest-photo-button" htmlFor="festParticipantPhoto">Add photo<input id="festParticipantPhoto" name="participantPhoto" type="file" accept="image/jpeg,image/png,image/webp" required /></label></div></div>
+      <p className="fest-pass-error full" id="festPassError" role="alert" hidden></p>
+      <label>Participant name<input name="name" required maxLength={90} placeholder="Name on the pass" /></label><label>Phone number<input name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" /></label><label className="full">Fest name<select name="event" id="outerEventSelect" required></select></label><label className="full">Referred account ID (College ID)<input name="collegeId" required maxLength={40} placeholder="Your College ID" /></label><p className="fest-referral-note full">Your College ID is shown on the pass as the Referred account ID.</p><button className="pass-submit" type="submit">Create Fest Guest Pass <Icon name="arrow_forward" /></button>
     </form>
-    <div id="passSuccess" className="pass-success hidden"></div>
+    <div id="passSuccess" className="pass-success hidden" role="status" aria-live="polite"></div>
   </div>
 </div>
 

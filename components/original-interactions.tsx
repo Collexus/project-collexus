@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { LucideGlyph } from "@/components/icon";
 import { events } from "@/data/events";
+import { getSupabaseClient } from "@/lib/supabase-client";
+import { getUserProfile } from "@/lib/user-profile";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -46,16 +48,33 @@ export function OriginalInteractions() {
       group.cards.push([event.category.toUpperCase(), event.title, event.description, "View details", event.image, event.dateStart || "", event.slug]);
     });
     window.__COLLEXUS_CATEGORY_DATA__ = categories;
+    const festEvents = events.filter((event) => event.category === "Cultural" || event.category === "Special event");
     ["studentEventSelect", "outerEventSelect"].forEach((id) => {
       const select = document.getElementById(id);
       if (!select) return;
-      select.replaceChildren(...events.map((event) => {
+      const selectEvents = id === "outerEventSelect" ? festEvents : events;
+      const options = selectEvents.map((event) => {
         const option = document.createElement("option");
         option.value = event.title; option.textContent = event.title;
         if (event.dateStart) option.dataset.date = event.dateStart;
         return option;
-      }));
+      });
+      if (id === "outerEventSelect") {
+        const placeholder = document.createElement("option");
+        placeholder.value = ""; placeholder.textContent = "Choose a fest"; placeholder.disabled = true; placeholder.selected = true;
+        options.unshift(placeholder);
+      }
+      select.replaceChildren(...options);
     });
+    const referralIdInput = document.querySelector("#outerPassForm input[name='collegeId']");
+    const profileClient = getSupabaseClient();
+    if (profileClient && referralIdInput) {
+      void profileClient.auth.getUser().then(async ({ data, error }) => {
+        if (error || !data.user || referralIdInput.value) return;
+        const { profile } = await getUserProfile(profileClient, data.user.id);
+        if (profile?.campus_id && !referralIdInput.value) referralIdInput.value = profile.campus_id;
+      }).catch(() => {});
+    }
     (() => {
       
        const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions'), clearSearchButton=document.getElementById('clearGlobalSearch');
@@ -184,20 +203,45 @@ export function OriginalInteractions() {
        function getRegs(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'[]')}catch{return []}}
        function saveRegs(regs){localStorage.setItem(REG_KEY,JSON.stringify(regs));renderCalendar()}
        const passModal=document.getElementById('passModal'), passSuccess=document.getElementById('passSuccess');
-       function openPass(type,eventName){passModal?.classList.remove('hidden');passModal?.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setPassType(type);if(eventName){['studentEventSelect','outerEventSelect'].forEach(id=>{const sel=document.getElementById(id);if(sel && ![...sel.options].some(o=>o.value===eventName)){const o=document.createElement('option');o.value=eventName;o.textContent=eventName;sel.appendChild(o)} if(sel)sel.value=eventName;});}}
+       function openPass(type,eventName){passModal?.classList.remove('hidden');passModal?.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setPassType(type);if(eventName){const sel=document.getElementById(type==='outer'?'outerEventSelect':'studentEventSelect');if(sel && ![...sel.options].some(o=>o.value===eventName)){const o=document.createElement('option');o.value=eventName;o.textContent=eventName;sel.appendChild(o)} if(sel)sel.value=eventName;}}
        function closePass(){passModal?.classList.add('hidden');passModal?.setAttribute('aria-hidden','true');document.body.style.overflow=''}
-       function setPassType(type){passModal?.setAttribute('data-pass-type',type);document.querySelectorAll('[data-pass-tab]').forEach(b=>{const active=b.dataset.passTab===type;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});document.getElementById('studentPassForm')?.classList.toggle('hidden',type!=='student');document.getElementById('outerPassForm')?.classList.toggle('hidden',type!=='outer');passSuccess?.classList.add('hidden')}
+       function setPassType(type){passModal?.setAttribute('data-pass-type',type);document.querySelectorAll('[data-pass-tab]').forEach(b=>{const active=b.dataset.passTab===type;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});document.getElementById('studentPassForm')?.classList.toggle('hidden',type!=='student');document.getElementById('outerPassForm')?.classList.toggle('hidden',type!=='outer');passSuccess?.classList.add('hidden');passSuccess?.classList.remove('fest-pass-success')}
        document.querySelectorAll('[data-open-pass]').forEach(b=>b.addEventListener('click',()=>openPass(b.dataset.openPass)));
        document.querySelectorAll('[data-close-pass]').forEach(b=>b.addEventListener('click',closePass));
        document.querySelectorAll('[data-pass-tab]').forEach(b=>b.addEventListener('click',()=>setPassType(b.dataset.passTab)));
        function registerEvent(name,date){
-         openPass('student',name); document.getElementById('studentEventSelect').value=name; document.getElementById('outerEventSelect').value=name;
+         const festEvent=events.some(event=>event.title===name&&(event.category==='Cultural'||event.category==='Special event'));
+         const passType=festEvent?'outer':'student';
+         openPass(passType,name); if(!festEvent)document.getElementById('studentEventSelect').value=name;
          const studentForm=document.getElementById('studentPassForm'), outerForm=document.getElementById('outerPassForm');
          if(studentForm) studentForm.dataset.eventDate=date||'';
          if(outerForm) outerForm.dataset.eventDate=date||'';
        }
        document.addEventListener('click',e=>{const b=e.target.closest('.register-event');if(b&&!b.hasAttribute('data-next-route')){e.preventDefault();registerEvent(b.dataset.registerEvent,b.dataset.eventDate||'')}});
-       function handlePassSubmit(form,type){form.addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(form);const name=fd.get('event');const date=form.dataset.eventDate||undefined||'';const regs=getRegs();if(!regs.some(r=>r.name===name))regs.push({name,date,registeredAt:new Date().toISOString(),passType:type});else {const r=regs.find(r=>r.name===name);r.passType=type}saveRegs(regs);const code=(type==='student'?'STU':'OUT')+'-'+Math.random().toString(36).slice(2,8).toUpperCase();passSuccess.textContent=`Local demo reference • ${name} • ID ${code} (not an event registration)`;passSuccess.classList.remove('hidden');form.reset();renderCalendar();});}
+       let currentFestPhotoUrl='';
+       const festPhotoInput=document.getElementById('festParticipantPhoto'),festPhotoPreview=document.getElementById('festPhotoPreview'),festPassError=document.getElementById('festPassError');
+       function clearFestPassError(){if(festPassError){festPassError.textContent='';festPassError.hidden=true}}
+       festPhotoInput?.addEventListener('change',()=>{
+         clearFestPassError();
+         passSuccess?.classList.add('hidden');passSuccess?.classList.remove('fest-pass-success');
+         const file=festPhotoInput.files?.[0];
+         if(!file)return;
+         if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){festPhotoInput.value='';if(festPassError){festPassError.textContent='Choose a JPEG, PNG or WebP photo up to 5 MB.';festPassError.hidden=false}return}
+         if(currentFestPhotoUrl)URL.revokeObjectURL(currentFestPhotoUrl);
+         currentFestPhotoUrl=URL.createObjectURL(file);
+         const image=document.createElement('img');image.src=currentFestPhotoUrl;image.alt='Participant photo preview';festPhotoPreview?.replaceChildren(image);
+       });
+       window.addEventListener('beforeunload',()=>{if(currentFestPhotoUrl)URL.revokeObjectURL(currentFestPhotoUrl)},{once:true});
+       function appendPassDetail(parent,label,value){const row=document.createElement('div');row.className='fest-pass-detail';const key=document.createElement('span');key.textContent=label;const text=document.createElement('strong');text.textContent=value;row.append(key,text);parent.append(row)}
+       function renderFestPass(fd,reference){
+         const ticket=document.createElement('article');ticket.className='fest-pass-ticket';
+         const header=document.createElement('div');header.className='fest-pass-ticket-header';const eyebrow=document.createElement('span');eyebrow.textContent='COLLEXUS · FEST PASS';const number=document.createElement('strong');number.textContent=reference;header.append(eyebrow,number);
+         const body=document.createElement('div');body.className='fest-pass-ticket-body';const photo=document.createElement('img');photo.className='fest-pass-ticket-photo';photo.src=currentFestPhotoUrl;photo.alt='Participant photo';
+         const details=document.createElement('div');details.className='fest-pass-ticket-details';const name=String(fd.get('name')||'');const event=String(fd.get('event')||'');const phone=String(fd.get('phone')||'');const collegeId=String(fd.get('collegeId')||'');
+         const title=document.createElement('h3');title.textContent=name;const fest=document.createElement('p');fest.className='fest-pass-ticket-event';fest.textContent=event;details.append(title,fest);appendPassDetail(details,'Phone',phone);appendPassDetail(details,'Referred account ID',collegeId);body.append(photo,details);
+         const footer=document.createElement('p');footer.className='fest-pass-ticket-note';footer.textContent='Preview only · entry is subject to the fest organizer’s rules.';ticket.append(header,body,footer);passSuccess.classList.add('fest-pass-success');passSuccess.replaceChildren(ticket);
+       }
+       function handlePassSubmit(form,type){form.addEventListener('submit',e=>{e.preventDefault();clearFestPassError();const fd=new FormData(form);const name=String(fd.get('event')||'');const date=form.dataset.eventDate||'';const regs=getRegs();if(!regs.some(r=>r.name===name))regs.push({name,date,registeredAt:new Date().toISOString(),passType:type});else {const r=regs.find(r=>r.name===name);r.passType=type}saveRegs(regs);const code=(type==='student'?'STU':'FST')+'-'+Math.random().toString(36).slice(2,8).toUpperCase();if(type==='outer')renderFestPass(fd,code);else passSuccess.textContent=`Local demo reference • ${name} • ID ${code} (not an event registration)`;passSuccess.classList.remove('hidden');const referralId=type==='outer'?String(fd.get('collegeId')||''):'';form.reset();if(type==='outer'){form.querySelector("input[name='collegeId']").value=referralId;const festSelect=form.querySelector("select[name='event']");if(festSelect)festSelect.value=name;if(festPhotoPreview)festPhotoPreview.replaceChildren(Object.assign(document.createElement('span'),{textContent:'PHOTO'}));}renderCalendar();});}
        handlePassSubmit(document.getElementById('studentPassForm'),'student');handlePassSubmit(document.getElementById('outerPassForm'),'outer');
        // Calendar
        const calModal=document.getElementById('calendarModal'), calGrid=document.getElementById('calendarGrid'), calLabel=document.getElementById('calendarMonthLabel');
