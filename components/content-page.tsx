@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, Compass, UserRound } from "lucide-react";
+import { ArrowRight, Compass, ShoppingCart, UserRound } from "lucide-react";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import styles from "./content-page.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const navigation = [
+  { href: "/cart/", label: "Cart", icon: ShoppingCart },
   { href: "/profile/", label: "Profile", icon: UserRound },
 ];
 
