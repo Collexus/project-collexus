@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { storeConfirmation } from "@/lib/confirmation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -288,7 +289,23 @@ export function HostEventForm() {
         submission: { ...createSubmission(form), collexusPackage },
       });
       if (error) throw new Error("We couldn’t save this event. Please try again later.");
-      setSubmissionStatus(`Submission received for review. Reference: ${submissionId}.`);
+      try {
+        storeConfirmation({
+          kind: "host",
+          status: "submitted",
+          reference: submissionId,
+          createdAt: new Date().toISOString(),
+          name: form.organizerName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          title: form.eventName.trim(),
+          subtitle: `${form.category} · Submitted for review`,
+          date: dates,
+          location: form.venue.trim() || form.mode,
+          amount: form.pricing === "paid" && form.price ? Number(form.price) : undefined,
+        });
+      } catch { /* Keep the submission confirmed in this form if this browser blocks session storage. */ }
+      router.push("/confirmation/");
     } catch (error) {
       setSubmissionStatus(error instanceof Error ? error.message : "We couldn’t save this event. Please try again.");
     } finally {

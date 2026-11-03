@@ -20,5 +20,5 @@ export default async function DemoPaymentPage({ params }: DemoPaymentPageProps) 
   const event = getEvent(slug);
   if (!event) notFound();
 
-  return <DemoPaymentPanel event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, audience: event.audience, fee: event.fee }} />;
+  return <DemoPaymentPanel event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, category: event.category, audience: event.audience, fee: event.fee }} />;
 }

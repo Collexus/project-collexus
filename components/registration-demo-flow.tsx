@@ -4,9 +4,11 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type Rea
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { nanoid } from "nanoid";
 import { ArrowLeft, ArrowRight, BadgeCheck, CreditCard, LockKeyhole, TicketCheck } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { getUserProfile } from "@/lib/user-profile";
+import { storeConfirmation } from "@/lib/confirmation";
 
 type EventSummary = {
   slug: string;
@@ -20,12 +22,23 @@ type EventSummary = {
   fee: string;
 };
 
-type Registration = { slug: string; name: string; email: string; collegeId: string; phone: string; passType: string; friendCount: number; friendNames: string };
+type Registration = { slug: string; name: string; email: string; collegeId: string; phone: string; passType: string; friendCount: number; friendNames: string; image?: string; guests?: { name: string; image?: string }[] };
 type RegistrationDetails = { name: string; email: string; collegeId: string; phone: string };
 type ProfilePrefill = RegistrationDetails & { avatarUrl: string };
 
 const registrationKey = (slug: string) => `collexus-demo-registration:${slug}`;
 const profileDraftKey = "collexus:account-profile-draft";
+
+async function compressPhoto(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 320 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return canvas.toDataURL("image/jpeg", 0.76);
+}
 
 function DemoFrame({ event, step, children }: { event: EventSummary; step: string; children: ReactNode }) {
   return (
@@ -57,6 +70,7 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
   const [profileLoading, setProfileLoading] = useState(true);
   const detailsTouched = useRef(false);
   const [photoUrl, setPhotoUrl] = useState("");
+  const [friendCount, setFriendCount] = useState(0);
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
 
   useEffect(() => {
@@ -141,7 +155,7 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
     setPhotoUrl(URL.createObjectURL(file));
   }
 
-  function submit(eventForm: FormEvent<HTMLFormElement>) {
+  async function submit(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
     const values = new FormData(eventForm.currentTarget);
     const registration: Registration = {
@@ -157,6 +171,27 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
     if (!registration.name || !registration.email || !registration.collegeId || !registration.phone || (isFest && registration.friendCount > 0 && !registration.friendNames)) {
       setError("Complete the required details to continue.");
       return;
+    }
+    const photo = values.get("photo");
+    if (photo instanceof File && photo.size > 0) {
+      try { registration.image = await compressPhoto(photo); }
+      catch { registration.image = profile?.avatarUrl; }
+    } else if (photoUrl) registration.image = profile?.avatarUrl;
+    else registration.image = profile?.avatarUrl;
+    if (isFest) {
+      const friendNames = registration.friendNames.split(/\r?\n/).map((name) => name.trim()).filter(Boolean);
+      if (friendNames.length !== registration.friendCount) {
+        setError("Add exactly one name for each extra fest pass.");
+        return;
+      }
+      registration.guests = await Promise.all(friendNames.slice(0, registration.friendCount).map(async (name, index) => {
+        const guestPhoto = values.get(`friendPhoto-${index + 1}`);
+        let image: string | undefined;
+        if (guestPhoto instanceof File && guestPhoto.size > 0) {
+          try { image = await compressPhoto(guestPhoto); } catch { image = undefined; }
+        }
+        return { name, image };
+      }));
     }
     try {
       sessionStorage.setItem(registrationKey(event.slug), JSON.stringify(registration));
@@ -182,7 +217,7 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
           <label htmlFor="demo-email">Email address</label><input id="demo-email" name="email" type="email" autoComplete="email" required maxLength={160} placeholder="you@example.com" value={details.email} onChange={(change) => updateDetail("email", change.target.value)} />
           <label htmlFor="demo-college-id">College ID</label><input id="demo-college-id" name="collegeId" required maxLength={40} placeholder="Your student ID" value={details.collegeId} onChange={(change) => updateDetail("collegeId", change.target.value)} />
           <label htmlFor="demo-phone">Phone number</label><input id="demo-phone" name="phone" type="tel" autoComplete="tel" required maxLength={20} placeholder="Your mobile number" value={details.phone} onChange={(change) => updateDetail("phone", change.target.value)} />
-          {isFest ? <><label htmlFor="demo-pass-type">Pass type</label><select id="demo-pass-type" name="passType"><option value="student">Student pass</option><option value="outer">Guest pass</option></select><label htmlFor="demo-friend-count">Extra fest passes</label><select id="demo-friend-count" name="friendCount"><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select><label className="demo-friends-label" htmlFor="demo-friend-names">Friends’ names <small>(if adding passes)</small></label><textarea className="demo-friends-field" id="demo-friend-names" name="friendNames" rows={2} maxLength={500} placeholder="Add one name per line" /></> : null}
+          {isFest ? <><label htmlFor="demo-pass-type">Pass type</label><select id="demo-pass-type" name="passType"><option value="student">Student pass</option><option value="outer">Guest pass</option></select><label htmlFor="demo-friend-count">Extra fest passes</label><select id="demo-friend-count" name="friendCount" onChange={(change) => setFriendCount(Number(change.target.value))}><option value="0">Just me</option><option value="1">1 friend</option><option value="2">2 friends</option><option value="3">3 friends</option><option value="4">4 friends</option><option value="5">5 friends</option></select><label className="demo-friends-label" htmlFor="demo-friend-names">Friends’ names <small>(if adding passes)</small></label><textarea className="demo-friends-field" id="demo-friend-names" name="friendNames" rows={2} maxLength={500} placeholder="Add one name per line" />{friendCount > 0 && <><div className="demo-friends-label">Personalize each extra pass <small>(optional photo for each person)</small></div>{Array.from({ length: friendCount }, (_, index) => <label className="demo-guest-photo" htmlFor={`demo-friend-photo-${index + 1}`} key={index}>Guest {index + 1} photo<input id={`demo-friend-photo-${index + 1}`} name={`friendPhoto-${index + 1}`} type="file" accept="image/png,image/jpeg,image/webp" /></label>)}</>}</> : null}
         </div>
         <p className="demo-pass-rule">{isFest ? "Fests and cultural events may allow passes for friends and outside guests, subject to the event’s rules and organizer approval." : "Technical and academic events issue a pass for the registered participant only."}</p>
         <section className="demo-fee-card" aria-labelledby="demo-fee-heading"><div className="demo-fee-heading"><div><span className="demo-kicker">PAYMENT DETAILS</span><h2 id="demo-fee-heading">Fee breakdown</h2></div><span className={event.registrationClosed ? "demo-fee-status closed" : "demo-fee-status"}>{event.registrationClosed ? "Registration closed" : "Fee not confirmed"}</span></div><p className="demo-published-fee">{event.fee}</p><dl><div><dt>Event registration fee</dt><dd>—</dd></div><div><dt>Platform fee <span>(0.5%)</span></dt><dd>—</dd></div><div><dt>Payment gateway and GST <span>(2% fee + 18% GST)</span></dt><dd>—</dd></div><div className="demo-fee-total"><dt>Total payable</dt><dd>—</dd></div></dl><p className="demo-fee-disclaimer">A confirmed single fee is not available in the official listing, so the charges cannot be calculated. No payment is taken in this preview.</p></section>
@@ -196,6 +231,7 @@ export function RegistrationDemoForm({ event }: { event: EventSummary }) {
 
 export function DemoPaymentPanel({ event }: { event: EventSummary }) {
   const router = useRouter();
+  const isFest = event.category === "Cultural" || event.category === "Special event";
   const [registration, setRegistration] = useState<Registration | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -217,10 +253,30 @@ export function DemoPaymentPanel({ event }: { event: EventSummary }) {
     if (!registration) return;
     try {
       sessionStorage.setItem(`${registrationKey(event.slug)}:complete`, "true");
-      router.push(`/demo-payment/${event.slug}/success`);
+      const reference = `CX-${nanoid(12).toUpperCase()}`;
+      storeConfirmation({
+        kind: isFest ? "fest" : "event",
+        status: "preview",
+        reference,
+        createdAt: new Date().toISOString(),
+        name: registration.name,
+        email: registration.email,
+        phone: registration.phone,
+        collegeId: registration.collegeId,
+        image: registration.image,
+        title: event.title,
+        subtitle: registration.passType === "outer" ? "Guest fest pass preview" : "Participant pass preview",
+        date: event.dateLabel,
+        people: registration.friendNames.split(/\r?\n/).map((name) => name.trim()).filter(Boolean),
+        participants: [
+          { name: registration.name, image: registration.image, reference },
+          ...(registration.guests ?? []).map((guest) => ({ name: guest.name, image: guest.image, reference: `CX-${nanoid(12).toUpperCase()}` })),
+        ],
+      });
     } catch {
-      router.push(`/demo-payment/${event.slug}/success`);
+      // The confirmation route will explain if this browser cannot keep the preview details.
     }
+    router.push("/confirmation/");
   }
 
   return (

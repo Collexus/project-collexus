@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { nanoid } from "nanoid";
 import { ArrowLeft, ArrowRight, Check, CircleAlert, Minus, Plus, ShoppingBag, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { ContentPage } from "@/components/content-page";
+import { storeConfirmation } from "@/lib/confirmation";
 import styles from "./cart.module.css";
 
 const initialItems = [
@@ -15,11 +18,11 @@ const initialItems = [
 const money = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 export function CartExperience() {
+  const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [couponInput, setCouponInput] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
-  const [checkoutPreview, setCheckoutPreview] = useState(false);
 
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
   const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
@@ -32,7 +35,30 @@ export function CartExperience() {
 
   function updateQuantity(id: string, quantity: number) {
     setItems((current) => current.map((item) => item.id === id ? { ...item, quantity } : item));
-    setCheckoutPreview(false);
+  }
+
+  function previewOrder() {
+    let account: Record<string, unknown> = {};
+    try { account = JSON.parse(window.localStorage.getItem("collexus:account-profile-draft") ?? "{}"); } catch { account = {}; }
+    try {
+      storeConfirmation({
+        kind: "order",
+        status: "preview",
+        reference: `CX-${nanoid(12).toUpperCase()}`,
+        createdAt: new Date().toISOString(),
+        name: typeof account.full_name === "string" && account.full_name ? account.full_name : "Collexus guest",
+        email: typeof account.email === "string" ? account.email : undefined,
+        phone: typeof account.profile_phone === "string" ? account.profile_phone : undefined,
+        collegeId: typeof account.campus_id === "string" ? account.campus_id : undefined,
+        image: typeof account.profile_avatar_url === "string" && /^(https?:|data:image\/)/i.test(account.profile_avatar_url) ? account.profile_avatar_url : undefined,
+        title: "Kreya ’26 · Fest stall",
+        subtitle: "Order summary preview",
+        items: items.map((item) => ({ name: item.name, quantity: item.quantity, total: item.price * item.quantity })),
+        amount: total,
+        pricing: { subtotal, discount, platformFee, gatewayFeeWithGst: gatewayFee + gatewayGst, total },
+      });
+      router.push("/confirmation/");
+    } catch { setCouponMessage("Your browser couldn’t open the order confirmation preview."); }
   }
 
   function applyCoupon() {
@@ -84,7 +110,7 @@ export function CartExperience() {
                     <button aria-label={`Add one ${item.name}`} onClick={() => updateQuantity(item.id, item.quantity + 1)} type="button"><Plus size={14} aria-hidden="true" /></button>
                   </div>
                   <strong className={styles.lineTotal}>{money(item.price * item.quantity)}</strong>
-                  <button className={styles.removeButton} aria-label={`Remove ${item.name} from cart`} onClick={() => { setItems((current) => current.filter((entry) => entry.id !== item.id)); setCheckoutPreview(false); }} type="button"><Trash2 size={15} aria-hidden="true" /><span>Remove</span></button>
+                  <button className={styles.removeButton} aria-label={`Remove ${item.name} from cart`} onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} type="button"><Trash2 size={15} aria-hidden="true" /><span>Remove</span></button>
                 </div>
               </article>)}
             </div> : <div className={styles.emptyCart}><ShoppingBag size={28} aria-hidden="true" /><h3>Your cart is empty</h3><p>Browse campus events to find a fest stall and add something you like.</p><Link href="/#featured-events">Explore events <ArrowRight size={15} aria-hidden="true" /></Link></div>}
@@ -107,8 +133,7 @@ export function CartExperience() {
               <div className={styles.grandTotal}><dt>Total payable</dt><dd>{money(total)}</dd></div>
             </dl>
             <p className={styles.feeNote}>Platform and payment fees are calculated on the items total after any coupon discount. GST applies to the payment gateway fee.</p>
-            {checkoutPreview && <p className={styles.checkoutMessage} role="status"><CircleAlert size={15} aria-hidden="true" /> Checkout is a preview; no order or payment was sent.</p>}
-            <button className={styles.checkoutButton} disabled={!items.length} onClick={() => setCheckoutPreview(true)} type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>
+            <button className={styles.checkoutButton} disabled={!items.length} onClick={previewOrder} type="button">Preview order confirmation <ArrowRight size={17} aria-hidden="true" /></button>
             <p className={styles.secureNote}><span aria-hidden="true">✓</span> Review the full bill before you pay</p>
           </aside>
         </div>

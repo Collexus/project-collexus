@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { nanoid } from "nanoid";
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,6 +21,7 @@ import {
 import styles from "./stall-registration.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { events } from "@/data/events";
+import { storeConfirmation } from "@/lib/confirmation";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftKey = "collexus-stall-request-v1";
@@ -59,6 +62,7 @@ const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName
 type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
 export function StallRegistrationForm() {
+  const router = useRouter();
   const [form, setForm] = useState<StallForm>(initialForm);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
   const [eventPeople, setEventPeople] = useState<EventPerson[]>([blankEventPerson(1)]);
@@ -224,6 +228,41 @@ export function StallRegistrationForm() {
     setDraftMessage("Stall request downloaded to this device.");
   }
 
+  async function openRequestConfirmation() {
+    let image = "";
+    const photo = eventPeople.find((person) => person.photoFile)?.photoFile;
+    if (photo) {
+      try {
+        const bitmap = await createImageBitmap(photo);
+        const scale = Math.min(1, 320 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        image = canvas.toDataURL("image/jpeg", 0.76);
+      } catch { image = ""; }
+    }
+    try {
+      storeConfirmation({
+        kind: "stall",
+        status: "request-ready",
+        reference: `CX-${nanoid(12).toUpperCase()}`,
+        createdAt: new Date().toISOString(),
+        name: form.contactName,
+        email: form.email,
+        phone: form.phone,
+        image,
+        title: form.stallName || "Stall registration request",
+        subtitle: `${form.stallType || "Stall request"}${form.stallSize ? ` · ${form.stallSize}` : ""}`,
+        date: form.eventDate,
+        location: selectedEventName,
+        people: eventPeople.map((person) => person.name.trim()).filter(Boolean),
+      });
+      router.push("/confirmation/");
+    } catch { setDraftMessage("Your browser could not open the request summary. Download the request file instead."); }
+  }
+
   const isFood = form.stallType === "Food & beverages";
   const facilities = [form.power && "Power outlet", form.water && "Water access", form.stallBox && "Stall box / storage"].filter(Boolean);
   const selectedEventName = form.eventName === "Other / not listed" ? form.customEventName || form.eventName : form.eventName;
@@ -358,6 +397,7 @@ export function StallRegistrationForm() {
             </section>
             <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Review the details, then download the request file and share it with your event team. This page cannot reserve a stall.</p></div></div>
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
+            {reviewed && <button className={styles.secondaryButton} onClick={openRequestConfirmation} type="button"><CheckCircle2 size={17} aria-hidden="true" /> View request summary <ArrowRight size={16} aria-hidden="true" /></button>}
             <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
           </aside>
         </div>
