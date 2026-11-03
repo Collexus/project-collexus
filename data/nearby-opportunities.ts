@@ -14,7 +14,7 @@ export type NearbyOpportunity = {
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-// Curated from organizer or host pages on 3 November 2026. Keep the official
+// Curated from organizer or host pages on 4 November 2026. Keep the official
 // link on every card so visitors can confirm current eligibility and status.
 export const nearbyOpportunities: NearbyOpportunity[] = [
   {
@@ -397,13 +397,13 @@ export const nearbyOpportunities: NearbyOpportunity[] = [
   {
     category: "INNOVATION CHALLENGE · NATIONAL",
     title: "PRASUNEX Innovathon 2026",
-    date: "Registration closes 4 November · finale 1 December 2026",
+    date: "Registration deadline passed 4 November · finale 1 December 2026",
     fee: "Check official listing · fee not stated",
     feeType: "check",
     domains: ["Innovation", "Software", "AI", "Design", "Entrepreneurship"],
     venue: "Online rounds · finale venue not specified in listing",
     organizer: "PRASUNEX",
-    highlight: "Four-round idea-to-prototype challenge. The listing advertises ₹51,000 for the winner, ₹21,000 for runner-up and ₹11,000 for second runner-up; check current registration status.",
+    highlight: "Four-round idea-to-prototype challenge. The listing advertises ₹51,000 for the winner, ₹21,000 for runner-up and ₹11,000 for second runner-up. Its listed registration deadline has passed; check for an extension.",
     image: `${basePath}/assets/event-art/expo.webp`,
     href: "https://api.unstop.com/hackathons/prasunex-innovathon-2026-prasunex-1772904",
   },
@@ -670,13 +670,13 @@ export const nearbyOpportunities: NearbyOpportunity[] = [
   {
     category: "AI & PRODUCT COMPETITION · NATIONAL",
     title: "From Prompt to Performance · Mozark",
-    date: "Registration closes 4 November 2026",
+    date: "Registration deadline passed 4 November 2026 · check for an extension",
     fee: "Free",
     feeType: "free",
     domains: ["AI testing", "Software quality", "App development", "Product engineering"],
     venue: "Online · open to college students in India and the US",
     organizer: "Mozark",
-    highlight: "Test apps, find real bugs, and demonstrate fixes across two rounds. The listing describes participation as free and open to students aged 18 and over.",
+    highlight: "Test apps, find real bugs, and demonstrate fixes across two rounds. The listing describes participation as free and open to students aged 18 and over; its listed registration deadline has passed.",
     image: `${basePath}/assets/event-art/hackathon.webp`,
     href: "https://api.unstop.com/hackathons/from-prompt-to-performance-mozark-1762305",
   },
@@ -757,5 +757,31 @@ export const nearbyOpportunities: NearbyOpportunity[] = [
     highlight: "For grade 11 and 12 students working in pairs. Top 15 teams are invited to the Mumbai campus final; verify current registration requirements with the organizer.",
     image: `${basePath}/assets/event-art/hackathon.webp`,
     href: "https://atlasuniversity.edu.in/atlas-hackathon-2026/",
+  },
+  {
+    category: "SUSTAINABILITY INNOVATION · NATIONAL",
+    title: "Pitch for Planet · Product/Services Challenge",
+    date: "Register by 14 November · event 27 November 2026",
+    fee: "Free registration",
+    feeType: "free",
+    domains: ["Sustainability", "Climate action", "Product design", "Social impact", "Entrepreneurship"],
+    venue: "GL Bajaj Institute of Management and Research, Greater Noida",
+    organizer: "GL Bajaj Institute of Management and Research",
+    highlight: "Inter-institute challenge for undergraduate and postgraduate teams with a working product, model or service prototype. The listing gives ₹18,000 across the top three teams.",
+    image: `${basePath}/assets/event-art/expo.webp`,
+    href: "https://api.unstop.com/competitions/pitch-for-planet-inter-institute-product-services-innovation-challenge-gl-bajaj-institute-of-management-and-1771541",
+  },
+  {
+    category: "BUSINESS CASE CHALLENGE · NATIONAL",
+    title: "Asian Paints Smart Idea Challenge 2026",
+    date: "Register by 16 November · finale 18 December 2026",
+    fee: "Check official listing · fee not stated",
+    feeType: "check",
+    domains: ["Business strategy", "Marketing", "Consumer products", "Analytics"],
+    venue: "Online case round · Mumbai finale for shortlisted teams",
+    organizer: "Asian Paints",
+    highlight: "Case competition for teams of three MBA students. The organizer lists ₹70,000 in cash prizes across the top three teams and internship interview opportunities for winners.",
+    image: `${basePath}/assets/event-art/expo.webp`,
+    href: "https://api.unstop.com/competitions/asian-paints-smart-idea-challenge-2026-asian-paints-1764902",
   },
 ];
