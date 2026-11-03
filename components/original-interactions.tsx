@@ -77,7 +77,7 @@ export function OriginalInteractions() {
     }
     (() => {
       
-       const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions'), clearSearchButton=document.getElementById('clearGlobalSearch');
+       const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions');
        const shortcutModifier=document.getElementById('searchShortcutModifier');
        if(shortcutModifier)shortcutModifier.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl';
        const searchButtons=[...document.querySelectorAll('[data-search]')];
@@ -97,17 +97,10 @@ export function OriginalInteractions() {
          if(emptyMessage)emptyMessage.hidden=!q||categoryCount+eventCount>0;
          panel.classList.remove('hidden');
          input.setAttribute('aria-expanded','true');
-         if(clearSearchButton)clearSearchButton.hidden=!input.value;
         }
         const closeSuggestions=()=>{panel.classList.add('hidden');input.setAttribute('aria-expanded','false')};
         input.addEventListener('focus',updateSearchSuggestions);
         input.addEventListener('input',updateSearchSuggestions);
-        clearSearchButton?.addEventListener('click',()=>{
-          input.value='';
-          if(document.body.classList.contains('category-mode')) window.closeCollexusCategory?.();
-          input.dispatchEvent(new Event('input',{bubbles:true}));
-          input.focus({preventScroll:true});
-        });
         document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
         document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')closeSuggestions()});
        }
@@ -263,7 +256,7 @@ export function OriginalInteractions() {
         const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),prevDays=new Date(y,m,0).getDate();
         for(let i=0;i<first;i++){const d=document.createElement('div');d.className='calendar-day muted';d.innerHTML=`<span class="day-num">${prevDays-first+i+1}</span>`;calGrid.appendChild(d)}
         const today=new Date();const todayIso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-        for(let day=1;day<=days;day++){const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const matches=regs.filter(r=>r.date===iso);const publicEvents=[...new Map((publicByDate[iso]||[]).map(event=>[event.slug,event])).values()];const hasEvent=publicEvents.length>0;const d=document.createElement('div');d.className='calendar-day'+(hasEvent?' event-day':'')+(matches.length?' registered':'')+(iso===todayIso?' today':'');
+        for(let day=1;day<=days;day++){const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const matches=regs.filter(r=>r.date===iso);const publicEvents=[...new Map((publicByDate[iso]||[]).map(event=>[event.slug,event])).values()];const hasEvent=publicEvents.length>0;const eventCount=publicEvents.length+matches.length;const d=document.createElement('div');d.className='calendar-day'+(hasEvent?' event-day':'')+(matches.length?' registered':'')+(iso===todayIso?' today':'');d.dataset.eventCount=String(eventCount);d.style.setProperty('--calendar-event-count',String(Math.min(eventCount,4)));
           const unregisteredEvents=publicEvents.filter(event=>!matches.some(r=>r.name===event.name));
           const publicLabels=unregisteredEvents.slice(0,2).map(event=>`<a class="event-dot public-dot" href="${publicBasePath}/events/${event.slug}/" title="Open ${event.name}">• ${event.name}</a>`).join('');
           const moreEvents=unregisteredEvents.length>2?`<span class="event-dot public-more">+${unregisteredEvents.length-2} more</span>`:'';

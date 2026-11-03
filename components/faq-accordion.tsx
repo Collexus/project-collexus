@@ -5,19 +5,29 @@ import { ChevronDown } from "lucide-react";
 
 const questions = [
   {
-    question: "What can I search for?",
+    question: "Where do event dates and details come from?",
     answer:
-      "Search published RCEE hackathons, workshops, project expos and cultural events. Search by an event title or choose a category suggestion.",
+      "Listings are drawn from published RCEE event information and linked source pages. Open an event and check its source link for the organizer’s latest details, especially when a date or fee may have changed.",
   },
   {
-    question: "Can I filter events by category?",
+    question: "Does a pass preview register me for an event?",
     answer:
-      "Yes. Open the filters to narrow the list by category, participation scope, listed fee and department track. Clear filters to restore the full list.",
+      "No. Pass and registration previews on Collexus are local demos. They do not submit a registration, reserve a place, take payment, or grant entry. Use the event’s official registration link when one is provided.",
   },
   {
-    question: "Is the interface mobile friendly?",
+    question: "Can I bring friends or guests to a fest?",
     answer:
-      "Yes. The navigation, event cards, filters and event details adapt to smaller screens.",
+      "Guest eligibility depends on the fest and its organizer’s rules. Check the specific event listing and confirm with the organizer before inviting outside guests.",
+  },
+  {
+    question: "How can I confirm the fee or whether registration is open?",
+    answer:
+      "Check the event page and its official source link. Collexus shows published fee and registration information when available; a missing amount or a closed listing means you should confirm directly with the organizer.",
+  },
+  {
+    question: "How do I ask a question or report incorrect event information?",
+    answer:
+      "Contact the Collexus team at hello@collexus.in and include the event name and the detail that needs attention. For urgent registration or entry questions, contact the event organizer as well.",
   },
 ];
 

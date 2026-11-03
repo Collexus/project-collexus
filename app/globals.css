@@ -4981,6 +4981,39 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 }
 @media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .calendar-day,body.warm-editorial-theme.vivid-nightfall-theme .calendar-nav button{transition:none!important}}
 
+/* Event dates use space in proportion to what is scheduled that day. */
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid{align-items:start!important;grid-auto-rows:min-content!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day{
+  align-self:start!important;min-height:clamp(48px,calc(48px + var(--calendar-event-count,0) * 24px),144px)!important;
+  height:auto!important;overflow:visible!important;transition:min-height .2s ease,background-color .16s ease,border-color .16s ease!important
+}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day[data-event-count="0"],
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day.muted{min-height:42px!important;padding:5px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day .event-dot{flex-shrink:0!important}
+
+/* Keep the event’s practical details together directly below its title. */
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-content{display:grid!important;gap:12px!important}
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0}
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-fact,
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-format{
+  display:flex;align-items:flex-start;gap:7px;min-width:0;padding:8px 10px;border:1px solid #dbe8e9;border-radius:11px;
+  color:#526b75;background:linear-gradient(135deg,#f5fafa,#edf5f5);font:600 10px/1.45 "Space Grotesk",sans-serif
+}
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-fact svg{flex:0 0 auto;margin-top:1px;color:#087e83}
+body.warm-editorial-theme.vivid-nightfall-theme .event-tile-format{grid-column:1/-1;border-style:dashed;color:#315d66;background:#f8fbfb}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .event-tile-fact,
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .event-tile-format{border-color:#304854;color:#c1d0d8;background:#172a34}
+@media(max-width:520px){
+  body.warm-editorial-theme.vivid-nightfall-theme .event-tile-facts{grid-template-columns:minmax(0,1fr)}
+  body.warm-editorial-theme.vivid-nightfall-theme .event-tile-format{grid-column:auto}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid{gap:5px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day{padding:5px!important;border-radius:9px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day[data-event-count="0"],
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day.muted{min-height:34px!important}
+  body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day .event-dot{padding:2px 3px!important;font-size:7px!important}
+}
+@media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day{transition:none!important}}
+
 /* Make event labels on photography legible in both display themes. */
 body.warm-editorial-theme.vivid-nightfall-theme main.details-page .details-image-label{
   color:#f7fcff!important;background:rgba(7,19,28,.94)!important;border-color:rgba(117,221,232,.72)!important;

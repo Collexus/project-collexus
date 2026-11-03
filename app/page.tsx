@@ -34,7 +34,6 @@ export default function HomePage() {
       <Icon name="search" className="absolute left-3.5 text-secondary text-[19px] pointer-events-none" />
       <label className="sr-only" htmlFor="globalSearch">Search published events</label>
       <input className="w-full pl-10 pr-12 sm:pr-28 py-2.5 rounded-xl bg-white text-on-surface placeholder:text-on-surface-variant/70 border border-[#f0d4d8] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose focus:ring-4 focus:ring-[#edbfc6]/20 shadow-[0_2px_8px_rgba(38,12,26,0.04)] transition-all" id="globalSearch" aria-controls="searchSuggestions" aria-expanded="false" autoComplete="off" placeholder="Search events or topics…" type="search"/>
-      <button id="clearGlobalSearch" className="global-search-clear" type="button" aria-label="Clear search" title="Clear search" hidden><Icon name="close" /></button>
       <div className="search-shortcut hidden sm:flex absolute right-2 items-center gap-1 px-1.5 py-1 rounded-lg bg-surface-container-low font-label-sm text-label-sm text-secondary pointer-events-none border border-[#f4d3cb]/60" aria-hidden="true"><kbd id="searchShortcutModifier">Ctrl</kbd><kbd>K</kbd></div>
       <div id="searchSuggestions" className="search-suggestions hidden" role="group" aria-label="Event search suggestions">
         <div className="search-suggestion-title">Explore categories</div>

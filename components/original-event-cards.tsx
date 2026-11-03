@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays } from "lucide-react";
+import { ArrowUpRight, CalendarDays, MapPin, Users } from "lucide-react";
 import { events } from "@/data/events";
 
 const categories = {
@@ -61,6 +61,11 @@ export function OriginalEventCards() {
               </div>
               <div className="event-tile-content">
                 <h3 className="event-tile-title">{event.title}</h3>
+                <div className="event-tile-facts" aria-label="Event details">
+                  <span className="event-tile-fact"><MapPin size={13} aria-hidden="true" />{event.venue.split("·")[0].trim()}</span>
+                  <span className="event-tile-fact"><Users size={13} aria-hidden="true" />{event.audience}</span>
+                  <span className="event-tile-format">{event.format}</span>
+                </div>
               </div>
               <div className="event-tile-footer">
                 <p className="event-card-date flex items-center gap-2">
