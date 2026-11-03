@@ -41,7 +41,7 @@ export function OriginalInteractions() {
       "Workshops": { icon: "school", punch: "Learn by doing.", desc: "Published RCEE workshop records.", cards: [] },
       "Branch Events": { icon: "hub", punch: "Your branch. Your people.", desc: "Published RCEE project and branch event records.", cards: [] },
       "Cultural Events": { icon: "celebration", punch: "Make memories beyond the classroom.", desc: "Published RCEE cultural event records.", cards: [] },
-      "Nearby Events": { icon: "location_on", punch: "Worthwhile opportunities, within reach.", desc: "A curated set of external events across Andhra Pradesh, Telangana and nearby South India. Dates and fees were checked on organizer pages on 3 November 2026; confirm current details before registering or travelling.", cards: nearbyOpportunities, external: true },
+      "Nearby Events": { icon: "location_on", punch: "Worthwhile opportunities, within reach.", desc: `${nearbyOpportunities.length} curated events and student opportunities across Andhra Pradesh, Telangana and India. Listings were checked on 3 November 2026; confirm deadlines, fees and eligibility on the organizer page before registering or travelling.`, cards: nearbyOpportunities, external: true },
     };
     const eventGroup = { Hackathon: "Hackathons", Workshop: "Workshops", "Project expo": "Branch Events", Cultural: "Cultural Events" };
     events.forEach((event) => {
