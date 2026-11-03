@@ -42,7 +42,7 @@ export default function HomePage() {
         <button type="button" data-search="Workshops"><Icon name="school" /><span>Workshops</span><small>Learn & upskill</small></button>
         <button type="button" data-search="Branch Events"><Icon name="hub" /><span>Branch Events</span><small>Department activities</small></button>
         <button type="button" data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span><small>Campus life</small></button>
-        <button type="button" data-search="Outdoors"><Icon name="park" /><span>Outdoors</span><small>Outdoor campus activities</small></button>
+        <button type="button" data-search="Nearby Events"><Icon name="location_on" /><span>Nearby Events</span><small>External events & programs</small></button>
         <div id="eventSearchResultGroup" className="event-search-result-group" hidden>
           <div className="search-suggestion-title">Matching events</div>
           {events.map((event) => {
@@ -73,7 +73,7 @@ export default function HomePage() {
       </div>
     </div>
   </div>
-</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Outdoors"><Icon name="park" /><span>Outdoors</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
+</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Nearby Events"><Icon name="location_on" /><span>Nearby Events</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
 
 <section className="reference-mood-backdrop relative w-full px-gutter-desktop-wide max-w-[1920px] mx-auto pt-5 sm:pt-6 pb-space-xl overflow-hidden bg-gradient-to-b from-[#FFF8F6] via-[#FFF1ED]/40 to-[#FFF8F6]">
 
@@ -364,7 +364,7 @@ export default function HomePage() {
       <button type="button" data-category-nav="Workshops"><Icon name="school" />Workshops</button>
       <button type="button" data-category-nav="Branch Events"><Icon name="hub" />Branch Events</button>
       <button type="button" data-category-nav="Cultural Events"><Icon name="celebration" />Cultural Events</button>
-      <button type="button" data-category-nav="Outdoors"><Icon name="park" />Outdoors</button>
+      <button type="button" data-category-nav="Nearby Events"><Icon name="location_on" />Nearby Events</button>
       <button type="button" id="categoryPassesNav"><Icon name="qr_code_2" />Get Passes</button>
     </nav>
     <div className="category-page-top">

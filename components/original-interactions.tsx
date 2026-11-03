@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { LucideGlyph } from "@/components/icon";
 import { events } from "@/data/events";
+import { nearbyOpportunities } from "@/data/nearby-opportunities";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { getUserProfile } from "@/lib/user-profile";
 
@@ -40,7 +41,7 @@ export function OriginalInteractions() {
       "Workshops": { icon: "school", punch: "Learn by doing.", desc: "Published RCEE workshop records.", cards: [] },
       "Branch Events": { icon: "hub", punch: "Your branch. Your people.", desc: "Published RCEE project and branch event records.", cards: [] },
       "Cultural Events": { icon: "celebration", punch: "Make memories beyond the classroom.", desc: "Published RCEE cultural event records.", cards: [] },
-      "Outdoors": { icon: "park", punch: "Find fresh air between classes.", desc: "No published RCEE outdoor event records are in the current source set.", cards: [] },
+      "Nearby Events": { icon: "location_on", punch: "Worthwhile opportunities, within reach.", desc: "A curated set of external events across Andhra Pradesh, Telangana and nearby South India. Dates and fees were checked on organizer pages on 3 November 2026; confirm current details before registering or travelling.", cards: nearbyOpportunities, external: true },
     };
     const eventGroup = { Hackathon: "Hackathons", Workshop: "Workshops", "Project expo": "Branch Events", Cultural: "Cultural Events" };
     events.forEach((event) => {
@@ -171,11 +172,27 @@ export function OriginalInteractions() {
        const categoryData=window.__COLLEXUS_CATEGORY_DATA__;
        const views=document.getElementById('categoryViews'), title=document.getElementById('categoryTitle'), punchline=document.getElementById('categoryPunchline'), desc=document.getElementById('categoryDescription'), eyebrow=document.getElementById('categoryEyebrow'), cards=document.getElementById('categoryCards');
        let categoryCardIconRoots=[];
+       function escapeCardText(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+       function renderOpportunityCard(event,index,icon){
+        const domains=event.domains.map(domain=>`<span class="category-domain-tag">${escapeCardText(domain)}</span>`).join('');
+        const iconName=escapeCardText(icon);
+        const feeClass=['free','paid','mixed','check'].includes(event.feeType)?event.feeType:'check';
+        return `<article class="category-card category-opportunity-card" style="animation-delay:${index*55}ms">
+          <div class="category-card-media"><img src="${escapeCardText(event.image)}" alt="" loading="lazy"><span class="category-fee-badge ${feeClass}">${feeClass==='check'?'FEE CHECK':feeClass==='mixed'?'FREE + PAID':feeClass.toUpperCase()}</span></div>
+          <div class="category-opportunity-content"><div class="category-card-top"><span class="category-card-tag">${escapeCardText(event.category)}</span><span class="lucide-icon category-card-icon lucide-mount" data-lucide="${iconName}"></span></div>
+            <h3>${escapeCardText(event.title)}</h3>
+            <dl class="category-opportunity-facts"><div><dt>WHEN</dt><dd>${escapeCardText(event.date)}</dd></div><div><dt>VENUE</dt><dd>${escapeCardText(event.venue)}</dd></div><div><dt>HOST</dt><dd>${escapeCardText(event.organizer)}</dd></div><div class="fee-fact"><dt>ENTRY</dt><dd>${escapeCardText(event.fee)}</dd></div></dl>
+            <p class="category-opportunity-highlight"><strong>Opportunity:</strong> ${escapeCardText(event.highlight)}</p>
+            <div class="category-domain-list" aria-label="Related domains"><span class="category-domain-label">RELATED DOMAINS</span><div>${domains}</div></div>
+          </div>
+          <a class="category-card-action category-opportunity-link" href="${escapeCardText(event.href)}" target="_blank" rel="noopener noreferrer" aria-label="Open official event page for ${escapeCardText(event.title)}">Official event page <span class="lucide-icon lucide-mount" data-lucide="arrow_forward"></span></a>
+        </article>`
+       }
        function openCategory(name){
-        const key=Object.keys(categoryData).find(k=>k.toLowerCase()===String(name).toLowerCase())||'Hackathons'; const d=categoryData[key];
+        const requested=String(name).toLowerCase();const key=Object.keys(categoryData).find(k=>k.toLowerCase()===requested)||(requested==='outdoors'?'Nearby Events':'Hackathons'); const d=categoryData[key];
         eyebrow.textContent=key.toUpperCase(); title.textContent=key; punchline.textContent=d.punch; desc.textContent=d.desc;
         categoryCardIconRoots.forEach(root=>root.unmount());
-        cards.innerHTML=d.cards.length ? d.cards.map((c,i)=>`<article class="category-card" style="animation-delay:${i*70}ms"><div class="category-card-media"><img src="${c[4]}" alt="${c[1]} event" loading="lazy"></div><div><div class="category-card-top"><span class="category-card-tag">${c[0]}</span><span class="lucide-icon category-card-icon lucide-mount" data-lucide="${d.icon}"></span></div><h3>${c[1]}</h3><p>${c[2]}</p></div><a class="category-card-action" href="${publicBasePath}/events/${c[6]}/">${c[3]} <span class="lucide-icon lucide-mount" data-lucide="arrow_forward"></span></a></article>`).join('') : `<div class="category-empty-state"><span class="lucide-icon lucide-mount category-empty-icon" data-lucide="${d.icon}"></span><h3>No outdoor events listed yet</h3><p>${d.desc}</p></div>`;
+        cards.innerHTML=d.external ? d.cards.map((event,i)=>renderOpportunityCard(event,i,d.icon)).join('') : d.cards.length ? d.cards.map((c,i)=>`<article class="category-card" style="animation-delay:${i*70}ms"><div class="category-card-media"><img src="${c[4]}" alt="${c[1]} event" loading="lazy"></div><div><div class="category-card-top"><span class="category-card-tag">${c[0]}</span><span class="lucide-icon category-card-icon lucide-mount" data-lucide="${d.icon}"></span></div><h3>${c[1]}</h3><p>${c[2]}</p></div><a class="category-card-action" href="${publicBasePath}/events/${c[6]}/">${c[3]} <span class="lucide-icon lucide-mount" data-lucide="arrow_forward"></span></a></article>`).join('') : `<div class="category-empty-state"><span class="lucide-icon lucide-mount category-empty-icon" data-lucide="${d.icon}"></span><h3>No events listed yet</h3><p>${d.desc}</p></div>`;
         categoryCardIconRoots=mountLucidePlaceholders(cards);
         document.body.classList.add('category-mode'); views.classList.remove('hidden'); views.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+key.toLowerCase().replace(/\s+/g,'-')); 
        }
@@ -298,7 +315,7 @@ export function OriginalInteractions() {
        const loginEventSelect=document.getElementById('loginEventSelect');
        if(loginEventSelect){
          const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose an event';placeholder.disabled=true;placeholder.selected=true;loginEventSelect.appendChild(placeholder);
-         Object.values(categoryData).forEach(group=>group.cards.forEach(c=>{ if(![...loginEventSelect.options].some(o=>o.value===c[1])){const o=document.createElement('option');o.value=c[1];o.textContent=c[1];o.dataset.date=c[5] || '';loginEventSelect.appendChild(o);} }));
+         Object.values(categoryData).filter(group=>!group.external).forEach(group=>group.cards.forEach(c=>{ if(![...loginEventSelect.options].some(o=>o.value===c[1])){const o=document.createElement('option');o.value=c[1];o.textContent=c[1];o.dataset.date=c[5] || '';loginEventSelect.appendChild(o);} }));
        }
        const eventPassTypeField=document.getElementById('eventPassTypeField');
        const eventFriendsCountField=document.getElementById('eventFriendsCountField');
@@ -644,7 +661,7 @@ export function OriginalInteractions() {
         });
       
        // If a category hash is opened directly, show that category.
-       const initial=decodeURIComponent(location.hash.slice(1)); const match=Object.keys(categoryData).find(k=>k.toLowerCase().replace(/\s+/g,'-')===initial.toLowerCase()); if(match)openCategory(match);
+       const initial=decodeURIComponent(location.hash.slice(1)); const match=Object.keys(categoryData).find(k=>k.toLowerCase().replace(/\s+/g,'-')===initial.toLowerCase()); if(match)openCategory(match);else if(initial.toLowerCase()==='outdoors')openCategory('Nearby Events');
       
     })();
   }, []);

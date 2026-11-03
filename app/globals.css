@@ -5014,6 +5014,47 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 }
 @media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .calendar-grid .calendar-day{transition:none!important}}
 
+/* External opportunities: fees and domains stay visible and easy to scan. */
+.category-card.category-opportunity-card{justify-content:initial;gap:14px;min-height:100%;padding:15px;border-color:#d3e2e4;background:linear-gradient(150deg,#fff,#f4f9f9);box-shadow:0 12px 30px rgba(18,57,69,.08)}
+.category-opportunity-card .category-card-media{width:100%;height:auto;aspect-ratio:16/8.5;margin:0;border-radius:14px;background:#122c38}
+.category-opportunity-card .category-card-media img{object-position:center}
+.category-fee-badge{position:absolute;z-index:1;top:10px;right:10px;display:inline-flex;align-items:center;min-height:28px;padding:6px 10px;border:1px solid rgba(255,255,255,.68);border-radius:999px;color:#fff;background:rgba(12,34,43,.83);font:800 9px/1 "Space Grotesk",sans-serif;letter-spacing:.1em;box-shadow:0 4px 12px rgba(0,0,0,.2);backdrop-filter:blur(10px)}
+.category-fee-badge.free{background:rgba(13,113,79,.94)}.category-fee-badge.paid{background:rgba(25,75,120,.94)}.category-fee-badge.mixed{background:linear-gradient(110deg,#147455 0 49%,#195783 51%)}.category-fee-badge.check{background:rgba(80,91,100,.94)}
+.category-opportunity-content{display:grid;align-content:start;gap:12px;min-width:0;flex:1}
+.category-opportunity-card .category-card-top{align-items:flex-start;min-height:18px}
+.category-opportunity-card .category-card-tag{font-size:9px;line-height:1.45;letter-spacing:.09em}
+.category-opportunity-card .category-card-icon{flex:none}
+.category-opportunity-card h3{margin:0;color:#163340;font:750 clamp(19px,1.7vw,23px)/1.18 "Space Grotesk",sans-serif;letter-spacing:-.025em}
+.category-opportunity-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.category-opportunity-facts>div{min-width:0;padding:10px;border:1px solid #dbe7e8;border-radius:12px;background:rgba(255,255,255,.72)}
+.category-opportunity-facts dt{margin-bottom:5px;color:#087e83;font:800 8px/1 "Space Grotesk",sans-serif;letter-spacing:.12em}
+.category-opportunity-facts dd{margin:0;color:#405c66;font:600 11px/1.45 "Space Grotesk",sans-serif;overflow-wrap:anywhere}
+.category-opportunity-facts .fee-fact{grid-column:1/-1;background:#edf7f6}
+.category-opportunity-highlight{margin:0;padding:11px 12px;border-left:3px solid #1a9294;border-radius:0 11px 11px 0;color:#4c626b;background:#f2f7f7;font:500 11px/1.55 "Plus Jakarta Sans",sans-serif}
+.category-opportunity-highlight strong{color:#155d65}
+.category-domain-list{display:grid;gap:7px}
+.category-domain-label{color:#6a828a;font:800 8px/1 "Space Grotesk",sans-serif;letter-spacing:.12em}
+.category-domain-list>div{display:flex;flex-wrap:wrap;gap:6px}
+.category-domain-tag{display:inline-flex;align-items:center;min-height:25px;padding:5px 8px;border:1px solid #d5e5e5;border-radius:999px;color:#35616a;background:#f5fbfa;font:650 9px/1.2 "Space Grotesk",sans-serif}
+.category-card-action.category-opportunity-link{justify-content:space-between;width:100%;min-height:44px;margin-top:auto;padding:12px 14px;background:linear-gradient(120deg,#087e83,#176f91);color:#fff;font-size:11px}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-card.category-opportunity-card{border-color:#d3e2e4;background:linear-gradient(150deg,#fff,#f4f9f9)}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-card h3{color:#163340!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts>div{border-color:#dbe7e8;background:rgba(255,255,255,.72)}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts .fee-fact{background:#edf7f6}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts dd{color:#405c66!important}
+html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-highlight{color:#4c626b;background:#f2f7f7}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-card.category-opportunity-card{border-color:#2c4854;background:linear-gradient(150deg,#15232c,#101b23)}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-card h3{color:#eff7fa!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts>div{border-color:#2d4b56;background:rgba(9,18,25,.6)}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts .fee-fact{background:#142e34}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-facts dd{color:#cfdee4!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-highlight{border-color:#38b9b5;color:#c1d1d8;background:#172a33}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-opportunity-highlight strong{color:#69e0db}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-domain-tag{border-color:#34515c;color:#cce5e7;background:#172b34}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .category-domain-label{color:#a6bac3}
+@media(max-width:700px){.category-card.category-opportunity-card{padding:13px}.category-opportunity-facts{grid-template-columns:minmax(0,1fr)}.category-opportunity-facts .fee-fact{grid-column:auto}.category-opportunity-card .category-card-media{aspect-ratio:16/8}}
+@media(prefers-reduced-motion:reduce){.category-card.category-opportunity-card,.category-opportunity-card .category-card-media img{transition:none!important}.category-card.category-opportunity-card:hover,.category-opportunity-card:hover .category-card-media img{transform:none!important}}
+
 /* Make event labels on photography legible in both display themes. */
 body.warm-editorial-theme.vivid-nightfall-theme main.details-page .details-image-label{
   color:#f7fcff!important;background:rgba(7,19,28,.94)!important;border-color:rgba(117,221,232,.72)!important;
