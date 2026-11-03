@@ -14,3 +14,19 @@
 @media(max-width:820px){.cartLayout{grid-template-columns:minmax(0,1fr)}.summaryPanel{position:static}}
 @media(max-width:560px){.cartShell{margin-top:15px;padding:13px;border-radius:18px}.itemsPanel{padding:13px}.summaryPanel{padding:15px}.itemRow{grid-template-columns:54px minmax(0,1fr) auto;gap:9px;padding:13px 0}.itemArtwork{width:54px;height:59px;border-radius:13px}.itemInfo h3{font-size:12px}.vendor{font-size:8px}.itemActions{gap:5px}.quantityControl{grid-template-columns:27px 23px 27px;height:29px}.quantityControl button{width:27px;height:27px}.removeButton{font-size:8px}.lineTotal{font-size:10px}.panelHeading h2{font-size:18px}.cartTopline{margin-bottom:13px}}
 @media(prefers-reduced-motion:reduce){.backLink{transition:none}.backLink:hover{transform:none}}
+
+/* Give each order line its own visual surface and make the bill easier to scan. */
+.itemsPanel{background:linear-gradient(160deg,color-mix(in srgb,var(--cart-teal-soft) 28%,var(--cart-card)),var(--cart-card) 34%)}
+.itemList{gap:9px;margin-top:15px}
+.itemRow{position:relative;padding:13px 12px;border:1px solid color-mix(in srgb,var(--cart-line) 85%,transparent);border-radius:15px;background:linear-gradient(105deg,color-mix(in srgb,var(--cart-teal-soft) 18%,var(--cart-card)),var(--cart-card) 46%);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.itemRow:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--cart-teal) 38%,var(--cart-line));box-shadow:0 8px 20px color-mix(in srgb,var(--cart-ink) 7%,transparent)}
+.itemArtwork{box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 10px color-mix(in srgb,var(--cart-teal) 8%,transparent)}
+.itemRow:nth-child(3n + 2) .itemArtwork{border-color:color-mix(in srgb,#df9b3c 34%,var(--cart-line));color:#a96a19;background:radial-gradient(circle at 30% 20%,#fff,color-mix(in srgb,#f6d88e 38%,var(--cart-card)))}
+.itemRow:nth-child(3n) .itemArtwork{border-color:color-mix(in srgb,#d9795d 30%,var(--cart-line));color:#a94e3d;background:radial-gradient(circle at 30% 20%,#fff,color-mix(in srgb,#f5b69c 30%,var(--cart-card)))}
+.itemInfo h3{font-size:15px}
+.summaryPanel{border-color:color-mix(in srgb,var(--cart-teal) 18%,var(--cart-line));box-shadow:0 10px 28px color-mix(in srgb,var(--cart-ink) 5%,transparent)}
+.billLines>div:has(dt small){padding-right:8px;padding-left:8px;border-radius:8px;background:color-mix(in srgb,var(--cart-teal-soft) 36%,var(--cart-card))}
+.billLines .grandTotal{margin-top:7px;padding:14px 9px;border-top:1px solid var(--cart-line);border-radius:9px;background:linear-gradient(95deg,color-mix(in srgb,var(--cart-teal-soft) 42%,var(--cart-card)),var(--cart-card))}
+.feeNote{border:1px solid color-mix(in srgb,var(--cart-teal) 12%,var(--cart-line))}
+@media(max-width:560px){.itemList{gap:8px;margin-top:12px}.itemRow{padding:10px 8px}.itemInfo h3{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.itemRow{transition:none}.itemRow:hover{transform:none}}
