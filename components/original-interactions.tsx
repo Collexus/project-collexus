@@ -172,6 +172,8 @@ export function OriginalInteractions() {
        const categoryData=window.__COLLEXUS_CATEGORY_DATA__;
        const views=document.getElementById('categoryViews'), title=document.getElementById('categoryTitle'), punchline=document.getElementById('categoryPunchline'), desc=document.getElementById('categoryDescription'), eyebrow=document.getElementById('categoryEyebrow'), cards=document.getElementById('categoryCards');
        let categoryCardIconRoots=[];
+       let nearbySortMode="featured";
+       const sortControl=document.getElementById("categorySortControl"),sortSelect=document.getElementById("categorySort");
        function escapeCardText(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
        function renderOpportunityCard(event,index,icon){
         const domains=event.domains.map(domain=>`<span class="category-domain-tag">${escapeCardText(domain)}</span>`).join('');
@@ -190,13 +192,15 @@ export function OriginalInteractions() {
        }
        function openCategory(name){
         const requested=String(name).toLowerCase();const key=Object.keys(categoryData).find(k=>k.toLowerCase()===requested)||(requested==='outdoors'?'Nearby Events':'Hackathons'); const d=categoryData[key];
-        eyebrow.textContent=key.toUpperCase(); title.textContent=key; punchline.textContent=d.punch; desc.textContent=d.desc;
+        eyebrow.textContent=key.toUpperCase(); title.textContent=key; punchline.textContent=d.punch; desc.textContent=d.desc;sortControl.hidden=key!=="Nearby Events";
         categoryCardIconRoots.forEach(root=>root.unmount());
-        cards.innerHTML=d.external ? d.cards.map((event,i)=>renderOpportunityCard(event,i,d.icon)).join('') : d.cards.length ? d.cards.map((c,i)=>`<article class="category-card" style="animation-delay:${i*70}ms"><div class="category-card-media"><img src="${c[4]}" alt="${c[1]} event" loading="lazy"></div><div><div class="category-card-top"><span class="category-card-tag">${c[0]}</span><span class="lucide-icon category-card-icon lucide-mount" data-lucide="${d.icon}"></span></div><h3>${c[1]}</h3><p>${c[2]}</p></div><a class="category-card-action" href="${publicBasePath}/events/${c[6]}/">${c[3]} <span class="lucide-icon lucide-mount" data-lucide="arrow_forward"></span></a></article>`).join('') : `<div class="category-empty-state"><span class="lucide-icon lucide-mount category-empty-icon" data-lucide="${d.icon}"></span><h3>No events listed yet</h3><p>${d.desc}</p></div>`;
+        const categoryCards=d.external?[...d.cards].sort((a,b)=>nearbySortMode==="name"?a.title.localeCompare(b.title):nearbySortMode==="free"?(a.feeType==="free"?-1:b.feeType==="free"?1:0):nearbySortMode==="paid"?(a.feeType==="paid"?-1:b.feeType==="paid"?1:0):0):d.cards;
+        cards.innerHTML=d.external ? categoryCards.map((event,i)=>renderOpportunityCard(event,i,d.icon)).join('') : d.cards.length ? d.cards.map((c,i)=>`<article class="category-card" style="animation-delay:${i*70}ms"><div class="category-card-media"><img src="${c[4]}" alt="${c[1]} event" loading="lazy"></div><div><div class="category-card-top"><span class="category-card-tag">${c[0]}</span><span class="lucide-icon category-card-icon lucide-mount" data-lucide="${d.icon}"></span></div><h3>${c[1]}</h3><p>${c[2]}</p></div><a class="category-card-action" href="${publicBasePath}/events/${c[6]}/">${c[3]} <span class="lucide-icon lucide-mount" data-lucide="arrow_forward"></span></a></article>`).join('') : `<div class="category-empty-state"><span class="lucide-icon lucide-mount category-empty-icon" data-lucide="${d.icon}"></span><h3>No events listed yet</h3><p>${d.desc}</p></div>`;
         categoryCardIconRoots=mountLucidePlaceholders(cards);
         document.body.classList.add('category-mode'); views.classList.remove('hidden'); views.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+key.toLowerCase().replace(/\s+/g,'-')); 
        }
        function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');const searchInput=document.getElementById('globalSearch');if(searchInput){searchInput.value='';searchInput.dispatchEvent(new Event('input',{bubbles:true}));searchInput.blur()}const suggestions=document.getElementById('searchSuggestions');suggestions?.classList.add('hidden');searchInput?.setAttribute('aria-expanded','false');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
+       sortSelect?.addEventListener('change',()=>{nearbySortMode=sortSelect.value;openCategory('Nearby Events')});
        document.getElementById('categoryBack')?.addEventListener('click',closeCategory);
        window.openCollexusCategory=openCategory;
        window.closeCollexusCategory=closeCategory;
