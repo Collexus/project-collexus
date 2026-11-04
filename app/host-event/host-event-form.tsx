@@ -12,7 +12,6 @@ import {
   Clock3,
   Eye,
   MapPin,
-  Megaphone,
   Send,
   ShieldCheck,
   Sparkles,
@@ -339,11 +338,6 @@ export function HostEventForm() {
             <div className={styles.introActions}>
               <div className={styles.formNote}><span>*</span> Required fields</div>
               {collexusPackage.plan && <div className={styles.formNote}>Collexus {collexusPackage.plan === "pro" ? "Pro" : "Normal"} · {collexusPackage.addons.length} add-on{collexusPackage.addons.length === 1 ? "" : "s"} selected</div>}
-              <a className={styles.stallRegistrationLink} href={`${publicBasePath}/stall-registration/`}>
-                <Megaphone aria-hidden="true" size={16} />
-                <span>Run an ad</span>
-                <ArrowRight aria-hidden="true" size={15} />
-              </a>
             </div>
           </div>
           <img className={styles.introIllustration} src={`${publicBasePath}/images/host-event-planning-illustration.png`} alt="Students planning a campus event together" />

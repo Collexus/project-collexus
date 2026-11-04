@@ -10,7 +10,6 @@ import {
   Download,
   ImagePlus,
   MapPin,
-  Megaphone,
   Plus,
   ShieldCheck,
   Store,
@@ -282,7 +281,6 @@ export function StallRegistrationForm() {
             <p>Tell us what you’d like to share. We’ll collect your setup preferences so the event team can review the request.</p>
             <div className={styles.heroMeta}><span><CheckCircle2 size={15} aria-hidden="true" /> One short application</span></div>
               {collexusPackage.plan && <p className={styles.packageSelection}>Collexus {collexusPackage.plan === "pro" ? "Pro" : "Normal"} · {collexusPackage.addons.length} add-on{collexusPackage.addons.length === 1 ? "" : "s"} selected</p>}
-            <a className={styles.runAdButton} href="#stall-registration-form"><Megaphone size={17} aria-hidden="true" /> Run an ad <ArrowRight size={16} aria-hidden="true" /></a>
           </div>
           <div className={styles.heroArt}>
             <img src={`${publicBasePath}/images/stall-registration-illustration.webp`} alt="Two students welcoming visitors at a teal and cream campus market stall" width="1536" height="1024" />

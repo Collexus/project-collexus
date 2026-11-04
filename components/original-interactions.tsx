@@ -77,7 +77,7 @@ export function OriginalInteractions() {
       }).catch(() => {});
     }
     (() => {
-      
+
        const input=document.getElementById('globalSearch'), panel=document.getElementById('searchSuggestions');
        const shortcutModifier=document.getElementById('searchShortcutModifier');
        if(shortcutModifier)shortcutModifier.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl';
@@ -114,14 +114,14 @@ export function OriginalInteractions() {
        const cards=[...document.querySelectorAll('.cover-card')], dots=document.getElementById('coverDots'); let active=0;
        function render(){cards.forEach((c,i)=>{c.classList.remove('is-active','prev','next','far');if(i===active)c.classList.add('is-active');else if(i===(active-1+cards.length)%cards.length)c.classList.add('prev');else if(i===(active+1)%cards.length)c.classList.add('next');else c.classList.add('far')});if(dots){dots.innerHTML='';cards.forEach((_,i)=>{const d=document.createElement('span');d.className='cover-dot'+(i===active?' active':'');d.onclick=()=>{active=i;render()};dots.appendChild(d)})}}
        document.getElementById('coverPrev')?.addEventListener('click',()=>{active=(active-1+cards.length)%cards.length;render()});document.getElementById('coverNext')?.addEventListener('click',()=>{active=(active+1)%cards.length;render()});render();setInterval(()=>{active=(active+1)%cards.length;render()},6000);
-       
+
     })();
     (() => {
-      
+
             // 1. Tab filtering for events
             const filterTabs = document.querySelectorAll('.event-filter-tab');
             const eventItems = document.querySelectorAll('.event-item');
-      
+
             filterTabs.forEach(tab => {
               tab.addEventListener('click', () => {
                 filterTabs.forEach(t => {
@@ -130,7 +130,7 @@ export function OriginalInteractions() {
                 });
                 tab.classList.remove('text-on-surface-variant');
                 tab.classList.add('bg-primary', 'text-on-primary');
-      
+
                 const category = tab.getAttribute('data-category');
                 eventItems.forEach(item => {
                   if (category === 'all' || item.getAttribute('data-category') === category) {
@@ -141,11 +141,11 @@ export function OriginalInteractions() {
                 });
               });
             });
-      
+
             // 2. Day selector for weekend timetable
             const dayTabs = document.querySelectorAll('.day-tab');
             const panes = document.querySelectorAll('.timetable-pane');
-      
+
             dayTabs.forEach(tab => {
               tab.addEventListener('click', () => {
                 dayTabs.forEach(t => {
@@ -154,7 +154,7 @@ export function OriginalInteractions() {
                 });
                 tab.classList.remove('text-on-surface-variant');
                 tab.classList.add('bg-primary', 'text-on-primary');
-      
+
                 const targetDay = tab.getAttribute('data-day');
                 panes.forEach(pane => {
                   if (pane.id === `schedule-${targetDay}`) {
@@ -165,10 +165,10 @@ export function OriginalInteractions() {
                 });
               });
             });
-      
+
     })();
     (() => {
-      
+
        const categoryData=window.__COLLEXUS_CATEGORY_DATA__;
        const views=document.getElementById('categoryViews'), title=document.getElementById('categoryTitle'), punchline=document.getElementById('categoryPunchline'), desc=document.getElementById('categoryDescription'), eyebrow=document.getElementById('categoryEyebrow'), cards=document.getElementById('categoryCards');
        let categoryCardIconRoots=[];
@@ -196,7 +196,7 @@ export function OriginalInteractions() {
         categoryCardIconRoots=mountLucidePlaceholders(cards);
         document.body.classList.add('category-mode'); views.classList.remove('hidden'); views.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+key.toLowerCase().replace(/\s+/g,'-')); 
        }
-       function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
+       function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');const searchInput=document.getElementById('globalSearch');if(searchInput){searchInput.value='';searchInput.dispatchEvent(new Event('input',{bubbles:true}));searchInput.blur()}const suggestions=document.getElementById('searchSuggestions');suggestions?.classList.add('hidden');searchInput?.setAttribute('aria-expanded','false');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
        document.getElementById('categoryBack')?.addEventListener('click',closeCategory);
        window.openCollexusCategory=openCategory;
        window.closeCollexusCategory=closeCategory;
@@ -207,7 +207,7 @@ export function OriginalInteractions() {
         history.replaceState(null,'',`${location.pathname}${location.search}#home`);
         window.scrollTo({top:0,behavior});
        });
-      
+
        // V6 registration + passes + live enrolled count + calendar
        const REG_KEY='collexus_registrations_v6';
        function getRegs(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'[]')}catch{return []}}
@@ -273,7 +273,8 @@ export function OriginalInteractions() {
         const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),prevDays=new Date(y,m,0).getDate();
         for(let i=0;i<first;i++){const d=document.createElement('div');d.className='calendar-day muted';d.innerHTML=`<span class="day-num">${prevDays-first+i+1}</span>`;calGrid.appendChild(d)}
         const today=new Date();const todayIso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-        for(let day=1;day<=days;day++){const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const matches=regs.filter(r=>r.date===iso);const publicEvents=[...new Map((publicByDate[iso]||[]).map(event=>[event.slug,event])).values()];const hasEvent=publicEvents.length>0;const eventCount=publicEvents.length+matches.length;const d=document.createElement('div');d.className='calendar-day'+(hasEvent?' event-day':'')+(matches.length?' registered':'')+(iso===todayIso?' today':'');d.dataset.eventCount=String(eventCount);d.style.setProperty('--calendar-event-count',String(Math.min(eventCount,4)));
+        for(let day=1;day<=days;day++){const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const matches=regs.filter(r=>r.date===iso);const publicEvents=[...new Map((publicByDate[iso]||[]).map(event=>[event.slug,event])).values()];const hasEvent=publicEvents.length>0;const eventCount=publicEvents.length+matches.length;const d=document.createElement('div');d.className='calendar-day'+(hasEvent?' event-day':'')+(matches.length?' registered':'')+(iso===todayIso?' today':'');d.dataset.eventCount=String(eventCount);d.dataset.eventShape=eventCount===1?'single':eventCount===2?'double':eventCount>=3?'stacked':'empty';d.style.setProperty('--calendar-event-count',String(Math.min(eventCount,4)));
+
           const unregisteredEvents=publicEvents.filter(event=>!matches.some(r=>r.name===event.name));
           const publicLabels=unregisteredEvents.slice(0,2).map(event=>`<a class="event-dot public-dot" href="${publicBasePath}/events/${event.slug}/" title="Open ${event.name}">• ${event.name}</a>`).join('');
           const moreEvents=unregisteredEvents.length>2?`<span class="event-dot public-more">+${unregisteredEvents.length-2} more</span>`:'';
@@ -288,7 +289,7 @@ export function OriginalInteractions() {
        document.getElementById('calClose')?.addEventListener('click',()=>{calModal.classList.add('hidden');calModal.setAttribute('aria-hidden','true');document.body.style.overflow=''});document.querySelectorAll('[data-close-calendar]').forEach(b=>b.addEventListener('click',()=>{calModal.classList.add('hidden');calModal.setAttribute('aria-hidden','true');document.body.style.overflow=''}));
        document.getElementById('calPrev')?.addEventListener('click',()=>{calCursor.setMonth(calCursor.getMonth()-1);renderCalendar()});document.getElementById('calNext')?.addEventListener('click',()=>{calCursor.setMonth(calCursor.getMonth()+1);renderCalendar()});
        document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePass();calModal?.classList.add('hidden');calModal?.setAttribute('aria-hidden','true');document.body.style.overflow=''}});
-      
+
        // Make category buttons/card controls open a dedicated category view.
        document.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategory(b.dataset.search)}));
         // Enter opens the first matching event, or the closest category when no event matches.
@@ -373,15 +374,14 @@ export function OriginalInteractions() {
          if(!regs.some(r=>r.name===name)){regs.push(record);}else{Object.assign(regs.find(r=>r.name===name),record);}
          saveRegs(regs); if(hint){hint.textContent=`${name} was saved in this browser preview. It was not sent to the organizer and no place or payment was confirmed.`;hint.classList.remove('hidden');} form.reset();refreshRegistrationEvent(); if(avatarImage){avatarImage.removeAttribute('src');avatarImage.classList.add('hidden');}avatarInitials?.classList.remove('hidden');if(photoPreviewUrl){URL.revokeObjectURL(photoPreviewUrl);photoPreviewUrl='';}
        });
-      
-      
+
         // Menu Drawer Handlers & Tab Switching
         const menuDrawer = document.getElementById('campusMenuDrawer');
         const mainMenuBtn = document.getElementById('mainMenuBtn');
         const menuFilterBadge = document.getElementById('menuFilterBadge');
         const menuTabFilterBadge = document.getElementById('filterActiveCount');
         const menuContentFilters = document.getElementById('menuContentFilters');
-      
+
         function openMenu() {
           menuContentFilters?.classList.remove('hidden');
           menuDrawer?.classList.remove('hidden');
@@ -389,21 +389,21 @@ export function OriginalInteractions() {
           mainMenuBtn?.classList.add('is-active');
           document.body.style.overflow = 'hidden';
         }
-      
+
         function closeMenu() {
           menuDrawer?.classList.add('hidden');
           menuDrawer?.setAttribute('aria-hidden', 'true');
           mainMenuBtn?.classList.remove('is-active');
           document.body.style.overflow = '';
         }
-      
+
         mainMenuBtn?.addEventListener('click', () => {
           if (menuDrawer?.classList.contains('hidden')) openMenu();
           else closeMenu();
         });
         document.querySelectorAll('[data-close-menu]').forEach(b => b.addEventListener('click', closeMenu));
         document.querySelectorAll('[data-menu-close]').forEach(b => b.addEventListener('click', closeMenu));
-      
+
         // Menu action links & Navigation
         document.querySelectorAll('[data-menu-action]').forEach(b => {
           b.addEventListener('click', e => {
@@ -435,7 +435,7 @@ export function OriginalInteractions() {
             }
           });
         });
-      
+
         // Menu Internal Quick Search Filter
         const menuSearchInput = document.getElementById('menuSearchInput');
         menuSearchInput?.addEventListener('input', e => {
@@ -446,7 +446,7 @@ export function OriginalInteractions() {
             card.style.display = text.includes(query) ? '' : 'none';
           });
         });
-      
+
         // Start every fresh visit in day mode and keep the selection during client navigation.
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleLabel = document.getElementById('themeToggleLabel');
@@ -467,7 +467,7 @@ export function OriginalInteractions() {
         });
 
         setDisplayTheme(document.documentElement.dataset.collexusTheme === 'dark' ? 'dark' : 'light');
-      
+
         // Integrated Event Filtering Engine
         const sectionFilterBtn = document.getElementById('sectionFilterBtn');
         const filterCountLabel = document.getElementById('filterCountLabel');
@@ -475,7 +475,7 @@ export function OriginalInteractions() {
          const globalSearchInput = document.getElementById('globalSearch');
          const eventResultsStatus = document.getElementById('eventResultsStatus');
          const noResultsHint = document.getElementById('noFilteredEventsHint');
-      
+
         const activeFilters = {
           audience: 'all',
           pricing: 'all',
@@ -483,12 +483,12 @@ export function OriginalInteractions() {
           branch: 'all'
         };
          let searchQuery = normalizeSearchValue(globalSearchInput?.value || '');
-      
+
         // Both menu entry points open directly to the event filters.
         sectionFilterBtn?.addEventListener('click', () => {
           openMenu();
         });
-      
+
         // Filter chips selection
         document.querySelectorAll('[data-filter-group]').forEach(group => {
           const groupName = group.dataset.filterGroup;
@@ -543,7 +543,7 @@ export function OriginalInteractions() {
         }
         eventRowsButton?.addEventListener('click', () => setEventListExpanded(!eventGrid?.classList.contains('expanded')));
         updateFilterPreview();
-      
+
         function applyActiveFilters(options = {}) {
           const closeDrawer = options.closeDrawer !== false;
           const scrollToResults = options.scrollToResults !== false;
@@ -557,7 +557,7 @@ export function OriginalInteractions() {
             filterCountLabel.classList.toggle('hidden', activeEntries.length === 0);
             sectionFilterBtn?.setAttribute('aria-label', activeEntries.length ? `Open event filters, ${activeEntries.length} active` : 'Open event filters');
           }
-      
+
           eventCards.forEach(card => {
             if (matchesSelectedFilters(card)) {
               card.style.display = '';
@@ -566,7 +566,7 @@ export function OriginalInteractions() {
               card.style.display = 'none';
             }
           });
-      
+
           // Keep the header count and the filter panel summary in sync.
           if (activeEntries.length > 0) {
             if (menuFilterBadge) {
@@ -589,7 +589,7 @@ export function OriginalInteractions() {
             }
             mainMenuBtn?.classList.remove('is-active');
           }
-      
+
           // Show/hide empty state
           if (noFilteredEvents) {
             noFilteredEvents.classList.toggle('hidden', visibleCount > 0);
@@ -608,7 +608,7 @@ export function OriginalInteractions() {
               : 'Try a broader search or clear the filters to see the full schedule.';
           }
           updateFilterPreview();
-      
+
           if (closeDrawer) {
             closeMenu();
             if (document.body.classList.contains('category-mode')) {
@@ -626,7 +626,7 @@ export function OriginalInteractions() {
           searchQuery = normalizeSearchValue(globalSearchInput.value);
           applyActiveFilters({ closeDrawer: false, scrollToResults: false });
         });
-      
+
         function resetAllFilters() {
           Object.keys(activeFilters).forEach(k => activeFilters[k] = 'all');
           if (globalSearchInput) {
@@ -644,11 +644,11 @@ export function OriginalInteractions() {
           });
           applyActiveFilters();
         }
-      
+
         document.getElementById('applyFiltersBtn')?.addEventListener('click', applyActiveFilters);
         document.getElementById('resetFiltersBtn')?.addEventListener('click', resetAllFilters);
         document.getElementById('resetFromEmptyBtn')?.addEventListener('click', resetAllFilters);
-      
+
         // Global ESC key handler
         document.addEventListener('keydown', e => {
           if (e.key === 'Escape') {
@@ -660,10 +660,10 @@ export function OriginalInteractions() {
             document.body.style.overflow = '';
           }
         });
-      
+
        // If a category hash is opened directly, show that category.
        const initial=decodeURIComponent(location.hash.slice(1)); const match=Object.keys(categoryData).find(k=>k.toLowerCase().replace(/\s+/g,'-')===initial.toLowerCase()); if(match)openCategory(match);else if(initial.toLowerCase()==='outdoors')openCategory('Nearby Events');
-      
+
     })();
   }, []);
   return null;
