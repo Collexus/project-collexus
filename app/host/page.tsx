@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -47,6 +47,14 @@ export default function HostWithCollexusPage() {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [requestType, setRequestType] = useState<"event" | "stall" | null>(null);
   const [listingName, setListingName] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("requestType");
+    if (type === "event" || type === "stall") setRequestType(type);
+    const name = params.get("listingName");
+    if (name) setListingName(name);
+  }, []);
 
   function requestHref(path: string, plan: "normal" | "pro") {
     const params = new URLSearchParams({ plan, listingName, requestType: requestType ?? "" });

@@ -87,6 +87,7 @@ export function StallRegistrationForm() {
     const plan = params.get("plan");
     const listingName = params.get("listingName") ?? "";
     const animation = window.requestAnimationFrame(() => {
+      if (plan === "normal" || plan === "pro") restoreDraft();
       setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
       if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
     });
@@ -225,6 +226,12 @@ export function StallRegistrationForm() {
     link.click();
     URL.revokeObjectURL(url);
     setDraftMessage("Stall request downloaded to this device.");
+  }
+
+  function continueToHostPayment() {
+    saveDraft();
+    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim() });
+    router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
   async function openRequestConfirmation() {
@@ -395,6 +402,7 @@ export function StallRegistrationForm() {
             </section>
             <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Review the details, then download the request file and share it with your event team. This page cannot reserve a stall.</p></div></div>
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
+            {reviewed && <button className={styles.primaryButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight size={18} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.secondaryButton} onClick={openRequestConfirmation} type="button"><CheckCircle2 size={17} aria-hidden="true" /> View request summary <ArrowRight size={16} aria-hidden="true" /></button>}
             <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
           </aside>

@@ -619,7 +619,46 @@ export default function HomePage() {
   </div>
   <div className="home-back-top-wrap"><a className="home-back-top" href="#home" aria-label="Back to top"><Icon name="arrow_up" />Back to top</a></div>
 </section>
-<footer className="w-full bg-surface-container-low border-t border-[#f4d3cb] mt-space-xl shadow-[0_-1px_8px_rgba(38,12,26,0.03)]"><div className="w-full px-gutter-desktop-wide max-w-[1920px] mx-auto py-space-xl"><div className="grid grid-cols-1 md:grid-cols-4 gap-space-lg pb-space-lg"><div className="space-y-space-sm md:col-span-1"><div className="flex items-center gap-space-xs"><span className="collexus-word collexus-word-footer">Collexus</span><span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-blush text-primary font-bold uppercase">Live</span></div><p className="font-body-sm text-body-sm text-on-surface-variant max-w-xs">A friendly campus discovery hub for hackathons, internships, workshops, branch events, and cultural experiences.</p><div className="flex items-center gap-2 pt-space-xs"><Icon name="verified" className="text-secondary text-[18px]" /><span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Collegiate Verified Network</span></div></div><div className="space-y-space-xs"><div className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">Navigation</div><ul className="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant"><li><a className="hover:text-primary transition-colors" data-path="discover" href="#">Discover Feed</a></li><li><a className="hover:text-primary transition-colors" data-path="explore-events" href="#">Explore Events &amp; Symposia</a></li><li><a className="hover:text-primary transition-colors" data-path="hackathons" href="#">Active Hackathons</a></li><li><a className="hover:text-primary transition-colors" data-path="campus-leaderboard" href="#">University Rankings</a></li></ul></div><div className="space-y-space-xs"><div className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">Ecosystem</div><ul className="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant"><li><a className="hover:text-primary transition-colors" data-path="host-event" href="#">Organizer Console</a></li><li><a className="hover:text-primary transition-colors" data-path="my-passes" href="#">Credential Passports</a></li><li><span className="text-on-surface-variant/70">Collegiate Affiliates</span></li><li><span className="text-on-surface-variant/70">Judging Guidelines</span></li></ul></div><div className="space-y-space-sm md:col-span-1"><div className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">Newsletter Sync</div><p className="font-body-sm text-body-sm text-on-surface-variant">Weekly hack briefs, team recruitment calls, and grant drop updates.</p><div className="flex items-center gap-space-xs"><input className="w-full px-space-sm py-2 rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/70 border border-[#f4d3cb] font-body-sm text-body-sm focus:outline-none focus:border-dusty-rose" placeholder="student@university.edu" type="email"/><button className="px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider hover:bg-mocha transition-colors font-bold shadow-sm" type="button">Sync</button></div></div></div><div className="pt-space-md border-t border-[#f4d3cb]/60 flex flex-col md:flex-row items-center justify-between gap-space-sm"><div className="font-body-sm text-body-sm text-on-surface-variant">© 2026 Collexus. All rights reserved.</div><div className="flex flex-wrap items-center justify-center gap-space-md font-body-sm text-body-sm text-secondary"><span className="hover:text-primary cursor-pointer">Privacy Policy</span><span className="hover:text-primary cursor-pointer">Terms of Honor</span><span className="hover:text-primary cursor-pointer">Code of Conduct</span></div></div></div></footer>
+<footer className="w-full bg-surface-container-low border-t border-[#d7e4e6] mt-space-xl">
+  <div className="w-full px-gutter-desktop-wide max-w-[1920px] mx-auto py-space-xl">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-8">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2"><span className="collexus-word collexus-word-footer">Collexus</span><span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-blush text-primary font-bold uppercase">Events</span></div>
+        <p className="font-body-sm text-body-sm text-on-surface-variant max-w-xs">Published events from Ramachandra College of Engineering and curated opportunities from across India. Check each organizer’s page for current dates and eligibility.</p>
+        <div className="flex items-center gap-2 pt-1"><Icon name="verified" className="text-secondary text-[18px]" /><span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">RCEE event discovery</span></div>
+      </div>
+      <div className="space-y-3">
+        <h2 className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">Explore</h2>
+        <ul className="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+          <li><a className="hover:text-primary transition-colors" href="#featured-events">Published events</a></li>
+          <li><button className="hover:text-primary transition-colors" type="button" data-search="Hackathons">Hackathons</button></li>
+          <li><button className="hover:text-primary transition-colors" type="button" data-search="Nearby Events">Nearby events &amp; opportunities</button></li>
+          <li><a className="hover:text-primary transition-colors" href="#faq">Frequently asked questions</a></li>
+        </ul>
+      </div>
+      <div className="space-y-3">
+        <h2 className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">For organizers</h2>
+        <ul className="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/host-event/`}>Submit an event</Link></li>
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/stall-registration/`}>Request a campus stall</Link></li>
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/host/`}>Plans and add-ons</Link></li>
+        </ul>
+      </div>
+      <div className="space-y-3">
+        <h2 className="font-label-lg text-label-lg text-primary uppercase tracking-wider font-bold">Collexus</h2>
+        <ul className="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/about/`}>About Collexus</Link></li>
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/help/`}>Help and contact</Link></li>
+          <li><Link className="hover:text-primary transition-colors" href={`${publicBasePath}/registrations/`}>My registrations</Link></li>
+        </ul>
+      </div>
+    </div>
+    <div className="pt-5 border-t border-[#d7e4e6] flex flex-col sm:flex-row items-center justify-between gap-3 font-body-sm text-body-sm text-on-surface-variant">
+      <span>© 2026 Collexus · Ramachandra College of Engineering</span>
+      <Link className="text-secondary hover:text-primary transition-colors" href={`${publicBasePath}/help/`}>Questions? Contact the Collexus team</Link>
+    </div>
+  </div>
+</footer>
 
 
     </>

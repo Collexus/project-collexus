@@ -145,6 +145,7 @@ export function HostEventForm() {
     const plan = params.get("plan");
     const listingName = params.get("listingName") ?? "";
     const animation = window.requestAnimationFrame(() => {
+      if (plan === "normal" || plan === "pro") restoreDraft();
       setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
       if (listingName) setForm((current) => ({ ...current, eventName: listingName }));
     });
@@ -266,6 +267,12 @@ export function HostEventForm() {
     link.download = `${form.eventName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "event-submission"}.json`;
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function continueToHostPayment() {
+    saveDraft();
+    const params = new URLSearchParams({ requestType: "event", listingName: form.eventName.trim() });
+    router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
   async function submitForReview() {
@@ -501,7 +508,7 @@ export function HostEventForm() {
 
             <div className={styles.submitArea}>
               <p className={styles.reviewPrompt}><ShieldCheck aria-hidden="true" size={18} /><span><strong>Before you submit:</strong> check the dates, venue, contact details, and price in the preview. New events are stored privately for review and will not appear publicly until approved.</span></p>
-              <button className={styles.submitButton} onClick={scrollToPreview} type="button"><Eye aria-hidden="true" size={18} /> Show live preview <ArrowRight aria-hidden="true" size={18} /></button>
+              <button className={styles.submitButton} onClick={scrollToPreview} type="submit"><Eye aria-hidden="true" size={18} /> Review required details <ArrowRight aria-hidden="true" size={18} /></button>
               <div className={styles.draftActions}>
                 <button className={styles.draftButton} onClick={saveDraft} type="button">Save draft on this device</button>
                 <button className={styles.draftButton} onClick={restoreDraft} type="button">Restore saved draft</button>
@@ -511,6 +518,7 @@ export function HostEventForm() {
               {draftStatus && <p className={styles.draftStatus} role="status">{draftStatus}</p>}
               {reviewed && <div className={styles.successMessage} role="status"><ShieldCheck aria-hidden="true" size={18} /><span>Required fields and date/time checks passed. Review the full preview below, then submit it for the Collexus team to review.</span></div>}
               {reviewed && <div className={styles.draftActions}>
+                <button className={styles.submitButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight aria-hidden="true" size={18} /></button>
                 <button className={styles.submitButton} disabled={isSubmitting} onClick={submitForReview} type="button">{isSubmitting ? "Submitting…" : "Submit for review"} <ArrowRight aria-hidden="true" size={18} /></button>
                 <button className={styles.draftButton} onClick={downloadSubmission} type="button">Download JSON copy</button>
               </div>}
