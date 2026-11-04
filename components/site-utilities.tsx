@@ -151,9 +151,9 @@ export function SiteUtilities() {
             <a href={`${basePath}/help/`} onClick={() => setMenuOpen(false)}>Help and contact us <ChevronRight size={17} /></a>
             <a href={`${basePath}/about/`} onClick={() => setMenuOpen(false)}>About Collexus <ChevronRight size={17} /></a>
             <a href={`${basePath}/profile/edit/`} onClick={() => setMenuOpen(false)}>Account &amp; privacy <ChevronRight size={17} /></a>
-            <a href={`${basePath}/host/`} onClick={() => setMenuOpen(false)}>Host with Collexus · Plans &amp; add-ons <ChevronRight size={17} /></a>
-            <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Host an event <ChevronRight size={17} /></a>
-            <a href={`${basePath}/stall-registration/`} onClick={() => setMenuOpen(false)}>Register a stall <ChevronRight size={17} /></a>
+            <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Host Event Page <ChevronRight size={17} /></a>
+            <a href={`${basePath}/stall-registration/`} onClick={() => setMenuOpen(false)}>Host Stall Page <ChevronRight size={17} /></a>
+            <a href={`${basePath}/host/`} onClick={() => setMenuOpen(false)}>Host Payment Page · Plans &amp; add-ons <ChevronRight size={17} /></a>
             <a href={`${basePath}/host-event/`} onClick={() => setMenuOpen(false)}>Run ads <ChevronRight size={17} /></a>
             {user ? <button type="button" onClick={async () => {
               const supabase = getSupabaseClient();

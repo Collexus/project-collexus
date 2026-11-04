@@ -79,9 +79,9 @@ export default function HostWithCollexusPage() {
       <div className={styles.shell}>
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}><Store size={15} aria-hidden="true" /> FOR CAMPUS ORGANIZERS &amp; CREATORS</span>
-            <h1>Make your next campus event <em>the one everyone finds.</em></h1>
-            <p>Choose the Collexus support that fits your event or stall. Start with the essentials, or add more promotion and dedicated support.</p>
+            <span className={styles.eyebrow}><Store size={15} aria-hidden="true" /> HOST PAYMENT PAGE · PLANS &amp; ADD-ONS</span>
+            <h1>Host Payment Page <em>plans for events &amp; stalls.</em></h1>
+            <p>Choose the Collexus plan and add-ons for your event or stall, then review the order before continuing.</p>
             <div className={styles.heroActions}><Link className={styles.primaryButton} href="/host-event/">For event</Link><Link className={styles.outlineButton} href="/stall-registration/">For stall</Link></div>
             <div className={styles.heroTrust}><span><BadgeCheck size={16} aria-hidden="true" /> Built for campus events</span><span><Store size={16} aria-hidden="true" /> Events and stalls</span></div>
           </div>

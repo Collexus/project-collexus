@@ -101,7 +101,7 @@ export default function HomePage() {
 <span>Explore Event Records</span>
 <Icon name="arrow_forward" className="text-[18px]" />
 </a>
-<a id="hostEventButton" href={`${publicBasePath}/host/`} className="hero-cta hero-cta-high-contrast host-event-cta relative overflow-hidden inline-flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg uppercase tracking-wider border transition-all group">
+<a id="hostEventButton" href={`${publicBasePath}/host-event/`} className="hero-cta hero-cta-high-contrast host-event-cta relative overflow-hidden inline-flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg uppercase tracking-wider border transition-all group">
 <Icon name="event_upcoming" className="text-secondary text-[20px]" />
 <span>Host Event</span>
 </a>
