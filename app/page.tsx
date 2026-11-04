@@ -368,7 +368,7 @@ export default function HomePage() {
       <button type="button" id="categoryPassesNav"><Icon name="qr_code_2" />Get Passes</button>
     </nav>
     <div className="category-page-top">
-      <button id="categoryBack" className="back-btn" type="button"><span className="back-btn-icon"><Icon name="arrow_back" /></span><span className="back-btn-label">Back to home</span><span className="back-btn-note">Explore more</span></button>
+      <button id="categoryBack" className="back-btn" type="button"><span className="back-btn-icon"><Icon name="arrow_back" /></span><span className="back-btn-label">Back to home</span></button>
       <span className="category-kicker">COLLEXUS DISCOVERY</span>
     </div>
     <div className="category-heading">

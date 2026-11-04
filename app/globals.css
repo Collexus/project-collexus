@@ -5142,7 +5142,6 @@ body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .back-btn-icon{di
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .back-btn:hover .back-btn-icon{transform:translateX(-3px)}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .back-btn-icon .lucide-icon{font-size:17px;color:inherit!important}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .back-btn-label{font:750 12px/1 "Space Grotesk",sans-serif;letter-spacing:.01em}
-body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .back-btn-note{padding-left:9px;border-left:1px solid #cadcde;color:#69838b;font:700 9px/1 "Space Grotesk",sans-serif;letter-spacing:.08em;text-transform:uppercase}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-heading{align-items:center;gap:24px}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-heading-copy{min-width:0;flex:1}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-control{position:relative;display:flex;align-items:center;gap:9px;flex:0 0 auto;min-height:46px;padding:6px 12px;border:1px solid #c9dadd;border-radius:14px;background:rgba(255,255,255,.82);box-shadow:0 5px 16px rgba(29,70,82,.07);color:#31515d}
@@ -5152,4 +5151,4 @@ body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-ic
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-label{font:800 9px/1 "Space Grotesk",sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-control select{min-width:112px;max-width:160px;border:0;outline:0;background:transparent;color:#173b48;font:700 11px "Space Grotesk",sans-serif;cursor:pointer;appearance:none;padding:6px 14px 6px 0}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-control> .lucide-icon{margin-left:-19px;pointer-events:none;font-size:14px;color:#087e83}
-@media(max-width:700px){body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-heading{align-items:flex-start;flex-direction:column}.category-sort-control{align-self:flex-start}.back-btn-note{display:none!important}}
+@media(max-width:700px){body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-heading{align-items:flex-start;flex-direction:column}.category-sort-control{align-self:flex-start}}
