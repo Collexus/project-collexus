@@ -311,6 +311,7 @@ export function OriginalInteractions() {
        // Category page navigation starts at the top and keeps every section one-click away.
        document.querySelectorAll('[data-category-nav]').forEach(btn=>btn.addEventListener('click',()=>openCategory(btn.dataset.categoryNav)));
        document.getElementById('categoryPassesNav')?.addEventListener('click',()=>document.getElementById('digitalPasses')?.scrollIntoView({behavior:'smooth',block:'start'}));
+       document.getElementById('quickPassesNav')?.addEventListener('click',()=>document.getElementById('digitalPasses')?.scrollIntoView({behavior:'smooth',block:'start'}));
        // Event registration form inside the login panel.
        const loginEventSelect=document.getElementById('loginEventSelect');
        if(loginEventSelect){

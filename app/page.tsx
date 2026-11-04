@@ -73,7 +73,7 @@ export default function HomePage() {
       </div>
     </div>
   </div>
-</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Nearby Events"><Icon name="location_on" /><span>Nearby Events</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
+</header><div className="quick-category-rail quick-category-top" id="quickCategories" aria-label="Explore event categories"><button data-search="Hackathons"><Icon name="terminal" /><span>Hackathons</span></button><button data-search="Internships"><Icon name="work" /><span>Internships</span></button><button data-search="Workshops"><Icon name="school" /><span>Workshops</span></button><button data-search="Branch Events"><Icon name="account_tree" /><span>Branch Events</span></button><button data-search="Cultural Events"><Icon name="celebration" /><span>Cultural Events</span></button><button data-search="Nearby Events"><Icon name="location_on" /><span>Nearby Events</span></button><button type="button" id="quickPassesNav"><Icon name="qr_code_2" /><span>Get Passes</span></button></div><main className="home-main w-full bg-surface min-h-[calc(100vh-280px)]"><div className="flex flex-col w-full">
 
 <section className="reference-mood-backdrop relative w-full px-gutter-desktop-wide max-w-[1920px] mx-auto pt-5 sm:pt-6 pb-space-xl overflow-hidden bg-gradient-to-b from-[#FFF8F6] via-[#FFF1ED]/40 to-[#FFF8F6]">
 
@@ -587,7 +587,7 @@ export default function HomePage() {
   <div className="pass-dialog" role="dialog" aria-modal="true" aria-labelledby="passTitle">
     <button className="pass-close" type="button" data-close-pass aria-label="Close"><Icon name="close" /></button>
     <p className="category-eyebrow">FEST PASS PREVIEW</p><h2 id="passTitle">Create an event pass</h2><p>Preview a fest guest pass with participant details and a College ID referral. This demo does not register you with RCEE or confirm entry.</p>
-    <div className="pass-type-tabs"><button className="pass-type-tab active" data-pass-tab="student" aria-pressed="true" type="button"><strong>Student Pass</strong><small>For college students</small></button><button className="pass-type-tab" data-pass-tab="outer" aria-pressed="false" type="button"><strong>Fest Guest Pass</strong><small>For friends and outside guests</small></button></div>
+
     <form id="studentPassForm" className="pass-form">
       <label>Full name<input name="name" required placeholder="Your full name" /></label><label>College email<input name="email" type="email" required placeholder="name@college.edu" /></label><label>College ID<input name="collegeId" required placeholder="Student ID" /></label><label>Phone<input name="phone" required placeholder="10-digit mobile number" /></label><label className="full">Event<select name="event" id="studentEventSelect"></select></label><button className="pass-submit" type="submit">Generate Student Pass <Icon name="arrow_forward" /></button>
     </form>
