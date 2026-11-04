@@ -1047,52 +1047,81 @@ const curatedOpportunities: NearbyOpportunity[] = [
   },
 ];
 
-const representativePhotos = [
-  {
-    match: /hackathon|hack|build|code|agent|innovation/i,
-    image: "https://two.pechacks.org/assets/Glimpse/14_nyk7xo.jpg",
-    imageAlt: "Representative photograph of students collaborating at a hackathon; not a photo of this listed event.",
-    imageCredit: "PEC Hacks 2.0",
-    imageCreditUrl: "https://two.pechacks.org/",
-  },
-  {
-    match: /fest|cultural|community/i,
-    image: "https://images.hindustantimes.com/rf/image_size_960x540/HT/p2/2018/01/24/Pictures/_e888c37c-00e6-11e8-b2c1-a702bffbff45.JPG",
-    imageAlt: "Representative photograph of a college fest concert; not a photo of this listed event.",
-    imageCredit: "Hindustan Times · Crossroads fest photo",
-    imageCreditUrl: "https://www.hindustantimes.com/delhi-news/delhi-university-fests-2018-sexual-harassment-free-fun-is-authorities-and-students-plan/story-XDODpaeQIKMRdMgPRCfYxL.html",
-  },
-  {
-    match: /run|marathon|sport|fitness/i,
-    image: "https://images.yourstory.com/cs/wordpress/2016/11/yourstory-salwan-marathon-6.jpg?auto=format&fm=png",
-    imageAlt: "Representative photograph of student runners at a marathon; not a photo of this listed event.",
-    imageCredit: "YourStory · Salwan School Marathon",
-    imageCreditUrl: "https://yourstory.com/2016/11/inder-dutt-salwan-marathon",
-  },
-  {
-    match: /workshop|physics|science|quantum|research|health|education|school/i,
-    image: "https://www.rit.edu/sites/rit.edu/files/styles/full/https/cdn.rit.edu/images/news/2024-10/computer-science-story-small.jpg?itok=4e5dnW73",
-    imageAlt: "Representative photograph of university students working together on a computer science project; not a photo of this listed event.",
-    imageCredit: "Rochester Institute of Technology · student project photo",
-    imageCreditUrl: "https://www.rit.edu/news/congratulations-our-2024-computer-science-scholarship-award-winners",
-  },
-  {
-    match: /conference|summit|festival|security|cyber|technology|developer|geospatial/i,
-    image: "https://images.yourstory.com/cs/2/a0bad530ce5d11e9a3fb4360e4b9139b/Imagexycs-1714839417779.jpg?ar=2%3A1&crop=faces&format=auto&mode=crop&q=75&w=1080",
-    imageAlt: "Representative photograph of a developer conference audience; not a photo of this listed event.",
-    imageCredit: "YourStory · DevSparks conference photo",
-    imageCreditUrl: "https://yourstory.com/2024/05/blockbuster-show-first-edition-devsparks-2024-ends-with-powerful-insights-ola-krutrim",
-  },
-  {
-    match: /.*/,
-    image: "https://galgotiacollege.edu/public/uploads/all/1942/EWS-151251-min.JPG",
-    imageAlt: "Representative photograph of an engineering workshop at a college; not a photo of this listed event.",
-    imageCredit: "Galgotias College · workshop practice lab",
-    imageCreditUrl: "https://galgotiacollege.edu/mechanical-engineering/workshop-practice-lab",
-  },
+const bannerPalettes = [
+  ["#063b50", "#087c83", "#6ce8d5"],
+  ["#17265f", "#4146a9", "#f0ab5b"],
+  ["#40215e", "#a43d83", "#ffbf70"],
+  ["#123a31", "#27876d", "#c6ef87"],
+  ["#4b2920", "#b65c3b", "#ffd176"],
+  ["#18304d", "#27699c", "#75d9e8"],
+  ["#4b2940", "#a34e61", "#f4d28c"],
+  ["#263b34", "#5b7952", "#efbd56"],
 ];
 
-export const nearbyOpportunities: NearbyOpportunity[] = curatedOpportunities.map((event) => {
-  const photo = representativePhotos.find(({ match }) => match.test(event.category)) ?? representativePhotos[representativePhotos.length - 1];
-  return { ...event, ...photo };
-});
+function xmlEscape(value: string) {
+  const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&apos;" };
+  return value.replace(/[&<>"']/g, (char) => entities[char]);
+}
+
+function stableHash(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function eventArtwork(event: NearbyOpportunity, index: number) {
+  const seed = stableHash(`${event.title}-${index}`);
+  const [deep, mid, accent] = bannerPalettes[seed % bannerPalettes.length];
+  const subject = `${event.category} · ${event.domains.slice(0, 2).join(" / ")}`;
+  const kind = /run|marathon|sport|fitness/i.test(event.category)
+    ? "track"
+    : /fest|cultural|music/i.test(event.category)
+      ? "stage"
+      : /security|cyber/i.test(event.category)
+        ? "shield"
+        : /quantum|physics|space|science|research|materials/i.test(`${event.category} ${event.title}`)
+          ? "orbit"
+          : /business|case|finance|marketing|sustainability|planet/i.test(`${event.category} ${event.title}`)
+            ? "chart"
+            : /conference|summit|symposium|developer|geospatial/i.test(event.category)
+              ? "auditorium"
+              : /workshop|education|quiz|school/i.test(event.category)
+                ? "book"
+                : "terminal";
+  const title = event.title.length > 40 ? `${event.title.slice(0, 37).trimEnd()}…` : event.title;
+  const titleLines = title.split(/\s+/).reduce<string[]>((lines, word) => {
+    const last = lines[lines.length - 1] ?? "";
+    if (last.length + word.length + (last ? 1 : 0) > 21 && lines.length < 2) lines.push(word);
+    else lines[lines.length - 1] = `${last}${last ? " " : ""}${word}`;
+    return lines;
+  }, [""]);
+  const icon = kind === "orbit"
+    ? `<circle cx="900" cy="285" r="135" fill="none" stroke="${accent}" stroke-opacity=".65" stroke-width="3"/><ellipse cx="900" cy="285" rx="205" ry="83" transform="rotate(-28 900 285)" fill="none" stroke="#fff" stroke-opacity=".42" stroke-width="2"/><ellipse cx="900" cy="285" rx="205" ry="83" transform="rotate(48 900 285)" fill="none" stroke="${accent}" stroke-opacity=".8" stroke-width="2"/><circle cx="900" cy="285" r="34" fill="${accent}"/><circle cx="1060" cy="214" r="11" fill="#fff"/><circle cx="779" cy="194" r="8" fill="${accent}"/>`
+    : kind === "track"
+      ? `<ellipse cx="900" cy="440" rx="235" ry="115" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="4"/><ellipse cx="900" cy="440" rx="185" ry="78" fill="none" stroke="${accent}" stroke-width="4"/><path d="M790 470c40-80 114-120 222-118" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="3"/><circle cx="925" cy="235" r="24" fill="${accent}"/><path d="m925 263-30 70 60 32m-57-31-49 42m48-40 12 83m46-85 54 18" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>`
+      : kind === "stage"
+        ? `<path d="M715 385 860 215l94 114 74-82 116 138v103H715z" fill="#fff" fill-opacity=".13"/><path d="M755 410v112m48-166v166m48-214v214m48-138v138m48-181v181m48-116v116m48-151v151" stroke="${accent}" stroke-width="18" stroke-linecap="round"/><path d="M695 527h450" stroke="#fff" stroke-opacity=".65" stroke-width="3"/>`
+        : kind === "shield"
+          ? `<path d="M900 145 1080 218v131c0 126-79 202-180 254-101-52-180-128-180-254V218z" fill="#fff" fill-opacity=".12" stroke="${accent}" stroke-width="7"/><rect x="838" y="290" width="124" height="100" rx="18" fill="${accent}"/><path d="M865 290v-38a35 35 0 0 1 70 0v38" fill="none" stroke="#fff" stroke-width="13"/><circle cx="900" cy="336" r="10" fill="${deep}"/>`
+          : kind === "chart"
+            ? `<path d="M700 500h430M730 500V275" stroke="#fff" stroke-opacity=".58" stroke-width="4"/><rect x="770" y="380" width="62" height="120" rx="10" fill="${accent}"/><rect x="868" y="320" width="62" height="180" rx="10" fill="#fff" fill-opacity=".72"/><rect x="966" y="245" width="62" height="255" rx="10" fill="${accent}"/><path d="m766 304 95-48 77 13 111-86" fill="none" stroke="#fff" stroke-width="6"/><circle cx="1049" cy="183" r="12" fill="${accent}"/>`
+            : kind === "book"
+              ? `<path d="M718 230q108-45 205 25v260q-97-70-205-25z" fill="#fff" fill-opacity=".13" stroke="${accent}" stroke-width="5"/><path d="M923 255q97-70 205-25v260q-108-45-205 25z" fill="#fff" fill-opacity=".1" stroke="${accent}" stroke-width="5"/><path d="M923 255v260M760 294q59-18 117 5m-117 42q59-18 117 5m94-47q59-23 117-5m-117 47q59-23 117-5" stroke="#fff" stroke-opacity=".65" stroke-width="4" stroke-linecap="round"/>`
+              : kind === "auditorium"
+                ? `<path d="M696 250q205-110 410 0v250q-205-105-410 0z" fill="#fff" fill-opacity=".1" stroke="${accent}" stroke-width="4"/><path d="M741 344h320M741 398h320M741 452h320" stroke="#fff" stroke-opacity=".45" stroke-width="3"/><circle cx="900" cy="207" r="34" fill="${accent}"/><path d="M875 207q25 37 50 0v62h-50z" fill="${accent}"/><path d="M900 269v42m-42 0h84" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`
+                : `<rect x="738" y="170" width="370" height="300" rx="28" fill="#fff" fill-opacity=".1" stroke="${accent}" stroke-opacity=".8" stroke-width="3"/><path d="m808 258 48 48-48 48m97 0h86m-183 72h204" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1075" cy="500" r="75" fill="${accent}" fill-opacity=".18"/>`;
+  const titleMarkup = titleLines.map((line, lineIndex) => `<text x="70" y="${286 + lineIndex * 62}" fill="#fff" font-family="Arial,sans-serif" font-size="47" font-weight="700">${xmlEscape(line)}</text>`).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${deep}"/><stop offset="1" stop-color="${mid}"/></linearGradient><radialGradient id="glow"><stop stop-color="${accent}" stop-opacity=".6"/><stop offset="1" stop-color="${accent}" stop-opacity="0"/></radialGradient><pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse"><path d="M38 0H0V38" fill="none" stroke="#fff" stroke-opacity=".055"/></pattern></defs><rect width="1200" height="640" fill="url(#bg)"/><rect width="1200" height="640" fill="url(#grid)"/><circle cx="1015" cy="130" r="310" fill="url(#glow)"/><path d="M0 545Q260 420 540 535T1200 500v140H0z" fill="#061d2a" fill-opacity=".2"/><text x="70" y="103" fill="${accent}" font-family="Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="4">COLLEXUS · EVENT GUIDE</text><text x="70" y="191" fill="#fff" fill-opacity=".72" font-family="Arial,sans-serif" font-size="17" font-weight="700" letter-spacing="2">${xmlEscape(event.category.slice(0, 48))}</text>${titleMarkup}<rect x="70" y="435" width="565" height="2" fill="${accent}" fill-opacity=".8"/><text x="70" y="485" fill="#fff" fill-opacity=".78" font-family="Arial,sans-serif" font-size="19">${xmlEscape(subject.slice(0, 58))}</text><text x="70" y="558" fill="#fff" fill-opacity=".55" font-family="Arial,sans-serif" font-size="16" letter-spacing="2">${xmlEscape(event.venue.slice(0, 62).toUpperCase())}</text><g>${icon}</g><text x="1084" y="583" fill="#fff" fill-opacity=".64" font-family="Arial,sans-serif" font-size="14" text-anchor="end">${String(index + 1).padStart(2, "0")} / ${String(curatedOpportunities.length).padStart(2, "0")}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+export const nearbyOpportunities: NearbyOpportunity[] = curatedOpportunities.map((event, index) => ({
+  ...event,
+  image: eventArtwork(event, index),
+  imageAlt: `Custom ${event.category.toLowerCase()} banner for ${event.title}, featuring event-specific topics and artwork.`,
+  imageCredit: "Collexus event artwork",
+  imageCreditUrl: event.href,
+}));
