@@ -20,6 +20,7 @@ import {
 import styles from "./host-event.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { submitEventForReview } from "@/app/actions/event-submissions";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
@@ -99,7 +100,7 @@ function formatDate(value: string) {
     : new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(parsed);
 }
 
-function createSubmission(form: FormState) {
+function createSubmission(form: FormState, posterPath: string | null = null) {
   return {
     schemaVersion: 1,
     organizer: {
@@ -124,6 +125,7 @@ function createSubmission(form: FormState) {
       venue: form.venue.trim(),
       pricing: form.pricing,
       price: form.pricing === "paid" ? Number(form.price) : 0,
+      posterPath,
     },
   };
 }
@@ -136,6 +138,7 @@ export function HostEventForm() {
   const [dateError, setDateError] = useState("");
   const [draftStatus, setDraftStatus] = useState("");
   const [posterPreview, setPosterPreview] = useState("");
+  const [selectedPoster, setSelectedPoster] = useState<File | null>(null);
   const [posterError, setPosterError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -200,21 +203,25 @@ export function HostEventForm() {
     const file = event.currentTarget.files?.[0];
     setPosterError("");
     if (!file) {
+      setSelectedPoster(null);
       setPosterPreview("");
       return;
     }
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       event.currentTarget.value = "";
+      setSelectedPoster(null);
       setPosterError("Choose a JPG, PNG, or WebP image.");
       setPosterPreview("");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       event.currentTarget.value = "";
+      setSelectedPoster(null);
       setPosterError("Choose an image smaller than 5 MB.");
       setPosterPreview("");
       return;
     }
+    setSelectedPoster(file);
     setPosterPreview(URL.createObjectURL(file));
     setReviewed(false);
   }
@@ -288,13 +295,21 @@ export function HostEventForm() {
         router.push(`${publicBasePath}/login/?next=%2Fhost-event%2F`);
         return;
       }
-      const submissionId = crypto.randomUUID();
-      const { error } = await supabase.from("event_submissions").insert({
-        id: submissionId,
-        organizer_id: session.user.id,
-        submission: { ...createSubmission(form), collexusPackage },
-      });
-      if (error) throw new Error("We couldn’t save this event. Please try again later.");
+      let posterPath: string | null = null;
+      if (selectedPoster) {
+        setSubmissionStatus("Uploading your poster…");
+        const uploadResponse = await fetch(`${publicBasePath}/api/uploads/event-poster`, {
+          method: "POST",
+          headers: { "Content-Type": selectedPoster.type },
+          body: selectedPoster,
+        });
+        const uploadResult = await uploadResponse.json() as { success?: boolean; data?: { path?: string }; error?: { message?: string } };
+        if (!uploadResponse.ok || !uploadResult.data?.path) throw new Error(uploadResult.error?.message || "We couldn’t upload the poster.");
+        posterPath = uploadResult.data.path;
+      }
+      const result = await submitEventForReview({ ...createSubmission(form, posterPath), collexusPackage });
+      if (!result.success) throw new Error(result.error);
+      const submissionId = result.data.id;
       try {
         storeConfirmation({
           kind: "host",
@@ -325,7 +340,7 @@ export function HostEventForm() {
   const selectedAudience = fieldTitles[form.batch] ?? "Choose an audience";
 
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={publicBasePath} />

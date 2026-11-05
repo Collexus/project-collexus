@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SiteUtilities } from "@/components/site-utilities";
+import { PrivacyNotice } from "@/components/privacy-notice";
 
 const poppins = localFont({
   src: [
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html
       lang="en"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       style={{
         "--home-event-background": `url("${publicBasePath}/assets/unique_sources/home_hack.jpg")`,
         "--reference-background-image": `url("${publicBasePath}/assets/collexus-theme-reference.png")`,
@@ -45,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${poppins.variable} bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-primary warm-editorial-theme vivid-nightfall-theme`}>
         <SiteUtilities />
         {children}
+        <PrivacyNotice />
       </body>
     </html>
   );

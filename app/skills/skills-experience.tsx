@@ -166,7 +166,7 @@ export function SkillsExperience() {
 
   const selectedCount = skills.length + technologies.length + interests.length + foods.length + Number(Boolean(branch && (branch !== "Other" || otherBranch.trim()))) + Number(Boolean(experience));
 
-  return <main className={styles.page}>
+  return <main id="main-content" tabIndex={-1} className={styles.page}>
     <header className={styles.header}>
       <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={basePath} /></a>
       <a className={styles.backLink} href={`${basePath}/`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>

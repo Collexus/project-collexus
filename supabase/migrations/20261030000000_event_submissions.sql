@@ -14,12 +14,6 @@ create index if not exists event_submissions_organizer_created_idx
 alter table public.event_submissions enable row level security;
 
 revoke all on table public.event_submissions from public, anon, authenticated;
-grant insert (id, organizer_id, submission) on public.event_submissions to authenticated;
-
-drop policy if exists "event_submissions_insert_own" on public.event_submissions;
-create policy "event_submissions_insert_own"
-  on public.event_submissions for insert to authenticated
-  with check ((select auth.uid()) = organizer_id and status = 'pending_review');
 
 create or replace function public.set_event_submission_updated_at()
 returns trigger

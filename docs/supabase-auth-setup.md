@@ -35,6 +35,38 @@ Add this redirect URL to the allowed list:
 
 `https://sridhargurram534.github.io/collexus/login/`
 
+Also allow the admin signup email-verification return URLs:
+
+- `https://sridhargurram534.github.io/collexus/admin/login/`
+- `http://localhost:3000/admin/login/` (local development)
+
+The admin access panel supports email/password sign-in and signup. After
+signup, it opens a 6-digit email confirmation form; successful verification
+continues to administrator authenticator verification. In Supabase
+Authentication → Email Templates → Confirm signup, include the OTP token in
+the email template so the recipient can enter it in the page:
+
+    <h2>Confirm your email</h2>
+    <p>Enter this 6-digit code in the Collexus signup page:</p>
+    <p><strong>{{ .Token }}</strong></p>
+
+Keep the confirmation URL available if you want to support email-link
+confirmation as well. Signup does not grant the administrator role; use the
+trusted first-admin SQL bootstrap in docs/admin-console.md after the admin
+database migration is applied.
+
+## Local Turnstile troubleshooting
+
+The local app runs on localhost. Add localhost to the Cloudflare Turnstile
+widget's Hostname Management list if it is not already allowed. The admin
+page displays the Turnstile error code: Cloudflare's 110200 means the current
+hostname is not authorized; 300-series and 600-series errors are generic
+challenge failures. Try the local site in a regular browser window with
+extensions or VPN disabled, or use a different network. Supabase's
+invalid_credentials response means the configured project did not accept the
+email/password; check that the user exists and is confirmed in that same
+Supabase project.
+
 Email confirmation is recommended. The page asks new users to verify their email before signing in. Supabase's confirmation and recovery emails must be configured for the project.
 
 ## Account roles and authorization

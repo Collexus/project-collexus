@@ -1,22 +1,21 @@
-name: Deploy static site to GitHub Pages
+name: Validate Next.js application
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: github-pages
+  group: app-validation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -25,43 +24,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
       - name: Install dependencies
         run: npm ci
-      - name: Verify Turnstile site key
-        env:
-          SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
-        run: |
-          if [ -z "$SITE_KEY" ]; then
-            echo "::error::Missing repository variable NEXT_PUBLIC_TURNSTILE_SITE_KEY. Set the Cloudflare Turnstile site key before deploying."
-            exit 1
-          fi
-      - name: Build static export
+      - name: Check types
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Run tests
+        run: npm test
+      - name: Build Next.js application
         run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /project-collexus
-          NEXT_DIST_DIR: out
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
-      - name: Disable Jekyll processing
-        run: touch out/.nojekyll
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: out
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4

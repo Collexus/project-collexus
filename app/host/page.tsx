@@ -51,6 +51,7 @@ export default function HostWithCollexusPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const type = params.get("requestType");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Read browser-only query state after hydration to avoid server/client markup mismatches.
     if (type === "event" || type === "stall") setRequestType(type);
     const name = params.get("listingName");
     if (name) setListingName(name);
@@ -75,7 +76,7 @@ export default function HostWithCollexusPage() {
   const checkoutPath = requestType === "event" ? "/host-event/" : "/stall-registration/";
 
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <Link className={styles.brand} href="/" aria-label="Collexus home"><CollexusHomeLogo basePath={publicBasePath} /></Link>
         <nav className={styles.headerNav} aria-label="Host services navigation">

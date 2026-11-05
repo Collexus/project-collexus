@@ -9,9 +9,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Build for production with `npm run build`, then serve it with `npm start`.
+Copy `.env.example` to `.env.local`, then add values from Supabase, your PostgreSQL connection, Upstash, and Sentry as needed. Never commit `.env.local`; its database and service credentials must stay server-side. The `NEXT_PUBLIC_*` Supabase and Turnstile values are public browser configuration.
 
-Organizer event submissions use the existing Supabase URL and publishable key. Apply `supabase/migrations/20261030000000_event_submissions.sql` to the Supabase project before accepting submissions. Row-level security restricts inserts to the signed-in organizer and keeps submissions private for review; submissions are not published automatically.
+Open http://localhost:3000. Build for production with `npm run build`, then serve it with `npm start`. The app requires a Node.js Next.js host such as Vercel; GitHub Pages cannot run its authenticated API routes or Server Actions. The workflow in `.github/workflows/pages.yml` now validates the app without publishing a static export.
+
+### Backend setup
+
+1. Apply the existing Supabase migrations in `supabase/migrations` to the project. This includes the event submission base table and the existing profile and profile photo setup noted below.
+2. Apply `prisma/migrations/20261104000000_backend_core/migration.sql` to the same PostgreSQL database, or run `npm run db:migrate:deploy` with `DIRECT_URL` configured. This creates the private event review table, server-managed roles, and private poster storage bucket. It is additive and does not delete existing event submissions.
+3. Set `DATABASE_URL` to the server-only runtime PostgreSQL connection and `DIRECT_URL` to the direct migration connection. Set both Upstash REST variables together to enable production rate limiting. Production writes fail closed if Upstash is not configured.
+4. Configure Supabase Auth redirect URLs for the deployed site and local development. Assign admin roles only through trusted database administration; users cannot grant themselves a role.
+
+Event form writes now go through the authenticated Server Action, and the REST endpoint is available at `POST /api/events`. Posters are restricted to JPG, PNG, and WebP files up to 5 MB, stored in the private `event-posters` bucket, and attached only by the user who uploaded them. Submissions remain pending review and are not published automatically.
+
+`npm run db:generate`, `npm run db:migrate:deploy`, `npm run typecheck`, `npm run lint`, and `npm test` provide the common backend and quality workflows. `npm run build` generates the Prisma client before building Next.js.
 
 Profile contact fields and photo uploads also need their database setup applied to the same Supabase project, in order: `supabase/migrations/20261031000000_profile_contact_fields.sql`, then `supabase/migrations/20261101000000_profile_photo_storage.sql`. These add profile columns and the private `profile-photos` bucket with per-user storage policies.
 

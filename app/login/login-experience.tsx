@@ -676,7 +676,7 @@ export function LoginExperience() {
   }
 
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={basePath} />

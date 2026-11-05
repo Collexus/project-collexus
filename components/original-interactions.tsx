@@ -82,7 +82,7 @@ export function OriginalInteractions() {
        const shortcutModifier=document.getElementById('searchShortcutModifier');
        if(shortcutModifier)shortcutModifier.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl';
        const searchButtons=[...document.querySelectorAll('[data-search]')];
-       function focusSearch(value){ if(!input)return; input.value=value; input.dispatchEvent(new Event('input',{bubbles:true})); if(panel)panel.classList.add('hidden'); input.setAttribute('aria-expanded','false'); window.openCollexusCategory?.(value); }
+       function focusSearch(value){ if(!input)return; input.value=value; input.dispatchEvent(new Event('input',{bubbles:true})); if(panel)panel.classList.add('hidden'); window.openCollexusCategory?.(value); }
        searchButtons.forEach(b=>b.addEventListener('click',()=>focusSearch(b.dataset.search)));
        if(input&&panel){
         function updateSearchSuggestions(){
@@ -97,9 +97,8 @@ export function OriginalInteractions() {
          if(eventGroup)eventGroup.hidden=!q||eventCount===0;
          if(emptyMessage)emptyMessage.hidden=!q||categoryCount+eventCount>0;
          panel.classList.remove('hidden');
-         input.setAttribute('aria-expanded','true');
         }
-        const closeSuggestions=()=>{panel.classList.add('hidden');input.setAttribute('aria-expanded','false')};
+        const closeSuggestions=()=>{panel.classList.add('hidden')};
         input.addEventListener('focus',updateSearchSuggestions);
         input.addEventListener('input',updateSearchSuggestions);
         document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
@@ -199,7 +198,7 @@ export function OriginalInteractions() {
         categoryCardIconRoots=mountLucidePlaceholders(cards);
         document.body.classList.add('category-mode'); views.classList.remove('hidden'); views.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+key.toLowerCase().replace(/\s+/g,'-')); 
        }
-       function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');const searchInput=document.getElementById('globalSearch');if(searchInput){searchInput.value='';searchInput.dispatchEvent(new Event('input',{bubbles:true}));searchInput.blur()}const suggestions=document.getElementById('searchSuggestions');suggestions?.classList.add('hidden');searchInput?.setAttribute('aria-expanded','false');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
+       function closeCategory(){document.body.classList.remove('category-mode');views.classList.add('hidden');const searchInput=document.getElementById('globalSearch');if(searchInput){searchInput.value='';searchInput.dispatchEvent(new Event('input',{bubbles:true}));searchInput.blur()}const suggestions=document.getElementById('searchSuggestions');suggestions?.classList.add('hidden');history.replaceState(null,'','#home');window.scrollTo({top:0,behavior:'smooth'});}
        sortSelect?.addEventListener('change',()=>{nearbySortMode=sortSelect.value;openCategory('Nearby Events')});
        document.getElementById('categoryBack')?.addEventListener('click',closeCategory);
        window.openCollexusCategory=openCategory;
@@ -297,7 +296,7 @@ export function OriginalInteractions() {
        // Make category buttons/card controls open a dedicated category view.
        document.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategory(b.dataset.search)}));
         // Enter opens the first matching event, or the closest category when no event matches.
-        const input=document.getElementById('globalSearch'); input?.addEventListener('keydown',e=>{if(e.key==='Enter'){const q=normalizeSearchValue(input.value); if(!q)return; const matchingEventLink=[...document.querySelectorAll('[data-event-search-result]')].find(link=>link.style.display!=='none'&&normalizeSearchValue(link.dataset.eventSearchKey||'').includes(q)); if(matchingEventLink){window.location.assign(matchingEventLink.href);return;} const match=Object.keys(categoryData).find(k=>normalizeSearchValue(k).includes(q)||q.includes(normalizeSearchValue(k))); if(match){document.getElementById('searchSuggestions')?.classList.add('hidden');input.setAttribute('aria-expanded','false');openCategory(match)}}});
+        const input=document.getElementById('globalSearch'); input?.addEventListener('keydown',e=>{if(e.key==='Enter'){const q=normalizeSearchValue(input.value); if(!q)return; const matchingEventLink=[...document.querySelectorAll('[data-event-search-result]')].find(link=>link.style.display!=='none'&&normalizeSearchValue(link.dataset.eventSearchKey||'').includes(q)); if(matchingEventLink){window.location.assign(matchingEventLink.href);return;} const match=Object.keys(categoryData).find(k=>normalizeSearchValue(k).includes(q)||q.includes(normalizeSearchValue(k))); if(match){document.getElementById('searchSuggestions')?.classList.add('hidden');openCategory(match)}}});
        // Login chooser.
        const modal=document.getElementById('loginModal'), hint=document.getElementById('loginFormHint');
        function closeLogin(){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
@@ -636,7 +635,6 @@ export function OriginalInteractions() {
           if (globalSearchInput) {
             globalSearchInput.value = '';
             globalSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-            globalSearchInput.setAttribute('aria-expanded', 'false');
           }
           document.getElementById('searchSuggestions')?.classList.add('hidden');
           searchQuery = '';

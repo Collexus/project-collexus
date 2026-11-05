@@ -36,7 +36,7 @@ export function FeaturedEventCarousel({ events, basePath }: FeaturedEventCarouse
     if (events.length < 2 || !isPlaying || isInteracting) return;
     const interval = window.setInterval(() => {
       setActiveIndex((index) => (index + 1) % events.length);
-    }, 2000);
+    }, 7000);
     return () => window.clearInterval(interval);
   }, [events.length, isInteracting, isPlaying]);
 

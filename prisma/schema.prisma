@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public"]
+}
+
+model Profile {
+  id                    String   @id @db.Uuid
+  fullName              String?  @map("full_name")
+  accountType           String?  @map("account_type")
+  campusId              String?  @map("campus_id")
+  profileDomain         String?  @map("profile_domain")
+  profileSkills         String[] @default([]) @map("profile_skills")
+  profileTechnologies   String[] @default([]) @map("profile_technologies")
+  profileInterests      String[] @default([]) @map("profile_interests")
+  profileAbout          String?  @map("profile_about")
+  profileComplete       Boolean  @default(false) @map("profile_complete")
+  profileBranchCategory String?  @map("profile_branch_category")
+  profileBranchDetails  String?  @map("profile_branch_details")
+  profileExperience     String?  @map("profile_experience")
+  profileCulture        String[] @default([]) @map("profile_culture")
+  profileFavoriteFoods  String[] @default([]) @map("profile_favorite_foods")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model EventSubmission {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizerId String   @map("organizer_id") @db.Uuid
+  submission  Json
+  status      String   @default("pending_review")
+  reviewNote  String?  @map("review_note")
+  reviewedBy  String?  @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([organizerId, createdAt(sort: Desc)], map: "event_submissions_organizer_created_idx")
+  @@map("event_submissions")
+  @@schema("public")
+}
+
+model UserRole {
+  userId    String   @id @map("user_id") @db.Uuid
+  role      String   @default("user")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("user_roles")
+  @@schema("public")
+}
+
+model UserRoleAssignment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  role       String    @db.VarChar(32)
+  assignedBy String?   @map("assigned_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  @@unique([userId, role], map: "user_role_assignments_user_role_key")
+  @@index([userId, revokedAt], map: "user_role_assignments_user_active_idx")
+  @@index([role, revokedAt], map: "user_role_assignments_role_active_idx")
+  @@map("user_role_assignments")
+  @@schema("public")
+}
+
+model StaffEventAssignment {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  staffUserId String    @map("staff_user_id") @db.Uuid
+  eventSlug   String    @map("event_slug") @db.VarChar(120)
+  assignedBy  String?   @map("assigned_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  @@unique([staffUserId, eventSlug], map: "staff_event_assignments_user_event_key")
+  @@index([eventSlug, revokedAt], map: "staff_event_assignments_event_active_idx")
+  @@index([staffUserId, revokedAt], map: "staff_event_assignments_user_active_idx")
+  @@map("staff_event_assignments")
+  @@schema("public")
+}
+
+model AdminAuditLog {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId       String   @map("actor_id") @db.Uuid
+  action        String   @db.VarChar(80)
+  resourceType  String   @map("resource_type") @db.VarChar(50)
+  resourceId    String?  @map("resource_id") @db.Uuid
+  previousValues Json?   @map("previous_values") @db.JsonB
+  newValues     Json?    @map("new_values") @db.JsonB
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)], map: "admin_audit_logs_created_idx")
+  @@index([actorId, createdAt(sort: Desc)], map: "admin_audit_logs_actor_created_idx")
+  @@map("admin_audit_logs")
+  @@schema("public")
+}

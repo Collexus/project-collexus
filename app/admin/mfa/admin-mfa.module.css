@@ -1,0 +1,32 @@
+.brand { text-decoration: none; }
+.shell { padding-top: 24px; padding-bottom: 32px; }
+.card { width: min(100%, 500px); }
+.title { margin: 0; color: #153a46; font-size: clamp(25px, 5vw, 32px); font-weight: 800; letter-spacing: -.045em; line-height: 1.15; }
+.intro { margin-top: 10px; }
+.accountEmail { margin: 14px 0 0; color: #6a8188; font-size: 12px; }
+.accountEmail strong { color: #284852; font-weight: 700; }
+.setupSteps { display: grid; gap: 10px; margin: 20px 0; }
+.setupSteps p { display: flex; align-items: flex-start; gap: 10px; margin: 0; color: #5f7880; font-size: 12px; line-height: 1.55; }
+.setupSteps p span { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; border-radius: 50%; color: #087c78; background: #e7f6f2; font-size: 11px; font-weight: 800; }
+.loading { margin: 22px 0; color: #607982; font-size: 13px; text-align: center; }
+.qrPanel { display: grid; justify-items: center; gap: 13px; margin: 20px 0 18px; padding: 16px; border: 1px solid #e3ebec; border-radius: 13px; background: #f8fbfb; }
+.qrCode { width: min(208px, 100%); height: auto; padding: 8px; border-radius: 10px; background: #fff; }
+.manualSetup { width: 100%; color: #41636d; font-size: 11px; text-align: center; }
+.manualSetup summary { cursor: pointer; font-weight: 700; }
+.manualSetup code { display: block; margin-top: 10px; padding: 10px; overflow-wrap: anywhere; border-radius: 7px; color: #24444e; background: #eaf2f3; font-size: 12px; letter-spacing: .06em; }
+.factorField select { width: 100%; min-height: 45px; padding: 0 12px; border: 1px solid #dce6e8; border-radius: 9px; color: #284852; background: #fff; font: inherit; font-size: 13px; }
+.form { margin-top: 16px; }
+.retryButton { width: 100%; min-height: 44px; margin-top: 14px; border: 1px solid #c6dedd; border-radius: 9px; color: #17676a; background: #f0f8f7; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.footerNote { margin-top: 20px; }
+.signInLink { display: block; margin-top: 17px; color: #177a75; font-size: 12px; font-weight: 700; text-align: center; text-decoration: none; }
+.signInLink:hover { text-decoration: underline; }
+.page { display: grid; min-height: 100vh; place-items: center; padding: 24px; color: #233d47; background: #f4f7f8; }
+.page .card { width: min(470px,100%); padding: 28px; border: 1px solid #e0e8ea; border-radius: 18px; background: #fff; box-shadow: 0 16px 45px rgba(31,61,71,.09); }
+.page .card h1 { margin: 0; color: #203b46; font-size: 25px; font-weight: 780; letter-spacing: -.035em; }
+.page .card>p:not(.eyebrow) { margin: 10px 0 20px; color: #6e838a; font-size: 12px; line-height: 1.6; }
+.secondaryButton { display: inline-flex; min-height: 40px; align-items: center; padding: 0 13px; border-radius: 8px; color: #fff; background: #117a75; font-size: 12px; font-weight: 700; text-decoration: none; }
+@media (max-width: 480px) {
+  .shell { padding-top: 12px; padding-bottom: 20px; }
+  .page { padding: 16px; }
+  .page .card { padding: 23px 20px; }
+}

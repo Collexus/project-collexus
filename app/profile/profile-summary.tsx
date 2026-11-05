@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { ArrowLeft, ArrowRight, BadgeCheck, BriefcaseBusiness, Building2, GraduationCap, Heart, LoaderCircle, Mail, MapPin, Phone, Plus, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, BriefcaseBusiness, Building2, GraduationCap, Heart, LoaderCircle, Mail, MapPin, Plus, ShieldCheck, UserRound } from "lucide-react";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase-client";
 import { getUserProfile, type UserProfile } from "@/lib/user-profile";
@@ -91,6 +91,7 @@ export function ProfileSummary() {
     if (!supabase) {
       try {
         const stored = window.localStorage.getItem(localDraftKey);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate this client-only draft after mount to keep SSR markup deterministic.
         if (stored && active) setProfile(fromLocalDraft(JSON.parse(stored) as Record<string, unknown>));
       } catch {
         window.localStorage.removeItem(localDraftKey);
@@ -135,10 +136,10 @@ export function ProfileSummary() {
   const completion = Math.round((completedItems / completionItems.length) * 100);
 
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={basePath} /></a>
-        <a className={styles.backLink} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
+        <a className={styles.backLink} href={`${basePath}/#featured-events`}><span className={styles.backIcon}><ArrowLeft size={16} aria-hidden="true" /></span><span>Back to events</span></a>
       </header>
       <div className={styles.shell}>
         <article className={styles.profileCard}>

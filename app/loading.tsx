@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main className="site-route-loading" aria-label="Loading page" aria-busy="true" role="status">
+    <main id="main-content" tabIndex={-1} className="site-route-loading" aria-label="Loading page" aria-busy="true" role="status">
       <div className="site-route-loading-skeleton" aria-hidden="true">
         <span className="site-route-skeleton site-route-skeleton-kicker" />
         <span className="site-route-skeleton site-route-skeleton-title" />

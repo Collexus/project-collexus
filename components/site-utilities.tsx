@@ -13,7 +13,6 @@ export function SiteUtilities() {
   const pathname = usePathname();
   const navigationTimeoutRef = useRef<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cookieVisible, setCookieVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -31,10 +30,6 @@ export function SiteUtilities() {
   }, []);
 
   useEffect(() => {
-    const main = document.querySelector("main");
-    if (main && !main.id) main.id = "main-content";
-    if (main && !main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
-
     try {
       const current = new URL(window.location.href);
       const tracking = new URLSearchParams();
@@ -47,10 +42,6 @@ export function SiteUtilities() {
       });
       if (tracking.size) sessionStorage.setItem("collexus:tracking", tracking.toString());
     } catch { /* Storage can be disabled; navigation still works without attribution. */ }
-
-    try {
-      setCookieVisible(localStorage.getItem("collexus_notice_acknowledged") !== "yes");
-    } catch { setCookieVisible(true); }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -129,14 +120,9 @@ export function SiteUtilities() {
     }
   }
 
-  function dismissNotice() {
-    setCookieVisible(false);
-    try { localStorage.setItem("collexus_notice_acknowledged", "yes"); } catch { /* Dismiss for this visit. */ }
-  }
-
   return (
     <>
-      <a className="site-skip-link" href="#main-content" onClick={() => document.querySelector("main")?.focus({ preventScroll: true })}>Skip to content</a>
+      <a className="site-skip-link" href="#main-content" onClick={() => document.getElementById("main-content")?.focus({ preventScroll: true })}>Skip to content</a>
       <div className="site-navigation-progress" aria-hidden="true"><span /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
@@ -164,8 +150,6 @@ export function SiteUtilities() {
           <div className="site-menu-footer"><p><HelpCircle size={16} /> Need a quick reference? Open the FAQ or copy this page link to share it.</p><button className="site-copy-button" type="button" onClick={copyLink}>{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Link copied" : "Copy page link"}</button><small className="site-updated-date">Site updated 19 October 2026</small></div>
         </section>
       </div>}
-
-      {cookieVisible && <aside className="site-cookie-note" aria-label="Browser storage notice"><div><strong>Privacy note</strong><p>Collexus uses essential browser storage to remember local form drafts. Your display starts in day mode when you open the site. It does not use advertising cookies.</p></div><button type="button" onClick={dismissNotice} aria-label="Dismiss privacy notice">Got it</button></aside>}
     </>
   );
 }

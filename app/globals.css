@@ -4652,7 +4652,7 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 .site-menu-footer p svg{flex:none;margin-top:2px;color:#07878b}
 .site-copy-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 14px;border:1px solid #9abfc1;border-radius:11px;background:rgba(40,145,148,.08);color:#17666c;font-family:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer;transition:background .18s ease,transform .18s ease}
 .site-copy-button:hover{background:rgba(40,145,148,.16);transform:translateY(-1px)}
-.site-cookie-note{position:fixed;z-index:70;left:20px;bottom:20px;display:flex;align-items:center;gap:20px;width:min(540px,calc(100vw - 40px));padding:16px 17px;border:1px solid rgba(111,155,165,.34);border-radius:16px;background:rgba(247,250,249,.97);color:#29434c;box-shadow:0 12px 38px rgba(11,37,46,.18);backdrop-filter:blur(14px);animation:siteFadeIn .2s ease}
+.site-cookie-note{position:relative;display:flex;align-items:center;gap:20px;width:min(680px,calc(100% - 40px));margin:24px auto;padding:14px 16px;border:1px solid rgba(111,155,165,.34);border-radius:16px;background:rgba(247,250,249,.97);color:#29434c;box-shadow:0 8px 24px rgba(11,37,46,.1)}
 .site-cookie-note strong{font-size:13px}.site-cookie-note p{margin:4px 0 0;color:#5e727a;font-size:12px;line-height:1.5}
 .site-cookie-note button{flex:none;min-height:38px;padding:0 13px;border:0;border-radius:10px;background:#416a73;color:#fff;font-weight:700;cursor:pointer;transition:background .18s ease}
 .site-cookie-note button:hover{background:#2d5b65}
@@ -4679,7 +4679,7 @@ html:not([data-collexus-theme="light"]) .site-cookie-note{background:rgba(17,29,
 html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
 @keyframes siteFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes siteSlideIn{from{transform:translateX(18px);opacity:.8}to{transform:translateX(0);opacity:1}}
-@media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{left:10px;bottom:66px;width:calc(100vw - 20px);padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
+@media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{width:calc(100% - 28px);margin:18px auto;padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
 
 @media(max-width:640px){
   header#home>div{height:auto!important;min-height:68px;padding:9px 12px!important;gap:8px!important}
@@ -5152,3 +5152,8 @@ body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-la
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-control select{min-width:112px;max-width:160px;border:0;outline:0;background:transparent;color:#173b48;font:700 11px "Space Grotesk",sans-serif;cursor:pointer;appearance:none;padding:6px 14px 6px 0}
 body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-control> .lucide-icon{margin-left:-19px;pointer-events:none;font-size:14px;color:#087e83}
 @media(max-width:700px){body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-heading{align-items:flex-start;flex-direction:column}.category-sort-control{align-self:flex-start}}
+
+/* Keep featured carousel copy readable over its artwork inside the home hero. */
+body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] h2{color:#fff!important}
+body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] p:first-child{color:#9ff1e8!important}
+body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] p:last-child{color:rgba(244,252,255,.94)!important}

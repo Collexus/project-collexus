@@ -4,7 +4,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent, type KeyboardEve
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, Check,
-  ChevronDown, CircleUserRound, Compass, Heart, ImagePlus,
+  ChevronDown, CircleUserRound, Compass, ImagePlus,
   LoaderCircle, Plus, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase-client";
@@ -80,6 +80,7 @@ export function ProfileExperience() {
         const stored = window.localStorage.getItem(localDraftKey);
         if (stored) {
           const draft = JSON.parse(stored) as Record<string, unknown>;
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate this client-only draft after mount to keep SSR markup deterministic.
           if (typeof draft.full_name === "string") setName(draft.full_name);
           if (typeof draft.email === "string") setEmailAddress(draft.email);
           if (typeof draft.account_type === "string") setAccountType(draft.account_type);
@@ -454,10 +455,9 @@ export function ProfileExperience() {
   }
 
   const contactEmail = emailAddress || user?.email || "";
-  const displayName = name.trim() || user?.email?.split("@")[0] || "Your profile";
   const accountLabel = accountType === "guest" ? "Campus guest" : accountType === "faculty" ? "Faculty" : "Student";
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={basePath} />

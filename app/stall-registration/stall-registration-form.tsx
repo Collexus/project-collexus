@@ -274,7 +274,7 @@ export function StallRegistrationForm() {
   const selectedEventName = form.eventName === "Other / not listed" ? form.customEventName || form.eventName : form.eventName;
 
   return (
-    <main className={styles.page}>
+    <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={publicBasePath} /></a>
         <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={17} aria-hidden="true" /><span>Back to events</span></a>

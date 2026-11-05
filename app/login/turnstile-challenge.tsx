@@ -12,7 +12,7 @@ type TurnstileRenderOptions = {
   size: "flexible";
   callback: (token: string) => void;
   "expired-callback": () => void;
-  "error-callback": () => void;
+  "error-callback": (errorCode?: string) => void;
 };
 
 type TurnstileApi = {
@@ -57,6 +57,23 @@ export function TurnstileChallenge({
       return;
     }
 
+    const handleTurnstileError = (errorCode?: string) => {
+      onToken("");
+      if (errorCode === "110200") {
+        onError("This Turnstile key does not allow localhost. Add localhost to its Cloudflare Hostname Management list.");
+        return;
+      }
+      if (errorCode?.startsWith("300") || errorCode?.startsWith("600")) {
+        onError("Cloudflare could not complete this browser check (" + errorCode + "). Retry in a regular browser window, with extensions or VPN turned off, or on another network.");
+        return;
+      }
+      if (errorCode) {
+        onError("Cloudflare verification failed (" + errorCode + "). Check the widget hostnames and try again.");
+        return;
+      }
+      onError("Cloudflare security verification could not load. Check your connection and refresh the page.");
+    };
+
     let widgetId: string;
     try {
       widgetId = turnstile.render(container, {
@@ -72,10 +89,7 @@ export function TurnstileChallenge({
           onError("The security check expired. Complete it again.");
           if (widgetIdRef.current) turnstile.reset(widgetIdRef.current);
         },
-        "error-callback": () => {
-          onToken("");
-          onError("Cloudflare security verification could not load. Refresh the page and try again.");
-        },
+        "error-callback": handleTurnstileError,
       });
     } catch {
       onError("Cloudflare security verification could not start. Refresh the page and try again.");
@@ -83,6 +97,7 @@ export function TurnstileChallenge({
     }
 
     widgetIdRef.current = widgetId;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Reflect readiness after the imperative Turnstile widget mounts.
     setWidgetReady(true);
     onError("");
 

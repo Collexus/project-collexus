@@ -1,0 +1,30 @@
+.shell { width: min(620px, calc(100% - 32px)); }
+.card { width: 100%; }
+.brand { gap: 0; }
+.title { margin: 0; color: var(--ink); font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: clamp(25px, 3.5vw, 32px); font-weight: 700; line-height: 1.16; letter-spacing: -.04em; }
+.intro { max-width: 54ch; font-size: 13px; }
+.roleNotice { display: flex; align-items: flex-start; gap: 10px; margin: 15px 0 8px; padding: 12px 13px; border: 1px solid color-mix(in srgb, var(--teal) 24%, var(--line)); border-radius: 12px; color: var(--teal-dark); background: color-mix(in srgb, var(--teal-soft) 70%, var(--card)); }
+.roleNotice svg { flex: 0 0 auto; margin-top: 1px; }
+.roleNotice p { margin: 0; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.form { margin-top: 8px; }
+.form label { font-size: 13px; }
+.form label small { font-size: 11px; }
+.form button[aria-label="Show password"], .form button[aria-label="Hide password"] { width: 44px; height: 44px; }
+.footerNote { margin-top: 15px; font-size: 11px; }
+.standardLogin { margin: 11px 0 0; text-align: center; }
+.standardLogin a { display: inline-flex; min-height: 44px; align-items: center; padding-inline: 4px; color: var(--teal); font-size: 13px; font-weight: 700; text-decoration: none; }
+.standardLogin a:hover { color: var(--teal-dark); text-decoration: underline; }
+.footer { max-width: 620px; }
+
+.standardLogin a:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 55%, white); outline-offset: 3px; border-radius: 3px; }
+
+@media (max-width: 700px) {
+  .shell { width: min(520px, calc(100% - 28px)); }
+  .roleNotice { padding: 11px; }
+  .roleNotice p { font-size: 12px; }
+  .footer { width: min(520px, calc(100% - 28px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .standardLogin a { transition: none; }
+}

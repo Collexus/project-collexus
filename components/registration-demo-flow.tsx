@@ -42,7 +42,7 @@ async function compressPhoto(file: File) {
 
 function DemoFrame({ event, step, children }: { event: EventSummary; step: string; children: ReactNode }) {
   return (
-    <main className="details-page demo-page">
+    <main id="main-content" tabIndex={-1} className="details-page demo-page">
       <div className="details-topline">
         <Link href={`/events/${event.slug}`} className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link>
         <span className="record-label"><span className="demo-status-dot" /> NO-CHARGE DEMO</span>
@@ -323,7 +323,7 @@ export function DemoPaymentSuccess({ event }: { event: EventSummary }) {
   }, [event.slug]);
 
   return (
-    <main className="details-page demo-page">
+    <main id="main-content" tabIndex={-1} className="details-page demo-page">
       <section className="demo-card demo-success-card">
         {!ready ? <p className="demo-loading" role="status">Checking demo result…</p> : registration ? (
           <>

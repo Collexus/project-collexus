@@ -4,5 +4,6 @@ node_modules/
 .next/
 .next-pages/
 out/
+lib/generated/
 *.tsbuildinfo
 next-env.d.ts
