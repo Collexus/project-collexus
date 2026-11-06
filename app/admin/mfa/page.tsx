@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireRole } from "@/lib/auth";
 import { ApiError } from "@/lib/backend/errors";
 import { safeAdminDestination } from "@/lib/admin/auth-schemas";
+import { getAdminMfaFailureMessage } from "@/lib/admin/auth-diagnostics";
 import { AdminMfaPanel } from "./admin-mfa-panel";
 import styles from "./admin-mfa.module.css";
 
@@ -58,7 +59,7 @@ export default async function AdminMfaPage({ searchParams }: AdminMfaPageProps) 
         <section className={styles.card}>
           <p className={styles.eyebrow}>COLLEXUS ADMIN SECURITY</p>
           <h1>Verification is unavailable</h1>
-          <p>We could not confirm your administrator account. Check the server authentication and database configuration, then try again.</p>
+          <p>{getAdminMfaFailureMessage(error)}</p>
           <a className={styles.secondaryButton} href="/admin/login/">Return to admin sign in</a>
         </section>
       </main>
