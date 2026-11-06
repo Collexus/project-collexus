@@ -39,7 +39,7 @@ export function AdminMfaPanel({
   factors: AuthenticatorFactor[];
 }) {
   const router = useRouter();
-  const [factors] = useState(initialFactors);
+  const [factors, setFactors] = useState(initialFactors);
   const [factorId, setFactorId] = useState(initialFactors.find((factor) => factor.status === "verified")?.id ?? initialFactors[0]?.id ?? "");
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [code, setCode] = useState("");
@@ -85,6 +85,52 @@ export function AdminMfaPanel({
     }
   }, [initialFactors.length, startEnrollment]);
 
+  const hasVerifiedFactor = factors.some((factor) => factor.status === "verified");
+  const isSetup = !hasVerifiedFactor;
+  const needsNewEnrollment = factors.length === 0;
+  const canRestartEnrollment = isSetup && factors.some((factor) => factor.status === "unverified");
+
+  async function restartPendingEnrollment() {
+    if (!canRestartEnrollment || busy) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setError("Supabase Auth is not configured. Contact the project administrator.");
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    try {
+      const pendingFactors = factors.filter((item) => item.status === "unverified");
+      let remainingFactors = factors;
+      let selectedFactorId = factorId;
+
+      for (const factor of pendingFactors) {
+        const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        if (unenrollError) throw unenrollError;
+
+        remainingFactors = remainingFactors.filter((item) => item.id !== factor.id);
+        setFactors(remainingFactors);
+        if (selectedFactorId === factor.id) {
+          selectedFactorId = remainingFactors[0]?.id ?? "";
+          setFactorId(selectedFactorId);
+        }
+      }
+
+      setFactors(remainingFactors);
+      setFactorId("");
+      setCode("");
+      setEnrollment(null);
+      enrollmentStarted.current = false;
+      await startEnrollment();
+    } catch (restartError) {
+      setError(getMfaErrorMessage(restartError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function verify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -127,9 +173,6 @@ export function AdminMfaPanel({
     }
   }
 
-  const hasVerifiedFactor = factors.some((factor) => factor.status === "verified");
-  const isSetup = !hasVerifiedFactor;
-  const needsNewEnrollment = factors.length === 0;
   const qrImage = enrollment
     ? "data:image/svg+xml;utf-8," + encodeURIComponent(enrollment.qrCode)
     : "";
@@ -222,6 +265,20 @@ export function AdminMfaPanel({
                 <ArrowRight size={17} aria-hidden="true" />
               </button>
             </form>
+          )}
+
+          {canRestartEnrollment && (
+            <div className={styles.restartNotice}>
+              <p>If you no longer have the QR code from this pending setup, start again to get a new one.</p>
+              <button
+                className={styles.retryButton}
+                disabled={busy || loadingEnrollment}
+                onClick={() => void restartPendingEnrollment()}
+                type="button"
+              >
+                {busy ? "Preparing a new QR code…" : "Get a new QR code"}
+              </button>
+            </div>
           )}
 
           <p className={authStyles.roleNote + " " + styles.footerNote}>
