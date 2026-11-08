@@ -33,7 +33,8 @@ type StallForm = {
   phone: string;
   eventName: string;
   customEventName: string;
-  eventDate: string;
+  startDate: string;
+  endDate: string;
   stallName: string;
   stallType: string;
   stallSize: string;
@@ -44,7 +45,6 @@ type StallForm = {
   water: boolean;
   stallBox: boolean;
   setupNotes: string;
-  foodSafety: string;
   confirmed: boolean;
 };
 
@@ -52,9 +52,9 @@ export type StallContactProfile = Pick<StallForm, "contactName" | "role" | "orga
 export type StallProfileState = "signed-out" | "loaded" | "unavailable";
 
 const initialForm: StallForm = {
-  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", eventDate: "",
+  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", startDate: "", endDate: "",
   stallName: "", stallType: "", stallSize: "", locationPreference: "", teamSize: "",
-  sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", foodSafety: "", confirmed: false,
+  sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", confirmed: false,
 };
 
 type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
@@ -221,7 +221,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
       application: form,
       collexusPackage,
       menuItems: menuItems.filter((item) => item.name.trim()),
-      menuTemplateImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected image separately when sharing this request." } : null,
+      stallPosterImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected stall poster image separately when sharing this request." } : null,
       eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
     };
     const file = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -267,7 +267,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
         image,
         title: form.stallName || "Stall registration request",
         subtitle: `${form.stallType || "Stall request"}${form.stallSize ? ` · ${form.stallSize}` : ""}`,
-        date: form.eventDate,
+        date: [form.startDate, form.endDate].filter(Boolean).join(" – "),
         location: selectedEventName,
         people: eventPeople.map((person) => person.name.trim()).filter(Boolean),
       });
@@ -275,7 +275,6 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
     } catch { setDraftMessage("Your browser could not open the request summary. Download the request file instead."); }
   }
 
-  const isFood = form.stallType === "Food & beverages";
   const facilities = [form.power && "Power outlet", form.water && "Water access", form.stallBox && "Stall box / storage"].filter(Boolean);
   const selectedEventName = form.eventName === "Other / not listed" ? form.customEventName || form.eventName : form.eventName;
 
@@ -336,18 +335,18 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                 </div>
                 <label className={styles.field}><span>Campus event / market <b>*</b></span><select name="eventName" onChange={update("eventName")} required value={form.eventName}><option value="" disabled hidden>Select an event</option>{events.map((event) => <option key={event.slug} value={event.title}>{event.title}</option>)}<option>Open campus market</option><option>Other / not listed</option></select></label>
                 {form.eventName === "Other / not listed" && <label className={styles.field}><span>Event name <b>*</b></span><input name="customEventName" onChange={update("customEventName")} placeholder="Enter the event name" required value={form.customEventName} /></label>}
-                <label className={styles.field}><span>Preferred event date</span><input name="eventDate" onChange={update("eventDate")} type="date" value={form.eventDate} /></label>
+                <label className={styles.field}><span>Event start date</span><input name="startDate" onChange={update("startDate")} type="date" value={form.startDate} /></label>
+                <label className={styles.field}><span>Event end date</span><input name="endDate" min={form.startDate || undefined} onChange={update("endDate")} type="date" value={form.endDate} /></label>
                 <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option value="" disabled hidden>Select a stall type</option><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>The event team will confirm final stall dimensions and placement.</small></label>
                 <label className={styles.field}><span>Location preference <b>*</b></span><select name="locationPreference" onChange={update("locationPreference")} required value={form.locationPreference}><option value="" disabled hidden>Choose a preference</option><option>Indoor</option><option>Outdoor</option><option>No preference</option></select></label>
                 <label className={styles.field}><span>People staffing the stall <b>*</b></span><select name="teamSize" onChange={update("teamSize")} required value={form.teamSize}><option value="" disabled hidden>Select team size</option><option>1–2 people</option><option>3–4 people</option><option>5–6 people</option><option>7 or more</option></select></label>
                 <label className={styles.field}><span>Will you sell items?</span><select name="sellsProducts" onChange={update("sellsProducts")} value={form.sellsProducts}><option value="" disabled hidden>Select one</option><option>Yes, products or food</option><option>No, information or activities only</option></select></label>
-                {isFood && <label className={styles.field}><span>Food safety registration <b>*</b></span><select name="foodSafety" onChange={update("foodSafety")} required value={form.foodSafety}><option value="" disabled hidden>Select current status</option><option>Available to provide</option><option>In progress</option><option>Need guidance</option></select><small>The event team will confirm any venue requirements.</small></label>}
               </div>
             </section>
 
             <section className={styles.formSection} aria-labelledby="event-people-heading">
               <div className={styles.peopleSectionHeading}>
-                <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="event-people-heading">Event people registration</h2><p>Register each person representing your stall at the event.</p></div></div>
+                <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="event-people-heading">Event people registration</h2><p>Provide details for at least one person. You can add more people as needed.</p></div></div>
                 <button className={styles.addPersonButton} onClick={addEventPerson} type="button"><Plus size={15} aria-hidden="true" /> Add person</button>
               </div>
               <div className={styles.eventPeopleList}>
@@ -355,8 +354,8 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                   <div className={styles.eventPersonTop}><strong>Person {String(index + 1).padStart(2, "0")}</strong>{eventPeople.length > 1 && <button aria-label={`Remove person ${index + 1}`} className={styles.removePersonButton} onClick={() => removeEventPerson(person.id)} type="button"><Trash2 size={15} aria-hidden="true" /> Remove</button>}</div>
                   <div className={styles.eventPersonFields}>
                     <label className={styles.personPhoto}>
-                      {person.photoPreview ? <img src={person.photoPreview} alt={`Photo of ${person.name || `person ${index + 1}`}`} /> : <span className={styles.personPhotoPlaceholder}><ImagePlus size={20} aria-hidden="true" /><span>Person photo</span><small>Optional</small></span>}
-                      <input accept="image/*" aria-label={`Choose person ${index + 1} photo`} onChange={(event) => selectPersonPhoto(person.id, event)} type="file" />
+                      {person.photoPreview ? <img src={person.photoPreview} alt={`Photo of ${person.name || `person ${index + 1}`}`} /> : <span className={styles.personPhotoPlaceholder}><ImagePlus size={20} aria-hidden="true" /><span>Person photo *</span><small>Required</small></span>}
+                      <input accept="image/*" aria-label={`Choose required photo for person ${index + 1}`} onChange={(event) => selectPersonPhoto(person.id, event)} required type="file" />
                     </label>
                     <label className={styles.field}><span>Person name <b>*</b></span><input autoComplete="name" onChange={(event) => updateEventPerson(person.id, "name", event.currentTarget.value)} placeholder="Full name" required value={person.name} /></label>
                     <label className={styles.field}><span>Stall name <b>*</b></span><input onChange={(event) => updateEventPerson(person.id, "stallName", event.currentTarget.value)} placeholder="Stall or event name" required value={person.stallName || form.stallName} /></label>
@@ -364,7 +363,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                   </div>
                 </article>)}
               </div>
-              <p className={styles.peoplePrivacy}>Person photos stay on this device. Include the original photo files when sharing the downloaded request.</p>
+              <p className={styles.peoplePrivacy}>Add details and a photo for at least one person. You can add more people whenever you need.</p>
             </section>
 
             <section className={styles.formSection} aria-labelledby="setup-heading">
@@ -377,7 +376,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                   <label className={styles.facility}><input checked={form.stallBox} name="stallBox" onChange={update("stallBox")} type="checkbox" /><span><Store size={16} aria-hidden="true" /> Stall box / storage</span></label>
                 </div>
               </fieldset>
-              <label className={`${styles.imageUpload} ${styles.spanTwo}`}><span><ImagePlus size={18} aria-hidden="true" /><span><strong>Menu template image</strong><small>Optional · add a photo or menu design (JPG, PNG, or WebP).</small></span></span><input accept="image/*" name="menuTemplateImage" onChange={selectMenuTemplate} type="file" />{menuTemplateImage && <small>{menuTemplateImage.name}</small>}{menuTemplatePreview && <img className={styles.menuImagePreview} src={menuTemplatePreview} alt="Selected menu template preview" />}</label>
+              <label className={`${styles.imageUpload} ${styles.spanTwo}`}><span><ImagePlus size={18} aria-hidden="true" /><span><strong>Stall poster image *</strong><small>Required · upload a clear poster or image for your stall (JPG, PNG, or WebP).</small></span></span><input accept="image/*" name="stallPosterImage" onChange={selectMenuTemplate} required type="file" />{menuTemplateImage && <small>{menuTemplateImage.name}</small>}{menuTemplatePreview && <img className={styles.menuImagePreview} src={menuTemplatePreview} alt="Selected stall poster preview" />}</label>
               <label className={`${styles.field} ${styles.spanTwo}`}><span>Other setup notes</span><textarea maxLength={400} name="setupNotes" onChange={update("setupNotes")} placeholder="Accessibility needs, equipment details, or anything else the team should know." rows={3} value={form.setupNotes} /></label>
               <label className={styles.confirm}><input checked={form.confirmed} onChange={update("confirmed")} required type="checkbox" /><span>I confirm these details are accurate. I understand this is a request, and the event team will confirm space, requirements, and any fees.</span></label>
             </section>
