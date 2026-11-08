@@ -51,12 +51,16 @@ export type StallProfileState = "signed-out" | "loaded" | "unavailable";
 
 const initialForm: StallForm = {
   contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", startDate: "", endDate: "",
-  stallName: "", stallType: "", stallSize: "", locationPreference: "", teamSize: "",
+  stallName: "", stallType: "", stallSize: "Silver stall", locationPreference: "", teamSize: "",
   sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", confirmed: false,
 };
 
 type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
 const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
+const stallTypes = ["Silver stall", "Gold stall", "Platinum stall"] as const;
+function normalizeStallType(value: string | null | undefined) {
+  return stallTypes.includes(value as (typeof stallTypes)[number]) ? value as (typeof stallTypes)[number] : "Silver stall";
+}
 type EventPerson = { id: number; name: string; stallName: string; phone: string; photoFile: File | null; photoPreview: string };
 const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName: "", phone: "", photoFile: null, photoPreview: "" });
 function indianMobileDigits(value: string) {
@@ -89,7 +93,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
       const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
       const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
       void _menuTemplateImageName;
-      setForm({ ...initialForm, ...savedForm, ...contactProfile });
+      setForm({ ...initialForm, ...savedForm, ...contactProfile, stallSize: normalizeStallType(savedForm.stallSize) });
       if (savedPackage) setCollexusPackage(savedPackage);
       setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
       const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
@@ -118,10 +122,12 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
     const listingName = params.get("listingName") ?? "";
+    const stallType = params.get("stallType");
     const animation = window.requestAnimationFrame(() => {
       if (plan === "normal" || plan === "pro") restoreDraft();
       setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
       if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
+      if (stallType) setForm((current) => ({ ...current, stallSize: normalizeStallType(stallType) }));
     });
     return () => window.cancelAnimationFrame(animation);
   }, [restoreDraft]);
@@ -238,7 +244,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
 
   function continueToHostPayment() {
     saveDraft();
-    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim() });
+    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim(), stallType: normalizeStallType(form.stallSize) });
     router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
@@ -304,7 +310,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                 {form.eventName === "Other / not listed" && <label className={styles.field}><span>Event name <b>*</b></span><input name="customEventName" onChange={update("customEventName")} placeholder="Enter the event name" required value={form.customEventName} /></label>}
                 <label className={styles.field}><span>Event start date</span><input name="startDate" onChange={update("startDate")} type="date" value={form.startDate} /></label>
                 <label className={styles.field}><span>Event end date</span><input name="endDate" min={form.startDate || undefined} onChange={update("endDate")} type="date" value={form.endDate} /></label>
-                <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option value="" disabled hidden>Select a stall type</option><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>The event team will confirm final stall dimensions and placement.</small></label>
+                <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>Silver is selected by default when the event organizer has not specified a stall type. The team will confirm final dimensions and placement.</small></label>
                 <label className={styles.field}><span>Location preference <b>*</b></span><select name="locationPreference" onChange={update("locationPreference")} required value={form.locationPreference}><option value="" disabled hidden>Choose a preference</option><option>Indoor</option><option>Outdoor</option><option>No preference</option></select></label>
                 <label className={styles.field}><span>People staffing the stall <b>*</b></span><select name="teamSize" onChange={update("teamSize")} required value={form.teamSize}><option value="" disabled hidden>Select team size</option><option>1–2 people</option><option>3–4 people</option><option>5–6 people</option><option>7 or more</option></select></label>
                 <label className={styles.field}><span>Will you sell items?</span><select name="sellsProducts" onChange={update("sellsProducts")} value={form.sellsProducts}><option value="" disabled hidden>Select one</option><option>Yes, products or food</option><option>No, information or activities only</option></select></label>
