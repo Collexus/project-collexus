@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { nanoid } from "nanoid";
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,7 +19,6 @@ import {
 import styles from "./stall-registration.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { events } from "@/data/events";
-import { storeConfirmation } from "@/lib/confirmation";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftKey = "collexus-stall-request-v1";
@@ -61,6 +59,10 @@ type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
 const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
 type EventPerson = { id: number; name: string; stallName: string; phone: string; photoFile: File | null; photoPreview: string };
 const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName: "", phone: "", photoFile: null, photoPreview: "" });
+function indianMobileDigits(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return (digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits).slice(0, 10);
+}
 type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
 export function StallRegistrationForm({ contactProfile, profileState }: { contactProfile: StallContactProfile | null; profileState: StallProfileState }) {
@@ -91,7 +93,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
       if (savedPackage) setCollexusPackage(savedPackage);
       setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
       const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
-      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: person.phone ?? "" }));
+      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: indianMobileDigits(person.phone ?? "") }));
       setEventPeople(people.length ? people : [blankEventPerson(1)]);
       nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
       setMenuTemplateImage(null);
@@ -222,7 +224,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
       collexusPackage,
       menuItems: menuItems.filter((item) => item.name.trim()),
       stallPosterImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected stall poster image separately when sharing this request." } : null,
-      eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
+      eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone: `+91${phone}`, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
     };
     const file = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(file);
@@ -238,41 +240,6 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
     saveDraft();
     const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim() });
     router.push(`${publicBasePath}/host/?${params.toString()}`);
-  }
-
-  async function openRequestConfirmation() {
-    let image = "";
-    const photo = eventPeople.find((person) => person.photoFile)?.photoFile;
-    if (photo) {
-      try {
-        const bitmap = await createImageBitmap(photo);
-        const scale = Math.min(1, 320 / Math.max(bitmap.width, bitmap.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-        canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        bitmap.close();
-        image = canvas.toDataURL("image/jpeg", 0.76);
-      } catch { image = ""; }
-    }
-    try {
-      storeConfirmation({
-        kind: "stall",
-        status: "request-ready",
-        reference: `CX-${nanoid(12).toUpperCase()}`,
-        createdAt: new Date().toISOString(),
-        name: form.contactName,
-        email: form.email,
-        phone: form.phone,
-        image,
-        title: form.stallName || "Stall registration request",
-        subtitle: `${form.stallType || "Stall request"}${form.stallSize ? ` · ${form.stallSize}` : ""}`,
-        date: [form.startDate, form.endDate].filter(Boolean).join(" – "),
-        location: selectedEventName,
-        people: eventPeople.map((person) => person.name.trim()).filter(Boolean),
-      });
-      router.push("/confirmation/");
-    } catch { setDraftMessage("Your browser could not open the request summary. Download the request file instead."); }
   }
 
   const facilities = [form.power && "Power outlet", form.water && "Water access", form.stallBox && "Stall box / storage"].filter(Boolean);
@@ -359,7 +326,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
                     </label>
                     <label className={styles.field}><span>Person name <b>*</b></span><input autoComplete="name" onChange={(event) => updateEventPerson(person.id, "name", event.currentTarget.value)} placeholder="Full name" required value={person.name} /></label>
                     <label className={styles.field}><span>Stall name <b>*</b></span><input onChange={(event) => updateEventPerson(person.id, "stallName", event.currentTarget.value)} placeholder="Stall or event name" required value={person.stallName || form.stallName} /></label>
-                    <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" inputMode="tel" onChange={(event) => updateEventPerson(person.id, "phone", event.currentTarget.value)} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={person.phone} /></label>
+                    <label className={styles.field}><span>Phone number (+91) <b>*</b></span><span className={styles.phoneNumber}><span aria-hidden="true">+91</span><input aria-label={`10 digit Indian mobile number for person ${index + 1}`} autoComplete="tel-national" inputMode="numeric" maxLength={10} minLength={10} onChange={(event) => updateEventPerson(person.id, "phone", indianMobileDigits(event.currentTarget.value))} pattern="[6-9][0-9]{9}" placeholder="98765 43210" required type="tel" value={person.phone} /></span><small>Enter a valid 10 digit Indian mobile number.</small></label>
                   </div>
                 </article>)}
               </div>
@@ -393,7 +360,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
           <aside className={styles.sidebar} aria-label="Stall request preview">
             <section id="stall-request-summary" className={styles.summary} tabIndex={-1}>
               <div className={styles.summaryTop}><span>REQUEST PREVIEW</span><span className={styles.draft}><i /> DRAFT</span></div>
-              <div className={styles.summaryArt}><img src={`${publicBasePath}/images/stall-registration-illustration.webp`} alt="Two students at a teal and cream campus market stall" width="1536" height="1024" /></div>
+              <div className={styles.summaryArt}><img src={menuTemplatePreview || `${publicBasePath}/images/stall-registration-illustration.webp`} alt={menuTemplateImage ? "Live preview of the selected stall poster image" : "Example campus market stall"} width="1536" height="1024" /></div>
               <div className={styles.summaryBody}>
                 <span className={styles.category}>{form.stallType || "STALL CATEGORY"}</span>
                 <h2>{form.stallName || "Your stall name"}</h2>
@@ -411,7 +378,6 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
             <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Review the details, then download the request file and share it with your event team. This page cannot reserve a stall.</p></div></div>
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.primaryButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight size={18} aria-hidden="true" /></button>}
-            {reviewed && <button className={styles.secondaryButton} onClick={openRequestConfirmation} type="button"><CheckCircle2 size={17} aria-hidden="true" /> View request summary <ArrowRight size={16} aria-hidden="true" /></button>}
             <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
           </aside>
         </div>
