@@ -50,14 +50,14 @@ const messages: Record<string, { tone: "success" | "error"; text: string }> = {
   "staff-assignment-updated": { tone: "success", text: "The event staff assignment was updated and recorded." },
 };
 
-function AdminAccessMessage({ title, children }: { title: string; children: ReactNode }) {
+function AdminAccessMessage({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <main id="main-content" tabIndex={-1} className={styles.accessPage}>
       <section className={styles.accessCard}>
         <span className={styles.brandMark}><ShieldCheck size={22} aria-hidden="true" /></span>
         <p className={styles.eyebrow}>COLLEXUS ADMIN</p>
         <h1>{title}</h1>
-        <p>{children}</p>
+        {children ? <p>{children}</p> : null}
         <Link className={styles.backHome} href="/"><ArrowLeft size={16} aria-hidden="true" /> Back to Collexus</Link>
       </section>
     </main>
@@ -122,7 +122,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     if (error instanceof ApiError && error.status === 401) redirect("/admin/login/?next=%2Fadmin%2F");
     if (error instanceof ApiError && error.code === "MFA_REQUIRED") redirect("/admin/mfa/?next=%2Fadmin%2F");
     if (error instanceof ApiError && error.status === 403) {
-      return <AdminAccessMessage title="Administrator access required">This workspace is restricted to accounts with an explicitly assigned administrator role.</AdminAccessMessage>;
+      return <AdminAccessMessage title="There is no access" />;
     }
     return <AdminAccessMessage title="The admin workspace is unavailable">Check the server authentication and database configuration, then reload this page.</AdminAccessMessage>;
   }
