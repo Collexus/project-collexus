@@ -8,12 +8,14 @@ import {
   ClipboardCheck, FileClock, Landmark, ShieldCheck, UsersRound,
 } from "lucide-react";
 import { changeAccountRole, changeStaffEventAssignment, reviewEventSubmission } from "@/app/admin/actions";
-import { formatAdminDate, getAdminDashboardData, roleLabels } from "@/lib/admin/data";
+import { formatAdminDate, formatAdminDateTime, getAdminDashboardData, roleLabels } from "@/lib/admin/data";
 import { adminManageableRoles } from "@/lib/admin/schemas";
 import { requireRole } from "@/lib/auth";
 import { ApiError } from "@/lib/backend/errors";
 import { events } from "@/data/events";
 import styles from "./admin.module.css";
+import { AdminFlashToast } from "./admin-flash-toast";
+import { AdminSignOutButton } from "./admin-sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -177,11 +179,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <section className={styles.mainColumn}>
           <header className={styles.topbar}>
             <div><span className={styles.breadcrumb}>Workspace <span>/</span> Overview</span><p>Signed in as <strong>{adminUser.email ?? "administrator"}</strong></p></div>
-            <div className={styles.secureBadge}><ShieldCheck size={16} aria-hidden="true" /> Admin session</div>
+            <div className={styles.topbarActions}>
+              <div className={styles.secureBadge}><ShieldCheck size={16} aria-hidden="true" /> Admin session</div>
+              <AdminSignOutButton />
+            </div>
           </header>
 
           <div className={styles.content}>
-            {message && <p className={`${styles.notice} ${message.tone === "error" ? styles.noticeError : styles.noticeSuccess}`} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p>}
+              {message && <AdminFlashToast message={message.text} tone={message.tone} />}
 
             <section id="overview" className={styles.hero}>
               <div>
@@ -321,7 +326,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   <article className={styles.auditRow} key={entry.id}>
                     <span className={styles.auditIcon}><Activity size={16} aria-hidden="true" /></span>
                     <div><strong>{entry.action.replaceAll("_", " ").replaceAll(".", " · ")}</strong><p>{entry.actorName} <span>·</span> {entry.resourceType.replaceAll("_", " ")}{entry.resourceId ? ` · ${shortId(entry.resourceId)}` : ""}</p></div>
-                    <time dateTime={entry.createdAt.toISOString()}>{formatAdminDate(entry.createdAt)}</time>
+                      <time dateTime={entry.createdAt.toISOString()}>{formatAdminDateTime(entry.createdAt)}</time>
                   </article>
                 ))}
               </div>
