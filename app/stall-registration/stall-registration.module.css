@@ -120,6 +120,7 @@
 .field > span { line-height: 1.4; }
 .field b { color: #ce5b52; font-weight: 800; }
 .field input, .field select, .field textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 47px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--ink); background: var(--field); font: inherit; font-size: 13px; font-weight: 450; transition: border-color .16s ease, box-shadow .16s ease, background .16s ease; }
+.field input[readonly], .field select:disabled { color: var(--ink); background: var(--surface-soft); cursor: not-allowed; opacity: 1; }
 .field select { appearance: none; padding-right: 39px; cursor: pointer; color-scheme: light; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23087e83' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; }
 :global(html:not([data-collexus-theme="light"])) .field select { color-scheme: dark; }
 .field select option { color: var(--ink); background: var(--surface); }
@@ -127,6 +128,8 @@
 .field input::placeholder, .field textarea::placeholder { color: color-mix(in srgb, var(--muted) 74%, transparent); }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
 .field small, .counter { color: var(--muted); font-size: 10px; font-weight: 450; line-height: 1.45; }
+.contactProfileNote { margin: 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); border-radius: 10px; color: var(--muted); background: color-mix(in srgb, var(--accent-soft) 54%, var(--surface)); font-size: 10px; font-weight: 500; line-height: 1.5; }
+.contactProfileNote a { margin-left: 4px; color: var(--accent-strong); font-weight: 750; }
 .counter { align-self: flex-end; margin-top: -2px; }
 .spanTwo { grid-column: span 2; }
 
@@ -174,6 +177,7 @@
 .primaryButton, .secondaryButton, .downloadButton { display: inline-flex; min-height: 45px; align-items: center; justify-content: center; gap: 8px; padding: 0 15px; border: 1px solid var(--line); border-radius: 11px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 750; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease; }
 .primaryButton, .downloadButton { border-color: var(--accent); color: #fff; background: linear-gradient(120deg, #087e83, #137f9d); box-shadow: 0 4px 12px rgba(8, 126, 131, .14); }
 .primaryButton:hover, .downloadButton:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(8, 126, 131, .18); }
+.primaryButton:disabled { cursor: not-allowed; opacity: .55; transform: none; box-shadow: none; }
 .secondaryButton { color: var(--accent-strong); background: var(--surface); }
 .secondaryButton:hover { border-color: var(--accent); background: var(--accent-soft); }
 .primaryButton:focus-visible, .secondaryButton:focus-visible, .downloadButton:focus-visible, .backLink:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 56%, white); outline-offset: 3px; }

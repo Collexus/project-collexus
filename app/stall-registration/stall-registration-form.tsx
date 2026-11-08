@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import {
@@ -48,6 +48,9 @@ type StallForm = {
   confirmed: boolean;
 };
 
+export type StallContactProfile = Pick<StallForm, "contactName" | "role" | "organization" | "email" | "phone">;
+export type StallProfileState = "signed-out" | "loaded" | "unavailable";
+
 const initialForm: StallForm = {
   contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", eventDate: "",
   stallName: "", stallType: "", stallSize: "", locationPreference: "", teamSize: "",
@@ -60,9 +63,10 @@ type EventPerson = { id: number; name: string; stallName: string; phone: string;
 const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName: "", phone: "", photoFile: null, photoPreview: "" });
 type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
-export function StallRegistrationForm() {
+export function StallRegistrationForm({ contactProfile, profileState }: { contactProfile: StallContactProfile | null; profileState: StallProfileState }) {
   const router = useRouter();
-  const [form, setForm] = useState<StallForm>(initialForm);
+  const [form, setForm] = useState<StallForm>(() => ({ ...initialForm, ...contactProfile }));
+  const hasCompleteContact = Boolean(contactProfile?.contactName && contactProfile.role && contactProfile.organization && contactProfile.email && contactProfile.phone);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
   const [eventPeople, setEventPeople] = useState<EventPerson[]>([blankEventPerson(1)]);
   const nextPersonId = useRef(2);
@@ -72,6 +76,32 @@ export function StallRegistrationForm() {
   const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [], listingName: "" });
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
+
+  const restoreDraft = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (!saved) {
+        setDraftMessage("No saved stall request was found on this device.");
+        return;
+      }
+      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
+      const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
+      void _menuTemplateImageName;
+      setForm({ ...initialForm, ...savedForm, ...contactProfile });
+      if (savedPackage) setCollexusPackage(savedPackage);
+      setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
+      const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
+      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: person.phone ?? "" }));
+      setEventPeople(people.length ? people : [blankEventPerson(1)]);
+      nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
+      setMenuTemplateImage(null);
+      setMenuTemplatePreview("");
+      setReviewed(false);
+      setDraftMessage("Saved draft restored.");
+    } catch {
+      setDraftMessage("The saved draft could not be read. It may have been cleared by the browser.");
+    }
+  }, [contactProfile]);
 
   useEffect(() => () => {
     if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
@@ -92,10 +122,11 @@ export function StallRegistrationForm() {
       if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
     });
     return () => window.cancelAnimationFrame(animation);
-  }, []);
+  }, [restoreDraft]);
 
   function update<K extends keyof StallForm>(key: K) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      if (["contactName", "role", "organization", "email", "phone"].includes(key)) return;
       const input = event.currentTarget;
       const value = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
       setForm((current) => ({ ...current, [key]: value }));
@@ -174,36 +205,11 @@ export function StallRegistrationForm() {
 
   function saveDraft() {
     try {
-      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, eventPeople: eventPeople.map((person) => ({ id: person.id, name: person.name, stallName: person.stallName || form.stallName, phone: person.phone, photoFileName: person.photoFile?.name ?? "" })), menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
+      const draftForm = { ...form, contactName: undefined, role: undefined, organization: undefined, email: undefined, phone: undefined };
+      localStorage.setItem(draftKey, JSON.stringify({ ...draftForm, menuItems, eventPeople: eventPeople.map((person) => ({ id: person.id, name: person.name, stallName: person.stallName || form.stallName, phone: person.phone, photoFileName: person.photoFile?.name ?? "" })), menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
       setDraftMessage("Draft saved on this device.");
     } catch {
       setDraftMessage("This browser could not save the draft. You can still download a request after reviewing it.");
-    }
-  }
-
-  function restoreDraft() {
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (!saved) {
-        setDraftMessage("No saved stall request was found on this device.");
-        return;
-      }
-      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
-      const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
-      void _menuTemplateImageName;
-      setForm({ ...initialForm, ...savedForm });
-      if (savedPackage) setCollexusPackage(savedPackage);
-      setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
-      const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
-      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: person.phone ?? "" }));
-      setEventPeople(people.length ? people : [blankEventPerson(1)]);
-      nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
-      setMenuTemplateImage(null);
-      setMenuTemplatePreview("");
-      setReviewed(false);
-      setDraftMessage("Saved draft restored.");
-    } catch {
-      setDraftMessage("The saved draft could not be read. It may have been cleared by the browser.");
     }
   }
 
@@ -300,11 +306,14 @@ export function StallRegistrationForm() {
             <section className={styles.formSection} aria-labelledby="contact-heading">
               <div className={styles.sectionHeading}><span className={styles.step}>01</span><div><h2 id="contact-heading">Your details</h2><p>Who should the event team contact?</p></div></div>
               <div className={styles.fields}>
-                <label className={`${styles.field} ${styles.spanTwo}`}><span>Contact person <b>*</b></span><input autoComplete="name" name="contactName" onChange={update("contactName")} placeholder="e.g. Ananya Rao" required value={form.contactName} /></label>
-                <label className={styles.field}><span>Your role <b>*</b></span><select name="role" onChange={update("role")} required value={form.role}><option value="" disabled hidden>Select a role</option><option>Student or student team</option><option>Club or society</option><option>College department</option><option>Alumni</option><option>External vendor</option></select></label>
-                <label className={styles.field}><span>Institution / group <b>*</b></span><input autoComplete="organization" name="organization" onChange={update("organization")} placeholder="College, club, or business name" required value={form.organization} /></label>
-                <label className={styles.field}><span>Email address <b>*</b></span><input autoComplete="email" name="email" onChange={update("email")} placeholder="you@college.edu" required type="email" value={form.email} /></label>
-                <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" inputMode="tel" name="phone" onChange={update("phone")} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={form.phone} /></label>
+                <p className={`${styles.contactProfileNote} ${styles.spanTwo}`}>
+                  {profileState === "signed-out" ? <>Sign in to fill these details from your Collexus profile. <a href={`${publicBasePath}/login/?next=%2Fstall-registration%2F`}>Sign in</a></> : profileState === "unavailable" ? "Your profile details could not be loaded. Refresh the page and try again." : hasCompleteContact ? "These details are filled from your Collexus profile and are read-only." : "Some required contact details are missing from your profile. Complete your profile before continuing."}
+                </p>
+                <label className={`${styles.field} ${styles.spanTwo}`}><span>Contact person <b>*</b></span><input autoComplete="name" aria-readonly="true" name="contactName" placeholder="Not set in profile" readOnly required value={form.contactName} /></label>
+                <label className={styles.field}><span>Your role <b>*</b></span><select aria-disabled="true" disabled name="role" required value={form.role}><option value="" disabled hidden>{profileState === "signed-out" ? "Sign in to load profile" : "Not set in profile"}</option><option>Student or student team</option><option>Club or society</option><option>College department</option><option>Alumni</option><option>External vendor</option></select></label>
+                <label className={styles.field}><span>Institution / group <b>*</b></span><input autoComplete="organization" aria-readonly="true" name="organization" placeholder="Not set in profile" readOnly required value={form.organization} /></label>
+                <label className={styles.field}><span>Email address <b>*</b></span><input autoComplete="email" aria-readonly="true" name="email" placeholder="Not set in profile" readOnly required type="email" value={form.email} /></label>
+                <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" aria-readonly="true" inputMode="tel" name="phone" pattern="[+0-9() .-]{7,20}" placeholder="Not set in profile" readOnly required type="tel" value={form.phone} /></label>
               </div>
             </section>
 
@@ -374,7 +383,7 @@ export function StallRegistrationForm() {
             </section>
 
             <div className={styles.actions}>
-              <button className={styles.primaryButton} type="submit">Review stall request <ArrowRight size={18} aria-hidden="true" /></button>
+              <button className={styles.primaryButton} disabled={!hasCompleteContact} type="submit">Review stall request <ArrowRight size={18} aria-hidden="true" /></button>
               <button className={styles.secondaryButton} onClick={saveDraft} type="button">Save draft on this device</button>
               <button className={styles.secondaryButton} onClick={restoreDraft} type="button">Restore saved draft</button>
               <p>Your form stays in this browser. Nothing is sent to a server from this page.</p>
