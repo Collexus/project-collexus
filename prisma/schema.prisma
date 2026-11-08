@@ -101,3 +101,44 @@ model AdminAuditLog {
   @@map("admin_audit_logs")
   @@schema("public")
 }
+
+model HostStallOrder {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  listingName String   @map("listing_name") @db.VarChar(160)
+  stallType   String   @map("stall_type") @db.VarChar(32)
+  plan        String   @db.VarChar(16)
+  addOns      Json     @default("[]") @map("add_ons")
+  amountPaise Int      @map("amount_paise")
+  currency    String   @default("INR") @db.Char(3)
+  status      String   @default("pending_payment") @db.VarChar(24)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc)], map: "host_stall_orders_user_created_idx")
+  @@map("host_stall_orders")
+  @@schema("public")
+}
+
+model Payment {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  purchaseType          String    @map("purchase_type") @db.VarChar(32)
+  purchaseId            String    @map("purchase_id") @db.Uuid
+  amountPaise           Int       @map("amount_paise")
+  currency              String    @default("INR") @db.Char(3)
+  status                String    @default("created") @db.VarChar(24)
+  razorpayOrderId       String?   @unique @map("razorpay_order_id") @db.VarChar(64)
+  razorpayPaymentId     String?   @map("razorpay_payment_id") @db.VarChar(64)
+  idempotencyKey        String    @map("idempotency_key") @db.Uuid
+  requestHash           String    @map("request_hash") @db.Char(64)
+  orderCreationStartedAt DateTime? @map("order_creation_started_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, idempotencyKey], map: "payments_user_idempotency_key")
+  @@index([purchaseType, purchaseId], map: "payments_purchase_idx")
+  @@index([status, createdAt(sort: Desc)], map: "payments_status_created_idx")
+  @@map("payments")
+  @@schema("public")
+}

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import styles from "./host.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
+import { HostStallPayment } from "./host-stall-payment";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const stallPrices = { "Silver stall": 1000, "Gold stall": 1500, "Platinum stall": 2000 } as const;
@@ -159,8 +160,8 @@ export default function HostWithCollexusPage() {
             <div className={styles.orderAddOns}><span>Add-ons</span>{selectedAddOns.length ? addOns.filter(({ id }) => selectedAddOns.includes(id)).map((item) => <div className={styles.orderLine} key={item.id}><span>{item.title}</span><strong>{item.price}</strong></div>) : <small>No add-ons selected</small>}</div>
             <div className={styles.orderLine}><span>{requestType === "stall" ? selectedPlan === "pro" ? "Subtotal · stall, Pro & add-ons" : "Subtotal · stall & add-ons" : "Subtotal · add-ons"}</span><strong>₹{orderSubtotal.toLocaleString("en-IN")}</strong></div>
             <div className={styles.orderTotal}><span>Total payable</span><strong>₹{orderSubtotal.toLocaleString("en-IN")} {requestType === "stall" ? selectedPlan ? null : <small>select a plan</small> : <small>+ plan quote</small>}</strong></div>
-            <small className={styles.checkoutNote}>Your plan price is confirmed with the team before payment. This step won’t charge you.</small>
-            {selectedPlan && requestType && listingName.trim() ? <Link className={styles.checkoutButton} href={requestHref(checkoutPath, selectedPlan)}>Continue to checkout <ArrowRight size={17} aria-hidden="true" /></Link> : <button className={styles.checkoutButton} disabled type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>}
+            <small className={styles.checkoutNote}>{requestType === "stall" ? "The amount shown is calculated on the server. Razorpay verifies the payment before confirming your order." : "Your event plan price will be confirmed with the team."}</small>
+            {selectedPlan && requestType === "stall" && listingName.trim() ? <HostStallPayment listingName={listingName.trim()} stallType={stallType} plan={selectedPlan} addOns={selectedAddOns} /> : selectedPlan && requestType === "event" && listingName.trim() ? <Link className={styles.checkoutButton} href={requestHref(checkoutPath, selectedPlan)}>Continue to checkout <ArrowRight size={17} aria-hidden="true" /></Link> : <button className={styles.checkoutButton} disabled type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>}
           </div>
         </section>
 
