@@ -29,8 +29,9 @@ export const eventSubmissionSchema = z.object({
     // Existing submissions predate the duration field; normalize them for admin reads.
     if (!value || typeof value !== "object" || Array.isArray(value)) return value;
     const record = value as Record<string, unknown>;
+    if (record.duration === "under_8_hours") return { ...record, duration: "under_6_hours" };
     if ("duration" in record) return value;
-    return { ...record, duration: "under_8_hours", customDurationHours: null };
+    return { ...record, duration: "under_6_hours", customDurationHours: null };
   }, z.object({
     name: z.string().trim().min(1).max(160),
     category: z.enum(["Hackathon", "Workshop", "Project expo", "Cultural event", "Sports & outdoors", "Career & internship", "Branch event", "Other"]),
@@ -47,7 +48,7 @@ export const eventSubmissionSchema = z.object({
       const [hours, minutes] = value.split(":").map(Number);
       return hours <= 23 && minutes <= 59;
     }, "Enter a valid time."),
-    duration: z.enum(["under_8_hours", "8_hours", "12_hours", "24_hours", "custom"]),
+    duration: z.enum(["under_6_hours", "8_hours", "12_hours", "16_hours", "20_hours", "24_hours", "custom"]),
     customDurationHours: z.number().min(1).max(168).nullable(),
     mode: z.enum(["In person", "Online", "Hybrid"]),
     venue: z.string().trim().min(1).max(240),

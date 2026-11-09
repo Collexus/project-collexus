@@ -80,9 +80,11 @@ function isSavedForm(value: unknown): value is FormState {
   // Accept drafts saved before the duration field was added.
   if (candidate.duration === undefined) candidate.duration = "";
   if (candidate.customDurationHours === undefined) candidate.customDurationHours = "";
+  if (candidate.duration === "under_8_hours") candidate.duration = "under_6_hours";
   const keys = Object.keys(initialForm);
   if (Object.keys(candidate).length !== keys.length || keys.some((key) => typeof candidate[key] !== "string")) return false;
   if (candidate.pricing !== "free" && candidate.pricing !== "paid") return false;
+  if (candidate.duration && !["under_6_hours", "8_hours", "12_hours", "16_hours", "20_hours", "24_hours", "custom"].includes(candidate.duration as string)) return false;
   if (candidate.expectedParticipants && (!/^\d+$/.test(candidate.expectedParticipants as string) || Number(candidate.expectedParticipants) < 1 || Number(candidate.expectedParticipants) > 100000)) return false;
   if (candidate.price && (!/^\d+(\.\d{1,2})?$/.test(candidate.price as string) || Number(candidate.price) < 1)) return false;
   if (candidate.customDurationHours && (!/^\d+(\.\d{1,2})?$/.test(candidate.customDurationHours as string) || Number(candidate.customDurationHours) < 1 || Number(candidate.customDurationHours) > 168)) return false;
@@ -340,7 +342,7 @@ export function HostEventForm() {
   const selectedAudience = fieldTitles[form.batch] ?? "Choose an audience";
   const durationLabel = form.duration === "custom" && form.customDurationHours
     ? `${form.customDurationHours} hours`
-    : ({ under_8_hours: "Less than 8 hours", "8_hours": "8 hours", "12_hours": "12 hours", "24_hours": "24 hours" } as Record<string, string>)[form.duration] ?? "Choose an event duration";
+    : ({ under_6_hours: "Less than 6 hours", "8_hours": "8 hours", "12_hours": "12 hours", "16_hours": "16 hours", "20_hours": "20 hours", "24_hours": "24 hours" } as Record<string, string>)[form.duration] ?? "Choose an event duration";
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.page}>
@@ -473,9 +475,11 @@ export function HostEventForm() {
                   <span>Event duration <b aria-hidden="true">*</b></span>
                   <select name="duration" onChange={update("duration")} required value={form.duration}>
                     <option value="" disabled hidden>Select event duration</option>
-                    <option value="under_8_hours">Less than 8 hours</option>
+                    <option value="under_6_hours">Less than 6 hours</option>
                     <option value="8_hours">8 hours</option>
                     <option value="12_hours">12 hours</option>
+                    <option value="16_hours">16 hours</option>
+                    <option value="20_hours">20 hours</option>
                     <option value="24_hours">24 hours</option>
                     <option value="custom">Custom</option>
                   </select>
