@@ -25,24 +25,12 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase-client";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 type EventStatus = "Ongoing" | "Registered" | "Closed";
-type OrderStatus = "Completed" | "Failed" | "Refunded";
+type OrderStatus = "Completed" | "Failed" | "Refunded" | "Pending";
 type EventPreview = { title: string; organizer: string; date: string; category: string; image: string; status: EventStatus };
 type OrderPreview = { title: string; event: string; date: string; price: string; status: OrderStatus; reference: string };
 
-const events: EventPreview[] = [
-  { title: "HackIndia AI CyberTech 2026", organizer: "HackIndia · Kanpur Institute of Technology", date: "Oct 28, 2026", category: "Hackathon", image: "/assets/event-posters/ai-cyber.jpg", status: "Registered" },
-  { title: "Neural Storm 2026", organizer: "JNTUH Student Organizers", date: "Nov 2–4, 2026", category: "AI · Hackathon", image: "/assets/event-art/hackathon.webp", status: "Ongoing" },
-  { title: "Kreya ’26 Cultural Fest", organizer: "Ramachandra College of Engineering", date: "May 2026", category: "Cultural", image: "/assets/kreya-26-cultural-fest.webp", status: "Closed" },
-];
-
-const orders: OrderPreview[] = [
-  { title: "Chicken Biryani", event: "Kreya ’26 · Fest stall", date: "May 16, 2026", price: "₹160", status: "Completed", reference: "DEMO-ORD-1048" },
-  { title: "Ice Cream", event: "Kreya ’26 · Fest stall", date: "May 16, 2026", price: "₹60", status: "Failed", reference: "DEMO-ORD-1049" },
-  { title: "Shawarma Roll", event: "Kreya ’26 · Fest stall", date: "May 16, 2026", price: "₹120", status: "Refunded", reference: "DEMO-ORD-1050" },
-];
-
 const eventFilters: Array<"All" | EventStatus> = ["All", "Ongoing", "Registered", "Closed"];
-const orderFilters: Array<"All" | OrderStatus> = ["All", "Completed", "Failed", "Refunded"];
+const orderFilters: Array<"All" | OrderStatus> = ["All", "Pending", "Completed", "Failed", "Refunded"];
 
 export function RegistrationHistory() {
   const [configured] = useState(() => isSupabaseConfigured());
@@ -51,6 +39,8 @@ export function RegistrationHistory() {
   const [view, setView] = useState<"events" | "orders">("events");
   const [eventFilter, setEventFilter] = useState<(typeof eventFilters)[number]>("All");
   const [orderFilter, setOrderFilter] = useState<(typeof orderFilters)[number]>("All");
+  const [events, setEvents] = useState<EventPreview[]>([]);
+  const [orders, setOrders] = useState<OrderPreview[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -63,7 +53,18 @@ export function RegistrationHistory() {
         window.location.replace(`${basePath}/login/?next=%2Fregistrations%2F`);
         return;
       }
-      setChecking(false);
+      void fetch("/api/payments/history", { cache: "no-store" }).then(async (response) => {
+        const payload = await response.json() as { events?: Array<EventPreview & { date: string }>; orders?: Array<Omit<OrderPreview, "price" | "status" | "date"> & { pricePaise: number; status: string; date: string }> };
+        if (!response.ok) throw new Error("Could not load your purchase history.");
+        if (!active) return;
+        setEvents((payload.events ?? []).map((event) => ({ ...event, date: new Date(event.date).toLocaleDateString("en-IN", { dateStyle: "medium" }) })));
+        setOrders((payload.orders ?? []).map((order) => ({
+          ...order,
+          date: new Date(order.date).toLocaleDateString("en-IN", { dateStyle: "medium" }),
+          price: `₹${(order.pricePaise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          status: ["confirmed", "preparing", "ready", "collected"].includes(order.status) ? "Completed" : order.status === "refunded" ? "Refunded" : ["payment_failed", "cancelled"].includes(order.status) ? "Failed" : "Pending",
+        })));
+      }).catch(() => { if (active) setAccountError(true); }).finally(() => { if (active) setChecking(false); });
     }).catch(() => {
       if (active) {
         setAccountError(true);
@@ -75,9 +76,6 @@ export function RegistrationHistory() {
 
   const visibleEvents = useMemo(() => eventFilter === "All" ? events : events.filter((event) => event.status === eventFilter), [eventFilter]);
   const visibleOrders = useMemo(() => orderFilter === "All" ? orders : orders.filter((order) => order.status === orderFilter), [orderFilter]);
-  const completedOrders = orders.filter((order) => order.status === "Completed").length;
-  const rewardTarget = 5;
-  const rewardProgress = Math.min(100, Math.round((completedOrders / rewardTarget) * 100));
 
   return (
     <ContentPage
@@ -97,7 +95,7 @@ export function RegistrationHistory() {
               <ReceiptText size={16} aria-hidden="true" /> Your Orders <span>{orders.length}</span>
             </button>
           </div>
-          <div className={styles.previewFlag}><span aria-hidden="true" /> Preview examples</div>
+          <div className={styles.previewFlag}><span aria-hidden="true" /> Private account history</div>
         </div>
 
         {checking ? (
@@ -105,21 +103,16 @@ export function RegistrationHistory() {
         ) : accountError ? (
           <div className={styles.notice} role="alert"><LockKeyhole size={20} aria-hidden="true" /><div><strong>We couldn’t check your account</strong><p>Refresh the page or sign in again to view your private activity.</p><Link href="/login/?next=%2Fregistrations%2F">Sign in again <ArrowRight size={14} /></Link></div></div>
         ) : configured ? (
-          <div className={styles.notice}><LockKeyhole size={20} aria-hidden="true" /><div><strong>Your account is ready</strong><p>Live registration and order records will appear here when connected to checkout.</p></div></div>
+          <div className={styles.notice}><LockKeyhole size={20} aria-hidden="true" /><div><strong>Your account is ready</strong><p>Only registrations and orders linked to this account are shown.</p></div></div>
         ) : null}
 
         {!checking && !accountError && (
           <>
-            <div className={styles.previewNotice}>
-              <CircleAlert size={17} aria-hidden="true" />
-              <p><strong>Preview data</strong> — these examples show how activity will look. They are not real registrations, payment records, or account history.</p>
-            </div>
-
             {view === "events" ? (
               <>
                 <div className={styles.sectionHeading}>
-                  <div><p className={styles.kicker}>EVENT ACTIVITY</p><h2>Find your next campus moment</h2><p>Browse your event status at a glance.</p></div>
-                  <div className={styles.countCard}><strong>{events.length}</strong><span>sample events</span></div>
+                  <div><p className={styles.kicker}>EVENT ACTIVITY</p><h2>Your event registrations</h2><p>Payment confirmation comes from the payment service.</p></div>
+                  <div className={styles.countCard}><strong>{events.length}</strong><span>registrations</span></div>
                 </div>
                 <div className={styles.filterRow} aria-label="Filter events">
                   {eventFilters.map((filter) => <button type="button" key={filter} aria-pressed={eventFilter === filter} className={eventFilter === filter ? styles.filterActive : styles.filter} onClick={() => setEventFilter(filter)}>{filter}<span>{filter === "All" ? events.length : events.filter((event) => event.status === filter).length}</span></button>)}
@@ -143,20 +136,9 @@ export function RegistrationHistory() {
             ) : (
               <>
                 <div className={styles.sectionHeading}>
-                  <div><p className={styles.kicker}><Sparkles size={13} aria-hidden="true" /> ORDER ACTIVITY</p><h2>Little orders, lovely rewards</h2><p>Your campus purchases and payment updates, all in one place.</p></div>
-                  <div className={styles.countCard}><strong>{orders.length}</strong><span>sample orders</span></div>
+                  <div><p className={styles.kicker}><Sparkles size={13} aria-hidden="true" /> ORDER ACTIVITY</p><h2>Your campus orders</h2><p>Your purchases and payment updates, all in one place.</p></div>
+                  <div className={styles.countCard}><strong>{orders.length}</strong><span>orders</span></div>
                 </div>
-                <section className={styles.rewardCard} aria-label="Coupon reward progress">
-                  <div className={styles.rewardIcon}><Gift size={22} aria-hidden="true" /></div>
-                  <div className={styles.rewardCopy}>
-                    <p className={styles.rewardEyebrow}>CAMPUS PERK <span>·</span> EVERY 5 COMPLETED ORDERS</p>
-                    <h3>{completedOrders >= rewardTarget ? "A little treat is yours" : `${rewardTarget - completedOrders} more ${rewardTarget - completedOrders === 1 ? "order" : "orders"} to your coupon`}</h3>
-                    <div className={styles.rewardTrack} role="progressbar" aria-label="Completed orders toward a coupon" aria-valuemin={0} aria-valuemax={rewardTarget} aria-valuenow={Math.min(completedOrders, rewardTarget)}><span style={{ width: `${rewardProgress}%` }} /></div>
-                    <div className={styles.rewardMeta}><span>{Math.min(completedOrders, rewardTarget)} of {rewardTarget} completed orders</span><span>{rewardProgress}%</span></div>
-                  </div>
-                  <div className={styles.rewardBadge}><Gift size={16} aria-hidden="true" /><span>{completedOrders >= rewardTarget ? "Coupon unlocked" : "Next reward"}</span></div>
-                  <p className={styles.rewardDisclaimer}>Preview tracker · sample orders only</p>
-                </section>
                 <div className={styles.filterRow} aria-label="Filter orders">
                   {orderFilters.map((filter) => <button type="button" key={filter} aria-pressed={orderFilter === filter} className={orderFilter === filter ? styles.filterActive : styles.filter} onClick={() => setOrderFilter(filter)}>{filter}<span>{filter === "All" ? orders.length : orders.filter((order) => order.status === filter).length}</span></button>)}
                 </div>

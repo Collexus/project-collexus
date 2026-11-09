@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type FocusEvent } from "react";
+import { useEffect, useRef, useState, type FocusEvent } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import type { CampusEvent } from "@/data/events";
 import styles from "./featured-event-carousel.module.css";
@@ -18,9 +18,26 @@ type FeaturedEventCarouselProps = {
 };
 
 export function FeaturedEventCarousel({ events, basePath }: FeaturedEventCarouselProps) {
+  const carouselRef = useRef<HTMLElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isInteracting, setIsInteracting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+
+  useEffect(() => {
+    const panel = carouselRef.current;
+    if (!panel || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { threshold: 0.15 });
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const syncVisibility = () => setIsDocumentVisible(!document.hidden);
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   useEffect(() => {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -33,12 +50,14 @@ export function FeaturedEventCarousel({ events, basePath }: FeaturedEventCarouse
   }, []);
 
   useEffect(() => {
-    if (events.length < 2 || !isPlaying || isInteracting) return;
+    if (events.length < 2 || !isPlaying || isInteracting || !isVisible || !isDocumentVisible) return;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motionQuery.matches) return;
     const interval = window.setInterval(() => {
       setActiveIndex((index) => (index + 1) % events.length);
     }, 7000);
     return () => window.clearInterval(interval);
-  }, [events.length, isInteracting, isPlaying]);
+  }, [events.length, isDocumentVisible, isInteracting, isPlaying, isVisible]);
 
   if (events.length === 0) return null;
 
@@ -52,6 +71,7 @@ export function FeaturedEventCarousel({ events, basePath }: FeaturedEventCarouse
 
   return (
     <section
+      ref={carouselRef}
       className={styles.panel}
       aria-label="Featured campus events"
       aria-roledescription="carousel"

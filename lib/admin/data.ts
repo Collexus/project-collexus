@@ -20,6 +20,18 @@ export function formatAdminDate(value: Date) {
   }).format(value);
 }
 
+export function formatAdminDateTime(value: Date) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+    timeZoneName: "short",
+  }).format(value);
+}
+
 const pageSize = 20;
 
 function clampPage(requested: number, totalItems: number) {

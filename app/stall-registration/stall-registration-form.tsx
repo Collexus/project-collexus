@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import styles from "./stall-registration.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
+import { submitStallForReview } from "@/app/actions/stall-submissions";
 import { events } from "@/data/events";
 import { storeConfirmation } from "@/lib/confirmation";
 
@@ -72,6 +73,7 @@ export function StallRegistrationForm() {
   const [collexusPackage, setCollexusPackage] = useState<CollexusPackage>({ plan: "", addons: [], listingName: "" });
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => () => {
     if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
@@ -86,10 +88,17 @@ export function StallRegistrationForm() {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
     const listingName = params.get("listingName") ?? "";
+      const requestedStallType = params.get("stallType");
     const animation = window.requestAnimationFrame(() => {
-      if (plan === "normal" || plan === "pro") restoreDraft();
+      if (plan === "normal" || plan === "pro" || params.get("restoreDraft") === "1") restoreDraft();
       setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
-      if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
+        if (listingName || requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall") {
+          setForm((current) => ({
+            ...current,
+            ...(listingName ? { stallName: listingName } : {}),
+            ...(requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall" ? { stallSize: requestedStallType } : {}),
+          }));
+        }
     });
     return () => window.cancelAnimationFrame(animation);
   }, []);
@@ -164,12 +173,84 @@ export function StallRegistrationForm() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReviewed(true);
-    setDraftMessage("Your request is ready to review. Download a copy to share with the event team.");
+    setDraftMessage("Review the summary, then submit your request to Collexus for admin review.");
     window.requestAnimationFrame(() => {
       const preview = document.getElementById("stall-request-summary");
       preview?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
       preview?.focus({ preventScroll: true });
     });
+  }
+
+  async function submitForAdminReview() {
+    if (!reviewed || isSubmitting) return;
+    setIsSubmitting(true);
+    setDraftMessage("Submitting your stall request…");
+    try {
+      const result = await submitStallForReview({
+        schemaVersion: 1,
+        collexusPackage,
+        contact: {
+          name: form.contactName,
+          role: form.role,
+          organization: form.organization,
+          email: form.email,
+          phone: form.phone,
+        },
+        stall: {
+          name: form.stallName,
+          category: form.stallType,
+          eventName: form.eventName,
+          customEventName: form.customEventName,
+          eventDate: form.eventDate,
+          size: form.stallSize,
+          locationPreference: form.locationPreference,
+          teamSize: form.teamSize,
+          sellsProducts: form.sellsProducts,
+          power: form.power,
+          water: form.water,
+          stallBox: form.stallBox,
+          setupNotes: form.setupNotes,
+          foodSafety: form.foodSafety,
+          confirmed: form.confirmed,
+        },
+        menuItems: menuItems.filter((item) => item.name.trim()).map(({ name, offerPrice, eventDayPrice }) => ({ name, offerPrice, eventDayPrice })),
+        people: eventPeople.filter((person) => person.name.trim()).map((person) => ({
+          name: person.name,
+          stallName: person.stallName || form.stallName,
+          phone: person.phone,
+        })),
+      });
+      if (!result.success) {
+        if (result.code === "UNAUTHENTICATED") {
+          saveDraft();
+          router.push(`${publicBasePath}/login/?next=%2Fstall-registration%2F%3FrestoreDraft%3D1`);
+          return;
+        }
+        throw new Error(result.error);
+      }
+
+      try {
+        storeConfirmation({
+          kind: "stall",
+          status: "submitted",
+          reference: result.data.id,
+          createdAt: new Date().toISOString(),
+          name: form.contactName,
+          email: form.email,
+          phone: form.phone,
+          title: form.stallName,
+          subtitle: `${form.stallType} · Submitted for admin review`,
+          date: form.eventDate,
+          location: selectedEventName,
+          people: eventPeople.filter((person) => person.name.trim()).map((person) => person.name.trim()),
+        });
+      } catch { /* The request is saved even if this browser cannot retain the confirmation preview. */ }
+      router.push(`${publicBasePath}/confirmation/`);
+    } catch (error) {
+      setDraftMessage(error instanceof Error ? error.message : "We couldn’t submit your stall request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function saveDraft() {
@@ -230,7 +311,7 @@ export function StallRegistrationForm() {
 
   function continueToHostPayment() {
     saveDraft();
-    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim() });
+    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim(), stallType: form.stallSize || "Silver stall" });
     router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
@@ -377,7 +458,7 @@ export function StallRegistrationForm() {
               <button className={styles.primaryButton} type="submit">Review stall request <ArrowRight size={18} aria-hidden="true" /></button>
               <button className={styles.secondaryButton} onClick={saveDraft} type="button">Save draft on this device</button>
               <button className={styles.secondaryButton} onClick={restoreDraft} type="button">Restore saved draft</button>
-              <p>Your form stays in this browser. Nothing is sent to a server from this page.</p>
+              <p>Your application is sent to Collexus only when you submit it for admin review. Photos stay on this device.</p>
               {draftMessage && <p className={styles.status} role="status">{draftMessage}</p>}
             </div>
           </form>
@@ -400,8 +481,9 @@ export function StallRegistrationForm() {
                 {reviewed && <div className={styles.reviewed}><CheckCircle2 size={18} aria-hidden="true" /> Request details reviewed</div>}
               </div>
             </section>
-            <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Review the details, then download the request file and share it with your event team. This page cannot reserve a stall.</p></div></div>
+            <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Submit your request for admin review. If approved, your Stall panel appears in your home profile menu. This request does not reserve space or charge a fee.</p></div></div>
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
+            {reviewed && <button className={styles.primaryButton} disabled={isSubmitting} onClick={submitForAdminReview} type="button">{isSubmitting ? "Submitting request…" : "Submit for admin review"} <ArrowRight size={17} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.primaryButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight size={18} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.secondaryButton} onClick={openRequestConfirmation} type="button"><CheckCircle2 size={17} aria-hidden="true" /> View request summary <ArrowRight size={16} aria-hidden="true" /></button>}
             <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>

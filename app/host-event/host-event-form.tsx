@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { storeConfirmation } from "@/lib/confirmation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,7 +9,6 @@ import {
   CalendarDays,
   Check,
   Clock3,
-  Eye,
   MapPin,
   Send,
   ShieldCheck,
@@ -20,7 +18,7 @@ import {
 import styles from "./host-event.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { getSupabaseClient } from "@/lib/supabase-client";
-import { submitEventForReview } from "@/app/actions/event-submissions";
+import { getUserProfile } from "@/lib/user-profile";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const draftStorageKey = "collexus-host-event-draft-v1";
@@ -43,6 +41,8 @@ type FormState = {
   endDate: string;
   startTime: string;
   endTime: string;
+  duration: string;
+  customDurationHours: string;
   mode: string;
   venue: string;
   pricing: "free" | "paid";
@@ -66,6 +66,8 @@ const initialForm: FormState = {
   endDate: "",
   startTime: "",
   endTime: "",
+  duration: "",
+  customDurationHours: "",
   mode: "",
   venue: "",
   pricing: "free",
@@ -75,11 +77,15 @@ const initialForm: FormState = {
 function isSavedForm(value: unknown): value is FormState {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
+  // Accept drafts saved before the duration field was added.
+  if (candidate.duration === undefined) candidate.duration = "";
+  if (candidate.customDurationHours === undefined) candidate.customDurationHours = "";
   const keys = Object.keys(initialForm);
   if (Object.keys(candidate).length !== keys.length || keys.some((key) => typeof candidate[key] !== "string")) return false;
   if (candidate.pricing !== "free" && candidate.pricing !== "paid") return false;
   if (candidate.expectedParticipants && (!/^\d+$/.test(candidate.expectedParticipants as string) || Number(candidate.expectedParticipants) < 1 || Number(candidate.expectedParticipants) > 100000)) return false;
   if (candidate.price && (!/^\d+(\.\d{1,2})?$/.test(candidate.price as string) || Number(candidate.price) < 1)) return false;
+  if (candidate.customDurationHours && (!/^\d+(\.\d{1,2})?$/.test(candidate.customDurationHours as string) || Number(candidate.customDurationHours) < 1 || Number(candidate.customDurationHours) > 168)) return false;
   return true;
 }
 
@@ -121,6 +127,8 @@ function createSubmission(form: FormState, posterPath: string | null = null) {
       endDate: form.endDate || null,
       startTime: form.startTime || null,
       endTime: form.endTime || null,
+      duration: form.duration,
+      customDurationHours: form.duration === "custom" && form.customDurationHours ? Number(form.customDurationHours) : null,
       mode: form.mode,
       venue: form.venue.trim(),
       pricing: form.pricing,
@@ -140,8 +148,46 @@ export function HostEventForm() {
   const [posterPreview, setPosterPreview] = useState("");
   const [selectedPoster, setSelectedPoster] = useState<File | null>(null);
   const [posterError, setPosterError] = useState("");
-  const [submissionStatus, setSubmissionStatus] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileStatus, setProfileStatus] = useState("Loading your account details…");
+  const lockedContactRef = useRef<Partial<FormState>>({});
+
+  useEffect(() => {
+    let active = true;
+    async function loadContactDetails() {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setProfileStatus("Sign in to load your contact details from your Collexus profile.");
+        return;
+      }
+      const { data, error } = await supabase.auth.getUser();
+      if (!active) return;
+      if (error || !data.user) {
+        setProfileStatus("Sign in to load your contact details from your Collexus profile.");
+        return;
+      }
+
+      const user = data.user;
+      const metadata = user.user_metadata ?? {};
+      const { profile } = await getUserProfile(supabase, user.id);
+      if (!active) return;
+      const accountType = profile?.account_type ?? String(metadata.account_type ?? "student");
+      const occupation = accountType === "faculty" ? "Faculty" : accountType === "guest" ? "External organizer" : "Student";
+      const organization = profile?.profile_organization ?? String(metadata.institution ?? metadata.organization ?? "");
+      const contact: Partial<FormState> = {
+        organizerName: profile?.full_name ?? String(metadata.full_name ?? metadata.name ?? ""),
+        occupation,
+        institution: organization === "Ramachandra College of Engineering" ? organization : organization ? "Other institution" : "",
+        institutionOther: organization && organization !== "Ramachandra College of Engineering" ? organization : "",
+        email: user.email ?? "",
+        phone: user.phone_confirmed_at && user.phone ? user.phone : profile?.profile_phone ?? String(metadata.phone_number ?? user.phone ?? ""),
+      };
+      lockedContactRef.current = contact;
+      setForm((current) => ({ ...current, ...contact }));
+      setProfileStatus("Contact details loaded from your profile. Update them in your account profile; they’re read-only here.");
+    }
+    void loadContactDetails();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -166,7 +212,6 @@ export function HostEventForm() {
       setReviewed(false);
       setDateError("");
       setDraftStatus("");
-      setSubmissionStatus("");
     };
   }
 
@@ -202,6 +247,7 @@ export function HostEventForm() {
   function selectPoster(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
     setPosterError("");
+    setReviewed(false);
     if (!file) {
       setSelectedPoster(null);
       setPosterPreview("");
@@ -246,7 +292,7 @@ export function HostEventForm() {
       if (!parsed || typeof parsed !== "object" || !("version" in parsed) || !("form" in parsed)) throw new Error("Invalid draft");
       const record = parsed as { version: unknown; form: unknown; collexusPackage?: unknown };
       if (record.version !== 1 || !isSavedForm(record.form)) throw new Error("Invalid draft");
-      setForm(record.form);
+      setForm({ ...record.form, ...lockedContactRef.current });
       if (record.collexusPackage && typeof record.collexusPackage === "object") setCollexusPackage(record.collexusPackage as CollexusPackage);
       setReviewed(false);
       setDateError("");
@@ -266,7 +312,13 @@ export function HostEventForm() {
   }
 
   function downloadSubmission() {
-    const payload = { ...createSubmission(form), collexusPackage, exportedAt: new Date().toISOString() };
+    const payload = {
+      ...createSubmission(form),
+      collexusPackage,
+      posterFileName: selectedPoster?.name ?? "",
+      posterNote: selectedPoster ? "Attach the selected poster image file separately when sharing this request." : "",
+      exportedAt: new Date().toISOString(),
+    };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -282,62 +334,13 @@ export function HostEventForm() {
     router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
-  async function submitForReview() {
-    setSubmissionStatus("");
-    setIsSubmitting(true);
-    try {
-      const supabase = getSupabaseClient();
-      if (!supabase) throw new Error("Event submissions are not configured yet. Please contact the Collexus team.");
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw new Error("Could not confirm your sign-in. Please sign in again and retry.");
-      if (!session) {
-        saveDraft();
-        router.push(`${publicBasePath}/login/?next=%2Fhost-event%2F`);
-        return;
-      }
-      let posterPath: string | null = null;
-      if (selectedPoster) {
-        setSubmissionStatus("Uploading your poster…");
-        const uploadResponse = await fetch(`${publicBasePath}/api/uploads/event-poster`, {
-          method: "POST",
-          headers: { "Content-Type": selectedPoster.type },
-          body: selectedPoster,
-        });
-        const uploadResult = await uploadResponse.json() as { success?: boolean; data?: { path?: string }; error?: { message?: string } };
-        if (!uploadResponse.ok || !uploadResult.data?.path) throw new Error(uploadResult.error?.message || "We couldn’t upload the poster.");
-        posterPath = uploadResult.data.path;
-      }
-      const result = await submitEventForReview({ ...createSubmission(form, posterPath), collexusPackage });
-      if (!result.success) throw new Error(result.error);
-      const submissionId = result.data.id;
-      try {
-        storeConfirmation({
-          kind: "host",
-          status: "submitted",
-          reference: submissionId,
-          createdAt: new Date().toISOString(),
-          name: form.organizerName.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          title: form.eventName.trim(),
-          subtitle: `${form.category} · Submitted for review`,
-          date: dates,
-          location: form.venue.trim() || form.mode,
-          amount: form.pricing === "paid" && form.price ? Number(form.price) : undefined,
-        });
-      } catch { /* Keep the submission confirmed in this form if this browser blocks session storage. */ }
-      router.push("/confirmation/");
-    } catch (error) {
-      setSubmissionStatus(error instanceof Error ? error.message : "We couldn’t save this event. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   const dates = form.startDate
     ? `${formatDate(form.startDate)}${form.endDate && form.endDate !== form.startDate ? ` – ${formatDate(form.endDate)}` : ""}`
     : "Dates to be announced";
   const selectedAudience = fieldTitles[form.batch] ?? "Choose an audience";
+  const durationLabel = form.duration === "custom" && form.customDurationHours
+    ? `${form.customDurationHours} hours`
+    : ({ under_8_hours: "Less than 8 hours", "8_hours": "8 hours", "12_hours": "12 hours", "24_hours": "24 hours" } as Record<string, string>)[form.duration] ?? "Choose an event duration";
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.page}>
@@ -375,35 +378,26 @@ export function HostEventForm() {
               <div className={styles.fields}>
                 <label className={`${styles.field} ${styles.spanTwo}`}>
                   <span>Your name <b aria-hidden="true">*</b></span>
-                  <input autoComplete="name" name="organizerName" onChange={update("organizerName")} placeholder="e.g. Ananya Rao" required value={form.organizerName} />
+                  <input autoComplete="name" name="organizerName" placeholder="Sign in to load your profile" readOnly required value={form.organizerName} />
                 </label>
                 <label className={styles.field}>
                   <span>Occupation <b aria-hidden="true">*</b></span>
-                  <select name="occupation" onChange={update("occupation")} required value={form.occupation}>
-                    <option value="" disabled hidden>Select occupation</option>
-                    <option>Student</option><option>Faculty</option><option>Staff</option><option>Alumni</option><option>External organizer</option>
-                  </select>
+                  <input autoComplete="organization-title" name="occupation" placeholder="From your account type" readOnly required value={form.occupation} />
                 </label>
                 <label className={styles.field}>
                   <span>Institution <b aria-hidden="true">*</b></span>
-                  <select name="institution" onChange={update("institution")} required value={form.institution}>
-                    <option value="" disabled hidden>Select institution</option>
-                    <option>Ramachandra College of Engineering</option><option>Other institution</option>
-                  </select>
+                  <input autoComplete="organization" name="institution" placeholder="From your account profile" readOnly required value={form.institution === "Other institution" ? form.institutionOther : form.institution} />
                 </label>
-                {form.institution === "Other institution" && <label className={`${styles.field} ${styles.spanTwo}`}>
-                  <span>Institution name <b aria-hidden="true">*</b></span>
-                  <input autoComplete="organization" name="institutionOther" onChange={update("institutionOther")} placeholder="Enter your college or organization" required value={form.institutionOther} />
-                </label>}
                 <label className={styles.field}>
                   <span>Email address <b aria-hidden="true">*</b></span>
-                  <input autoComplete="email" name="email" onChange={update("email")} placeholder="you@college.edu" required type="email" value={form.email} />
+                  <input autoComplete="email" name="email" placeholder="Email from your account" readOnly required type="email" value={form.email} />
                 </label>
                 <label className={styles.field}>
                   <span>Phone number <b aria-hidden="true">*</b></span>
-                  <input autoComplete="tel" inputMode="tel" name="phone" onChange={update("phone")} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={form.phone} />
-                  <small>Include your country code so we can reach you.</small>
+                  <input autoComplete="tel" inputMode="tel" name="phone" pattern="[+0-9() .-]{7,20}" placeholder="Phone from your account" readOnly required type="tel" value={form.phone} />
+                  <small>Contact details are pulled from your Collexus profile and can’t be changed on this form.</small>
                 </label>
+                <p className={`${styles.profileStatus} ${styles.spanTwo}`} role="status">{profileStatus}{!form.organizerName && <><a href={`${publicBasePath}/login/?next=%2Fhost-event%2F`}> Sign in</a> to continue.</>}</p>
               </div>
             </section>
 
@@ -445,9 +439,9 @@ export function HostEventForm() {
                   <small className={styles.charCount}>{form.about.length}/600 characters</small>
                 </label>
                 <label className={`${styles.field} ${styles.spanTwo} ${styles.uploadField}`}>
-                  <span>Event poster <small>(optional)</small></span>
-                  <input accept="image/jpeg,image/png,image/webp" name="poster" onChange={selectPoster} type="file" />
-                  <small>Upload a JPG, PNG, or WebP image (up to 5 MB). It appears in the preview on this device.</small>
+                  <span>Event poster <b aria-hidden="true">*</b></span>
+                  <input accept="image/jpeg,image/png,image/webp" name="poster" onChange={selectPoster} required type="file" />
+                  <small>Required. Upload a JPG, PNG, or WebP image (up to 5 MB). It appears in the live preview immediately.</small>
                   {posterError && <small className={styles.formError} role="alert">{posterError}</small>}
                 </label>
               </div>
@@ -475,6 +469,21 @@ export function HostEventForm() {
                   <span>Ending time <b aria-hidden="true">*</b></span>
                   <input name="endTime" onChange={update("endTime")} required type="time" value={form.endTime} />
                 </label>
+                <label className={styles.field}>
+                  <span>Event duration <b aria-hidden="true">*</b></span>
+                  <select name="duration" onChange={update("duration")} required value={form.duration}>
+                    <option value="" disabled hidden>Select event duration</option>
+                    <option value="under_8_hours">Less than 8 hours</option>
+                    <option value="8_hours">8 hours</option>
+                    <option value="12_hours">12 hours</option>
+                    <option value="24_hours">24 hours</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </label>
+                {form.duration === "custom" && <label className={styles.field}>
+                  <span>Custom duration (hours) <b aria-hidden="true">*</b></span>
+                  <input min="1" max="168" name="customDurationHours" onChange={update("customDurationHours")} placeholder="e.g. 6.5" required step="0.5" type="number" value={form.customDurationHours} />
+                </label>}
                 {dateError && <p className={`${styles.formError} ${styles.spanTwo}`} role="alert">{dateError}</p>}
                 <label className={styles.field}>
                   <span>Event format <b aria-hidden="true">*</b></span>
@@ -522,8 +531,7 @@ export function HostEventForm() {
             </section>
 
             <div className={styles.submitArea}>
-              <p className={styles.reviewPrompt}><ShieldCheck aria-hidden="true" size={18} /><span><strong>Before you submit:</strong> check the dates, venue, contact details, and price in the preview. New events are stored privately for review and will not appear publicly until approved.</span></p>
-              <button className={styles.submitButton} onClick={scrollToPreview} type="submit"><Eye aria-hidden="true" size={18} /> Review required details <ArrowRight aria-hidden="true" size={18} /></button>
+              <p className={styles.reviewPrompt}><ShieldCheck aria-hidden="true" size={18} /><span><strong>Before you continue:</strong> check the dates, venue, contact details, and price in the preview. Download a copy to share with the event team.</span></p>
               <div className={styles.draftActions}>
                 <button className={styles.draftButton} onClick={saveDraft} type="button">Save draft on this device</button>
                 <button className={styles.draftButton} onClick={restoreDraft} type="button">Restore saved draft</button>
@@ -531,13 +539,11 @@ export function HostEventForm() {
               </div>
               <p>Your draft stays in this browser until you export it.</p>
               {draftStatus && <p className={styles.draftStatus} role="status">{draftStatus}</p>}
-              {reviewed && <div className={styles.successMessage} role="status"><ShieldCheck aria-hidden="true" size={18} /><span>Required fields and date/time checks passed. Review the full preview below, then submit it for the Collexus team to review.</span></div>}
+              {reviewed && <div className={styles.successMessage} role="status"><ShieldCheck aria-hidden="true" size={18} /><span>Required fields and date/time checks passed. Review the preview, then continue to plans or download a copy to share.</span></div>}
               {reviewed && <div className={styles.draftActions}>
                 <button className={styles.submitButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight aria-hidden="true" size={18} /></button>
-                <button className={styles.submitButton} disabled={isSubmitting} onClick={submitForReview} type="button">{isSubmitting ? "Submitting…" : "Submit for review"} <ArrowRight aria-hidden="true" size={18} /></button>
                 <button className={styles.draftButton} onClick={downloadSubmission} type="button">Download JSON copy</button>
               </div>}
-              {submissionStatus && <p className={submissionStatus.startsWith("Submission received") ? styles.draftStatus : styles.formError} role={submissionStatus.startsWith("Submission received") ? "status" : "alert"}>{submissionStatus}</p>}
             </div>
           </form>
 
@@ -557,6 +563,7 @@ export function HostEventForm() {
                 <p>{form.about || "A short description of your event will appear here."}</p>
                 <div className={styles.previewMeta}><CalendarDays aria-hidden="true" size={16} /><span>{dates}</span></div>
                 <div className={styles.previewMeta}><Clock3 aria-hidden="true" size={16} /><span>{form.startTime || "Start time"}{form.endTime ? ` – ${form.endTime}` : ""}</span></div>
+                <div className={styles.previewMeta}><Clock3 aria-hidden="true" size={16} /><span>{durationLabel}</span></div>
                 <div className={styles.previewMeta}><MapPin aria-hidden="true" size={16} /><span>{form.venue || "Event venue"}</span></div>
                 <div className={styles.previewMeta}><Building2 aria-hidden="true" size={16} /><span>{form.institution === "Other institution" ? form.institutionOther || "Your institution" : form.institution || "Institution"}</span></div>
                 <div className={styles.previewMeta}><UsersRound aria-hidden="true" size={16} /><span>{form.expectedParticipants ? `Around ${form.expectedParticipants} participants` : "Participant estimate"}</span></div>
@@ -566,12 +573,11 @@ export function HostEventForm() {
             </div>
             <div className={styles.checklist}>
               <ShieldCheck aria-hidden="true" size={19} />
-              <div><strong>What happens next?</strong><p>Submit your event to the private review queue. It will only be published after the Collexus team approves it.</p></div>
+              <div><strong>What happens next?</strong><p>Download a copy and share it with the event team. Your event is not published until Collexus approves it.</p></div>
             </div>
             <button className={styles.previewButton} onClick={() => document.querySelector<HTMLFormElement>("#host-event-form")?.requestSubmit()} type="button" aria-controls="host-event-form">
               <Send aria-hidden="true" size={17} /> Prepare submission <ArrowRight aria-hidden="true" size={16} />
             </button>
-            <a className={styles.backToEvents} href={`${publicBasePath}/#featured-events`}><ArrowLeft aria-hidden="true" size={16} /> Explore published events</a>
           </aside>
         </div>
         <footer className={styles.footer}>© 2026 Collexus <span>Campus events, in one place.</span></footer>

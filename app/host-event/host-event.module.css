@@ -78,7 +78,7 @@
   text-decoration: none;
 }
 
-.brand { gap: 8px; color: var(--ink); font-size: 17px; font-weight: 750; letter-spacing: -.03em; }
+.brand { gap: 0; color: var(--ink); font-size: 17px; font-weight: 750; letter-spacing: -.03em; }
 .brandLogoFrame { position: relative; display: block; width: 40px; height: 40px; flex: 0 0 40px; overflow: hidden; border: 1px solid #d6e7e8; border-radius: 12px; background: #fff; box-shadow: 0 3px 10px rgba(15, 52, 65, .12); }
 .brandLogoFrame img { position: absolute; top: -13px; left: 50%; width: 86px; height: 86px; max-width: none; object-fit: contain; clip-path: inset(0 0 38%); transform: translateX(-50%); }
 .backLink { gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 650; transition: color .18s ease, border-color .18s ease, background .18s ease; }
@@ -157,6 +157,9 @@
 .field input::placeholder, .field textarea::placeholder { color: color-mix(in srgb, var(--muted) 72%, transparent); }
 .field input:focus, .field select:focus, .field textarea:focus { outline: 0; border-color: var(--accent); background: var(--card); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
 .field small { color: var(--muted); font-size: 11px; font-weight: 450; line-height: 1.45; }
+.field input:read-only { cursor: default; background: color-mix(in srgb, var(--accent-soft) 42%, var(--field)); }
+.profileStatus { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.profileStatus a { color: var(--accent-strong); font-weight: 750; text-decoration: underline; text-underline-offset: 2px; }
 .spanTwo { grid-column: span 2; }
 .charCount { align-self: flex-end; margin-top: -2px; }
 .formError { margin: 0; color: #bd423d; font-size: 13px; }

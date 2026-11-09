@@ -35,6 +35,12 @@ export function OriginalInteractions() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+    const globalListeners = [];
+    const cleanups = [];
+    const listenGlobally = (target, type, listener, options) => {
+      target.addEventListener(type, listener, options);
+      globalListeners.push({ target, type, listener, options });
+    };
     const categories = {
       "Hackathons": { icon: "terminal", punch: "Build boldly. Ship what matters.", desc: "Published RCEE hackathon records.", cards: [] },
       "Internships": { icon: "work", punch: "Opportunities from official sources.", desc: "No verified RCEE internship listing is in the current source set.", cards: [] },
@@ -101,18 +107,35 @@ export function OriginalInteractions() {
         const closeSuggestions=()=>{panel.classList.add('hidden')};
         input.addEventListener('focus',updateSearchSuggestions);
         input.addEventListener('input',updateSearchSuggestions);
-        document.addEventListener('click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
-        document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')closeSuggestions()});
+        listenGlobally(document,'click',e=>{if(!input.parentElement.contains(e.target))closeSuggestions()});
+        listenGlobally(document,'keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus()}if(e.key==='Escape')closeSuggestions()});
        }
        // Scroll-word-reveal inspired section reveal.
        const reveal=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');reveal.unobserve(e.target)}}),{threshold:.15});
        document.querySelectorAll('.scroll-reveal').forEach(el=>reveal.observe(el));
+       cleanups.push(() => reveal.disconnect());
        // Animated stat numbers.
        document.querySelectorAll('[data-count], .stat-number:not(#enrolledCount)').forEach(el=>{const raw=el.textContent.match(/[\d,.]+/);if(!raw)return;const target=parseFloat(raw[0].replace(/,/g,'')); if(!isFinite(target))return; const suffix=el.textContent.slice(raw.index+raw[0].length); let done=false; const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting&&!done){done=true;let t=0;const start=performance.now();const tick=now=>{t=Math.min(1,(now-start)/900);const eased=1-Math.pow(1-t,3);el.textContent=Math.round(target*eased).toLocaleString()+suffix;if(t<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);io.disconnect()}}));io.observe(el)});
-       // Coverflow carousel.
+       // Coverflow rotates only while visible and motion is allowed.
        const cards=[...document.querySelectorAll('.cover-card')], dots=document.getElementById('coverDots'); let active=0;
        function render(){cards.forEach((c,i)=>{c.classList.remove('is-active','prev','next','far');if(i===active)c.classList.add('is-active');else if(i===(active-1+cards.length)%cards.length)c.classList.add('prev');else if(i===(active+1)%cards.length)c.classList.add('next');else c.classList.add('far')});if(dots){dots.innerHTML='';cards.forEach((_,i)=>{const d=document.createElement('span');d.className='cover-dot'+(i===active?' active':'');d.onclick=()=>{active=i;render()};dots.appendChild(d)})}}
-       document.getElementById('coverPrev')?.addEventListener('click',()=>{active=(active-1+cards.length)%cards.length;render()});document.getElementById('coverNext')?.addEventListener('click',()=>{active=(active+1)%cards.length;render()});render();setInterval(()=>{active=(active+1)%cards.length;render()},6000);
+       document.getElementById('coverPrev')?.addEventListener('click',()=>{active=(active-1+cards.length)%cards.length;render()});document.getElementById('coverNext')?.addEventListener('click',()=>{active=(active+1)%cards.length;render()});render();
+       if(cards.length>1){
+         const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
+         const section=document.querySelector('.motion-showcase-section');
+         let visible=false, interval=0;
+         const syncAutoplay=()=>{
+           const shouldPlay=visible&&!document.hidden&&!motionQuery.matches;
+           if(shouldPlay&&!interval)interval=window.setInterval(()=>{active=(active+1)%cards.length;render()},8000);
+           else if(!shouldPlay&&interval){window.clearInterval(interval);interval=0}
+         };
+         const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;syncAutoplay()},{threshold:.12});
+         if(section)observer.observe(section);
+         const onMotionChange=()=>syncAutoplay();
+         listenGlobally(document,'visibilitychange',syncAutoplay);
+         motionQuery.addEventListener('change',onMotionChange);
+         cleanups.push(()=>{observer.disconnect();window.clearInterval(interval);motionQuery.removeEventListener('change',onMotionChange)});
+       }
 
     })();
     (() => {
@@ -230,7 +253,7 @@ export function OriginalInteractions() {
          if(studentForm) studentForm.dataset.eventDate=date||'';
          if(outerForm) outerForm.dataset.eventDate=date||'';
        }
-       document.addEventListener('click',e=>{const b=e.target.closest('.register-event');if(b&&!b.hasAttribute('data-next-route')){e.preventDefault();registerEvent(b.dataset.registerEvent,b.dataset.eventDate||'')}});
+       listenGlobally(document,'click',e=>{const b=e.target.closest('.register-event');if(b&&!b.hasAttribute('data-next-route')){e.preventDefault();registerEvent(b.dataset.registerEvent,b.dataset.eventDate||'')}});
        let currentFestPhotoUrl='';
        const festPhotoInput=document.getElementById('festParticipantPhoto'),festPhotoPreview=document.getElementById('festPhotoPreview'),festPassError=document.getElementById('festPassError');
        function clearFestPassError(){if(festPassError){festPassError.textContent='';festPassError.hidden=true}}
@@ -244,7 +267,7 @@ export function OriginalInteractions() {
          currentFestPhotoUrl=URL.createObjectURL(file);
          const image=document.createElement('img');image.src=currentFestPhotoUrl;image.alt='Participant photo preview';festPhotoPreview?.replaceChildren(image);
        });
-       window.addEventListener('beforeunload',()=>{if(currentFestPhotoUrl)URL.revokeObjectURL(currentFestPhotoUrl)},{once:true});
+       listenGlobally(window,'beforeunload',()=>{if(currentFestPhotoUrl)URL.revokeObjectURL(currentFestPhotoUrl)},{once:true});
        function appendPassDetail(parent,label,value){const row=document.createElement('div');row.className='fest-pass-detail';const key=document.createElement('span');key.textContent=label;const text=document.createElement('strong');text.textContent=value;row.append(key,text);parent.append(row)}
        function renderFestPass(fd,reference){
          const ticket=document.createElement('article');ticket.className='fest-pass-ticket';
@@ -291,7 +314,7 @@ export function OriginalInteractions() {
        document.getElementById('calendarButton')?.addEventListener('click',()=>{calModal.classList.remove('hidden');calModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';calCursor=calendarAnchor();renderCalendar()});
        document.getElementById('calClose')?.addEventListener('click',()=>{calModal.classList.add('hidden');calModal.setAttribute('aria-hidden','true');document.body.style.overflow=''});document.querySelectorAll('[data-close-calendar]').forEach(b=>b.addEventListener('click',()=>{calModal.classList.add('hidden');calModal.setAttribute('aria-hidden','true');document.body.style.overflow=''}));
        document.getElementById('calPrev')?.addEventListener('click',()=>{calCursor.setMonth(calCursor.getMonth()-1);renderCalendar()});document.getElementById('calNext')?.addEventListener('click',()=>{calCursor.setMonth(calCursor.getMonth()+1);renderCalendar()});
-       document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePass();calModal?.classList.add('hidden');calModal?.setAttribute('aria-hidden','true');document.body.style.overflow=''}});
+       listenGlobally(document,'keydown',e=>{if(e.key==='Escape'){closePass();calModal?.classList.add('hidden');calModal?.setAttribute('aria-hidden','true');document.body.style.overflow=''}});
 
        // Make category buttons/card controls open a dedicated category view.
        document.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openCategory(b.dataset.search)}));
@@ -301,7 +324,7 @@ export function OriginalInteractions() {
        const modal=document.getElementById('loginModal'), hint=document.getElementById('loginFormHint');
        function closeLogin(){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
        document.querySelectorAll('[data-close-login]').forEach(x=>x.addEventListener('click',closeLogin));
-       document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLogin()});
+       listenGlobally(document,'keydown',e=>{if(e.key==='Escape')closeLogin()});
        const loginOptions=document.querySelector('.login-options'); const loginBackIcon=document.querySelector('.login-back-icon'); const studentLoginForm=document.getElementById('studentLoginForm'); const facultyLoginForm=document.getElementById('facultyLoginForm'); const eventRegistrationPanel=document.getElementById('eventRegistrationPanel'); const hostEventPanel=document.getElementById('hostEventPanel');
        function showLoginForm(type){ loginOptions?.classList.add('hidden'); loginBackIcon?.classList.remove('hidden'); studentLoginForm?.classList.toggle('active',type==='student'); facultyLoginForm?.classList.toggle('active',type==='faculty'); eventRegistrationPanel?.classList.toggle('hidden',type!=='event-register'); hostEventPanel?.classList.toggle('hidden',type!=='host-event'); hint?.classList.add('hidden'); }
        function showLoginOptions(){ loginOptions?.classList.remove('hidden'); loginBackIcon?.classList.add('hidden'); studentLoginForm?.classList.remove('active'); facultyLoginForm?.classList.remove('active'); eventRegistrationPanel?.classList.add('hidden'); hostEventPanel?.classList.add('hidden'); hint?.classList.add('hidden'); }
@@ -450,13 +473,16 @@ export function OriginalInteractions() {
           });
         });
 
-        // Start every fresh visit in day mode and keep the selection during client navigation.
+        // Keep the home-page display switch in sync with the saved site-wide preference.
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleLabel = document.getElementById('themeToggleLabel');
         const setDisplayTheme = (theme) => {
           const isLight = theme === 'light';
           document.documentElement.dataset.collexusTheme = isLight ? 'light' : 'dark';
-          document.body.classList.remove('dark-green-theme');
+          document.documentElement.style.colorScheme = isLight ? 'light' : 'dark';
+          document.body.classList.toggle('dark-green-theme', !isLight);
+          try { window.localStorage.setItem('collexus:theme', isLight ? 'light' : 'dark'); } catch { /* Keep the current selection for this visit. */ }
+          window.dispatchEvent(new CustomEvent('collexus:theme-change', { detail: isLight ? 'light' : 'dark' }));
           themeToggleBtn?.setAttribute('aria-checked', String(isLight));
           themeToggleBtn?.setAttribute('aria-label', `${isLight ? 'Day' : 'Dark'} theme is on`);
           if (themeToggleLabel) themeToggleLabel.textContent = isLight ? 'Day' : 'Dark';
@@ -468,8 +494,20 @@ export function OriginalInteractions() {
           const isLight = document.documentElement.dataset.collexusTheme === 'light';
           setDisplayTheme(isLight ? 'dark' : 'light');
         });
+        listenGlobally(window, 'collexus:theme-change', (event) => {
+          const nextTheme = event.detail;
+          if (nextTheme !== 'light' && nextTheme !== 'dark') return;
+          const isLight = nextTheme === 'light';
+          themeToggleBtn?.setAttribute('aria-checked', String(isLight));
+          themeToggleBtn?.setAttribute('aria-label', `${isLight ? 'Day' : 'Dark'} theme is on`);
+          if (themeToggleLabel) themeToggleLabel.textContent = isLight ? 'Day' : 'Dark';
+          const themeIcon = themeToggleBtn?.querySelector('.theme-toggle-thumb .lucide-icon');
+          if (themeIcon) themeIcon.dataset.iconName = isLight ? 'light_mode' : 'dark_mode';
+        });
 
-        setDisplayTheme(document.documentElement.dataset.collexusTheme === 'dark' ? 'dark' : 'light');
+        let savedTheme = document.documentElement.dataset.collexusTheme;
+        try { savedTheme = window.localStorage.getItem('collexus:theme') || savedTheme; } catch { /* Use the theme applied by the root layout. */ }
+        setDisplayTheme(savedTheme === 'dark' ? 'dark' : 'light');
 
         // Integrated Event Filtering Engine
         const sectionFilterBtn = document.getElementById('sectionFilterBtn');
@@ -652,7 +690,7 @@ export function OriginalInteractions() {
         document.getElementById('resetFromEmptyBtn')?.addEventListener('click', resetAllFilters);
 
         // Global ESC key handler
-        document.addEventListener('keydown', e => {
+        listenGlobally(document,'keydown', e => {
           if (e.key === 'Escape') {
             closeMenu();
             closePass();
@@ -667,6 +705,11 @@ export function OriginalInteractions() {
        const initial=decodeURIComponent(location.hash.slice(1)); const match=Object.keys(categoryData).find(k=>k.toLowerCase().replace(/\s+/g,'-')===initial.toLowerCase()); if(match)openCategory(match);else if(initial.toLowerCase()==='outdoors')openCategory('Nearby Events');
 
     })();
+    return () => {
+      globalListeners.forEach(({ target, type, listener, options }) => target.removeEventListener(type, listener, options));
+      cleanups.forEach((cleanup) => cleanup());
+      initialized.current = false;
+    };
   }, []);
   return null;
 }

@@ -4632,6 +4632,7 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 .site-utility-actions{position:fixed;z-index:75;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center}
 .site-float-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 16px;border:1px solid rgba(136,174,184,.42);border-radius:999px;background:#1c4654;color:#f5fbfa;font-family:inherit;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;box-shadow:0 8px 22px rgba(12,37,45,.2);cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}
 .site-help-button{width:48px;height:48px;min-height:48px;padding:0}
+.site-theme-button{width:48px;height:48px;min-height:48px;padding:0}
 .home-back-top-wrap{display:flex;justify-content:center;margin:22px auto 0}
 .home-back-top{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--collexus-cyan,#087e83);font-size:13px;font-weight:700;line-height:1;text-decoration:none;white-space:nowrap;box-shadow:none;transition:color .2s ease,text-decoration-color .2s ease}
 .home-back-top:hover{color:#075f65;text-decoration:underline;text-underline-offset:4px}
@@ -4679,7 +4680,7 @@ html:not([data-collexus-theme="light"]) .site-cookie-note{background:rgba(17,29,
 html:not([data-collexus-theme="light"]) .site-cookie-note p{color:#a8bbc2}
 @keyframes siteFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes siteSlideIn{from{transform:translateX(18px);opacity:.8}to{transform:translateX(0);opacity:1}}
-@media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{width:calc(100% - 28px);margin:18px auto;padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
+@media(max-width:600px){.site-utility-actions{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));gap:8px}.site-float-button{min-height:46px;padding:0 14px}.site-help-button,.site-theme-button{width:46px;height:46px;min-height:46px;padding:0}.site-cookie-note{width:calc(100% - 28px);margin:18px auto;padding:13px;gap:12px}.site-cookie-note p{font-size:11px}.site-menu-panel{padding-top:20px}}
 
 @media(max-width:640px){
   header#home>div{height:auto!important;min-height:68px;padding:9px 12px!important;gap:8px!important}
@@ -4862,6 +4863,7 @@ html[data-collexus-theme="light"] body.warm-editorial-theme.vivid-nightfall-them
   background:transparent;
   cursor:pointer;
 }
+
 .global-search-clear[hidden]{display:none!important}
 .global-search-clear:hover{background:rgba(8,126,131,.1);color:#087e83}
 .global-search-clear:focus-visible{outline:3px solid #087e83;outline-offset:2px}
@@ -5157,3 +5159,132 @@ body.warm-editorial-theme.vivid-nightfall-theme #categoryViews .category-sort-co
 body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] h2{color:#fff!important}
 body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] p:first-child{color:#9ff1e8!important}
 body.warm-editorial-theme.vivid-nightfall-theme .reference-mood-backdrop [aria-label="Featured campus events"] [class*="imageCopy"] p:last-child{color:rgba(244,252,255,.94)!important}
+
+/* Keep scroll and pointer interactions lightweight across the long home page. */
+html{scrollbar-gutter:stable;scrollbar-width:thin}
+::-webkit-scrollbar{display:block;width:8px;height:8px}
+::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:999px;background:#c7d8db;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:#92b5bb;background-clip:padding-box}
+body{overscroll-behavior-y:auto!important}
+button:not([disabled]),a[data-path],.event-filter-tab,.day-tab{
+  transition-property:transform,opacity,color,background-color,border-color,box-shadow!important;
+  transition-duration:160ms!important;
+}
+@media(hover:hover) and (pointer:fine){
+  button:not([disabled]):hover,a[data-path]:hover,.event-filter-tab:hover,.day-tab:hover{transform:translateY(-1px)}
+}
+body>header,.quick-category-top{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  background-color:rgba(255,250,251,.97)!important;
+}
+body.warm-editorial-theme.vivid-nightfall-theme main .reference-mood-backdrop::before{
+  filter:none!important;
+  animation:none!important;
+}
+body.warm-editorial-theme.vivid-nightfall-theme .coverflow::before{
+  filter:none!important;
+}
+body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .cover-card{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.cover-card{
+  filter:none!important;
+  backface-visibility:hidden;
+  transition:transform .42s cubic-bezier(.2,.75,.25,1),opacity .32s ease!important;
+}
+#globalSearch{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease!important}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  .cover-card{transition:none!important}
+}
+
+/* Collexus day/night preference: shared defaults for routes and page modules. */
+html[data-collexus-theme="light"]{color-scheme:light}
+html[data-collexus-theme="dark"]{
+  color-scheme:dark;
+  --page:#0b1219;
+  --page-bg:#0b1219;
+  --bg:#0b1219;
+  --card:#111a23;
+  --card-soft:#151f29;
+  --card-raised:#17232d;
+  --surface:#111a23;
+  --surface-soft:#151f29;
+  --soft:#16222c;
+  --field:#0d171f;
+  --field-border:#354954;
+  --line:#2b3e49;
+  --border:#2b3e49;
+  --ink:#edf5f7;
+  --muted:#a8bac4;
+  --teal:#66ddd0;
+  --teal-dark:#8ce9df;
+  --teal-soft:#173337;
+  --accent:#66ddd0;
+  --accent-strong:#83e6dd;
+  --accent-soft:#173337;
+}
+html[data-collexus-theme="dark"] body.warm-editorial-theme{
+  background:#0b1219!important;
+  color:#edf5f7!important;
+}
+html[data-collexus-theme="dark"] [class*="page__"]{
+  --page:#0b1219!important;
+  --page-bg:#0b1219!important;
+  --bg:#0b1219!important;
+  --card:#111a23!important;
+  --card-soft:#151f29!important;
+  --card-raised:#17232d!important;
+  --surface:#111a23!important;
+  --surface-soft:#151f29!important;
+  --soft:#16222c!important;
+  --field:#0d171f!important;
+  --field-border:#354954!important;
+  --line:#2b3e49!important;
+  --border:#2b3e49!important;
+  --ink:#edf5f7!important;
+  --muted:#a8bac4!important;
+  --teal:#66ddd0!important;
+  --teal-dark:#8ce9df!important;
+  --teal-soft:#173337!important;
+  --accent:#66ddd0!important;
+  --accent-strong:#83e6dd!important;
+  --accent-soft:#173337!important;
+}
+html[data-collexus-theme="dark"] :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  color-scheme:dark;
+  border-color:#354954!important;
+  color:#edf5f7!important;
+  background-color:#111a23!important;
+}
+html[data-collexus-theme="dark"] :is(input,textarea)::placeholder{color:#9aafb9!important}
+html[data-collexus-theme="dark"] .site-menu-panel{
+  --surface:#111a23;
+  --ink:#edf5f7;
+  border-color:#2b3e49;
+  background:#111a23;
+}
+html[data-collexus-theme="dark"] [class*="dashboard__"]{
+  color:#edf5f7!important;
+  background:#0b1219!important;
+}
+html[data-collexus-theme="dark"] :is([class*="metricCard__"],[class*="section__"],[class*="submissionCard__"],[class*="reviewedRow__"],[class*="accountRow__"],[class*="auditRow__"]){
+  border-color:#2b3e49!important;
+  background-color:#111a23!important;
+}
+html[data-collexus-theme="dark"] :is([class*="content__"],[class*="mainColumn__"],[class*="topbar__"]){
+  color:#edf5f7;
+  border-color:#2b3e49;
+  background-color:#0b1219;
+}
+html[data-collexus-theme="dark"] .dark-green-theme{color:#e8f5ee}
+html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading,.category-card,.back-btn,.login-dialog,.calendar-dialog,.pass-dialog){
+  border-color:#244b39!important;
+  color:#e8f5ee!important;
+  background-color:#0a120e!important;
+}
+html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading h2,.category-card h3,.calendar-top h2,.pass-dialog h2,.login-dialog h2){color:#e8f5ee!important}
+html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading p,.category-card p,.calendar-top p,.pass-dialog p,.login-subtitle){color:#b5c9bf!important}
+@media(prefers-reduced-motion:reduce){.site-theme-button{transition:none!important}}

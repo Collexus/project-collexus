@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { events, getEvent } from "@/data/events";
-import { RegistrationDemoForm } from "@/components/registration-demo-flow";
+import { EventRegistrationCheckout } from "@/components/event-registration-checkout";
 
 type RegistrationPageProps = { params: Promise<{ slug: string }> };
 
@@ -20,8 +20,5 @@ export default async function RegistrationPage({ params }: RegistrationPageProps
   const event = getEvent(slug);
   if (!event) notFound();
 
-  const eventEnd = event.dateEnd ?? event.dateStart;
-  const registrationClosed = /registration is closed/i.test(event.fee) || Boolean(eventEnd && eventEnd < new Date().toISOString().slice(0, 10));
-
-  return <RegistrationDemoForm event={{ slug: event.slug, title: event.title, dateLabel: event.dateLabel, category: event.category, dateStart: event.dateStart, dateEnd: event.dateEnd, registrationClosed, audience: event.audience, fee: event.fee }} />;
+  return <EventRegistrationCheckout event={{ slug: event.slug, title: event.title }} />;
 }

@@ -16,8 +16,11 @@ import {
 } from "lucide-react";
 import styles from "./host.module.css";
 import { CollexusHomeLogo } from "@/components/collexus-home-logo";
+import { HostStallPayment } from "./host-stall-payment";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+type StallType = "Silver stall" | "Gold stall" | "Platinum stall";
+const stallPrices: Record<StallType, number> = { "Silver stall": 1000, "Gold stall": 1500, "Platinum stall": 2000 };
 
 const normalFeatures = [
   "Host an event or stall on Collexus",
@@ -46,6 +49,7 @@ export default function HostWithCollexusPage() {
   const [selectedPlan, setSelectedPlan] = useState<"normal" | "pro" | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [requestType, setRequestType] = useState<"event" | "stall" | null>(null);
+  const [stallType, setStallType] = useState<StallType>("Silver stall");
   const [listingName, setListingName] = useState("");
 
   useEffect(() => {
@@ -53,6 +57,8 @@ export default function HostWithCollexusPage() {
     const type = params.get("requestType");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Read browser-only query state after hydration to avoid server/client markup mismatches.
     if (type === "event" || type === "stall") setRequestType(type);
+    const requestedStallType = params.get("stallType");
+    if (requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall") setStallType(requestedStallType);
     const name = params.get("listingName");
     if (name) setListingName(name);
   }, []);
@@ -73,6 +79,9 @@ export default function HostWithCollexusPage() {
   }
 
   const addOnSubtotal = addOns.filter(({ id }) => selectedAddOns.includes(id)).reduce((total, item) => total + Number(item.price.replace(/[^0-9]/g, "")), 0);
+  const stallBasePrice = requestType === "stall" ? stallPrices[stallType] : 0;
+  const proSurcharge = requestType === "stall" && selectedPlan === "pro" ? 500 : 0;
+  const totalPayable = addOnSubtotal + stallBasePrice + proSurcharge;
   const checkoutPath = requestType === "event" ? "/host-event/" : "/stall-registration/";
 
   return (
@@ -137,12 +146,15 @@ export default function HostWithCollexusPage() {
           </div>
           <div className={styles.orderSummary}>
             <h3>Order summary</h3>
-            <div className={styles.orderLine}><span>Collexus {selectedPlan ? selectedPlan === "pro" ? "Pro" : "Normal" : "plan"}</span><strong>Custom quote</strong></div>
+            {requestType === "stall" ? <>
+              <div className={styles.orderLine}><span>{stallType}</span><strong>₹{stallBasePrice.toLocaleString("en-IN")}</strong></div>
+              <div className={styles.orderLine}><span>Collexus {selectedPlan === "pro" ? "Pro" : "Normal"} plan</span><strong>{proSurcharge ? `₹${proSurcharge.toLocaleString("en-IN")}` : "Included"}</strong></div>
+            </> : <div className={styles.orderLine}><span>Collexus {selectedPlan ? selectedPlan === "pro" ? "Pro" : "Normal" : "plan"}</span><strong>Custom quote</strong></div>}
             <div className={styles.orderAddOns}><span>Add-ons</span>{selectedAddOns.length ? addOns.filter(({ id }) => selectedAddOns.includes(id)).map((item) => <div className={styles.orderLine} key={item.id}><span>{item.title}</span><strong>{item.price}</strong></div>) : <small>No add-ons selected</small>}</div>
             <div className={styles.orderLine}><span>Subtotal · add-ons</span><strong>₹{addOnSubtotal.toLocaleString("en-IN")}</strong></div>
-            <div className={styles.orderTotal}><span>Total payable</span><strong>₹{addOnSubtotal.toLocaleString("en-IN")} <small>+ plan quote</small></strong></div>
-            <small className={styles.checkoutNote}>Your plan price is confirmed with the team before payment. This step won’t charge you.</small>
-            {selectedPlan && requestType && listingName.trim() ? <Link className={styles.checkoutButton} href={requestHref(checkoutPath, selectedPlan)}>Continue to checkout <ArrowRight size={17} aria-hidden="true" /></Link> : <button className={styles.checkoutButton} disabled type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>}
+            <div className={styles.orderTotal}><span>Total payable</span><strong>{requestType === "stall" ? `₹${totalPayable.toLocaleString("en-IN")}` : <>₹{addOnSubtotal.toLocaleString("en-IN")} <small>+ plan quote</small></>}</strong></div>
+            <small className={styles.checkoutNote}>{requestType === "stall" ? "The amount shown is calculated on the server. Razorpay will verify payment before confirming your order." : "Your event plan price will be confirmed with the team."}</small>
+            {selectedPlan && requestType === "stall" && listingName.trim() ? <HostStallPayment listingName={listingName.trim()} stallType={stallType} plan={selectedPlan} addOns={selectedAddOns} /> : selectedPlan && requestType === "event" && listingName.trim() ? <Link className={styles.checkoutButton} href={requestHref(checkoutPath, selectedPlan)}>Continue to checkout <ArrowRight size={17} aria-hidden="true" /></Link> : <button className={styles.checkoutButton} disabled type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>}
           </div>
         </section>
 

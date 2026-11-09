@@ -1,13 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
-import { Check, ChevronRight, Copy, HelpCircle, LogOut, X } from "lucide-react";
+import { Check, ChevronRight, Copy, HelpCircle, LogOut, Moon, Sun, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"];
+type DisplayTheme = "light" | "dark";
+
+function getDisplayTheme(): DisplayTheme {
+  return document.documentElement.dataset.collexusTheme === "dark" ? "dark" : "light";
+}
+
+function subscribeToDisplayTheme(onChange: () => void) {
+  window.addEventListener("collexus:theme-change", onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener("collexus:theme-change", onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
 
 export function SiteUtilities() {
   const pathname = usePathname();
@@ -15,6 +29,21 @@ export function SiteUtilities() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const theme = useSyncExternalStore(subscribeToDisplayTheme, getDisplayTheme, () => "light");
+
+  function applyTheme(nextTheme: "light" | "dark", persist = true) {
+    document.documentElement.dataset.collexusTheme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    document.body.classList.toggle("dark-green-theme", nextTheme === "dark" && (window.location.pathname === basePath || window.location.pathname === `${basePath}/`));
+    if (persist) {
+      try { window.localStorage.setItem("collexus:theme", nextTheme); } catch { /* Keep the current selection for this visit if storage is unavailable. */ }
+    }
+    window.dispatchEvent(new CustomEvent("collexus:theme-change", { detail: nextTheme }));
+  }
+
+  useEffect(() => {
+    document.body.classList.toggle("dark-green-theme", theme === "dark" && (pathname === basePath || pathname === `${basePath}/`));
+  }, [pathname, theme]);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -125,6 +154,9 @@ export function SiteUtilities() {
       <a className="site-skip-link" href="#main-content" onClick={() => document.getElementById("main-content")?.focus({ preventScroll: true })}>Skip to content</a>
       <div className="site-navigation-progress" aria-hidden="true"><span /></div>
       <div className="site-utility-actions" aria-label="Page utilities">
+        <button className="site-float-button site-theme-button" type="button" aria-label={`Switch to ${theme === "light" ? "night" : "day"} mode`} title={`Switch to ${theme === "light" ? "night" : "day"} mode`} aria-pressed={theme === "dark"} onClick={() => applyTheme(theme === "light" ? "dark" : "light")}>
+          {theme === "light" ? <Moon size={19} aria-hidden="true" /> : <Sun size={19} aria-hidden="true" />}
+        </button>
         <button className="site-float-button site-help-button" type="button" aria-label="Open help and site menu" title="Help and site menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><HelpCircle size={20} aria-hidden="true" /></button>
       </div>
 

@@ -32,15 +32,15 @@ model Profile {
 }
 
 model EventSubmission {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizerId String   @map("organizer_id") @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizerId String    @map("organizer_id") @db.Uuid
   submission  Json
-  status      String   @default("pending_review")
-  reviewNote  String?  @map("review_note")
-  reviewedBy  String?  @map("reviewed_by") @db.Uuid
+  status      String    @default("pending_review")
+  reviewNote  String?   @map("review_note")
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
   reviewedAt  DateTime? @map("reviewed_at") @db.Timestamptz(6)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([organizerId, createdAt(sort: Desc)], map: "event_submissions_organizer_created_idx")
   @@map("event_submissions")
@@ -86,18 +86,228 @@ model StaffEventAssignment {
   @@schema("public")
 }
 
+model FoodStall {
+  id           String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String                        @db.VarChar(160)
+  slug         String                        @unique @db.VarChar(120)
+  description  String?                       @db.VarChar(600)
+  category     String                        @db.VarChar(80)
+  eventSlug    String?                       @map("event_slug") @db.VarChar(120)
+  location     String?                       @db.VarChar(200)
+  status       String                        @default("draft") @db.VarChar(16)
+  createdAt    DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  menuItems    FoodMenuItem[]
+  operators    FoodStallOperatorAssignment[]
+  orders       FoodOrder[]
+  hostRequests StallSubmission[]             @relation("StallSubmissionCreatedStall")
+
+  @@index([status, createdAt(sort: Desc)], map: "food_stalls_status_created_idx")
+  @@map("food_stalls")
+  @@schema("public")
+}
+
+model StallSubmission {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submitterId    String     @map("submitter_id") @db.Uuid
+  requestData    Json       @map("request_data") @db.JsonB
+  status         String     @default("pending_review") @db.VarChar(24)
+  reviewNote     String?    @map("review_note")
+  reviewedBy     String?    @map("reviewed_by") @db.Uuid
+  reviewedAt     DateTime?  @map("reviewed_at") @db.Timestamptz(6)
+  createdStallId String?    @unique(map: "stall_submissions_created_stall_key") @map("created_stall_id") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdStall   FoodStall? @relation("StallSubmissionCreatedStall", fields: [createdStallId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt(sort: Desc)], map: "stall_submissions_status_created_idx")
+  @@index([submitterId, createdAt(sort: Desc)], map: "stall_submissions_submitter_created_idx")
+  @@map("stall_submissions")
+  @@schema("public")
+}
+
+model FoodMenuItem {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stallId     String    @map("stall_id") @db.Uuid
+  name        String    @db.VarChar(120)
+  description String?   @db.VarChar(300)
+  pricePaise  Int       @map("price_paise")
+  isAvailable Boolean   @default(true) @map("is_available")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  stall       FoodStall @relation(fields: [stallId], references: [id], onDelete: Cascade)
+  orderItems  FoodOrderItem[]
+
+  @@index([stallId, isAvailable], map: "food_menu_items_stall_available_idx")
+  @@map("food_menu_items")
+  @@schema("public")
+}
+
+model FoodStallOperatorAssignment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stallId    String    @map("stall_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  assignedBy String?   @map("assigned_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  stall      FoodStall @relation(fields: [stallId], references: [id], onDelete: Cascade)
+
+  @@unique([stallId, userId], map: "food_stall_operator_assignments_stall_user_key")
+  @@index([userId, revokedAt], map: "food_stall_operator_assignments_user_active_idx")
+  @@index([stallId, revokedAt], map: "food_stall_operator_assignments_stall_active_idx")
+  @@map("food_stall_operator_assignments")
+  @@schema("public")
+}
+
 model AdminAuditLog {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  actorId       String   @map("actor_id") @db.Uuid
-  action        String   @db.VarChar(80)
-  resourceType  String   @map("resource_type") @db.VarChar(50)
-  resourceId    String?  @map("resource_id") @db.Uuid
-  previousValues Json?   @map("previous_values") @db.JsonB
-  newValues     Json?    @map("new_values") @db.JsonB
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId        String   @map("actor_id") @db.Uuid
+  action         String   @db.VarChar(80)
+  resourceType   String   @map("resource_type") @db.VarChar(50)
+  resourceId     String?  @map("resource_id") @db.Uuid
+  previousValues Json?    @map("previous_values") @db.JsonB
+  newValues      Json?    @map("new_values") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([createdAt(sort: Desc)], map: "admin_audit_logs_created_idx")
   @@index([actorId, createdAt(sort: Desc)], map: "admin_audit_logs_actor_created_idx")
   @@map("admin_audit_logs")
+  @@schema("public")
+}
+
+model HostStallOrder {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  listingName String   @map("listing_name") @db.VarChar(160)
+  stallType   String   @map("stall_type") @db.VarChar(32)
+  plan        String   @db.VarChar(16)
+  addOns      Json     @default("[]") @map("add_ons")
+  amountPaise Int      @map("amount_paise")
+  currency    String   @default("INR") @db.Char(3)
+  status      String   @default("pending_payment") @db.VarChar(24)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc)], map: "host_stall_orders_user_created_idx")
+  @@map("host_stall_orders")
+  @@schema("public")
+}
+
+model EventTicketType {
+  id           String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventSlug    String               @map("event_slug") @db.VarChar(120)
+  eventTitle   String               @map("event_title") @db.VarChar(200)
+  name         String               @db.VarChar(120)
+  description  String?              @db.VarChar(500)
+  pricePaise   Int                  @map("price_paise")
+  currency     String               @default("INR") @db.Char(3)
+  isActive     Boolean              @default(false) @map("is_active")
+  salesStartAt DateTime?            @map("sales_start_at") @db.Timestamptz(6)
+  salesEndAt   DateTime?            @map("sales_end_at") @db.Timestamptz(6)
+  capacity     Int?
+  createdBy    String?              @map("created_by") @db.Uuid
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  registrations EventRegistration[]
+
+  @@unique([eventSlug, name], map: "event_ticket_types_event_name_key")
+  @@index([eventSlug, isActive, salesStartAt, salesEndAt], map: "event_ticket_types_active_idx")
+  @@map("event_ticket_types")
+  @@schema("public")
+}
+
+model EventRegistration {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  ticketTypeId String         @map("ticket_type_id") @db.Uuid
+  eventSlug    String         @map("event_slug") @db.VarChar(120)
+  eventTitle   String         @map("event_title") @db.VarChar(200)
+  ticketName   String         @map("ticket_name") @db.VarChar(120)
+  attendeeName String         @map("attendee_name") @db.VarChar(160)
+  attendeeEmail String        @map("attendee_email") @db.VarChar(320)
+  attendeePhone String        @map("attendee_phone") @db.VarChar(40)
+  amountPaise  Int            @map("amount_paise")
+  currency     String         @default("INR") @db.Char(3)
+  status       String         @default("pending_payment") @db.VarChar(24)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ticketType   EventTicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt(sort: Desc)], map: "event_registrations_user_created_idx")
+  @@index([eventSlug, status], map: "event_registrations_event_status_idx")
+  @@map("event_registrations")
+  @@schema("public")
+}
+
+model FoodOrder {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+  stallId        String          @map("stall_id") @db.Uuid
+  status         String          @default("pending_payment") @db.VarChar(24)
+  subtotalPaise  Int             @map("subtotal_paise")
+  amountPaise    Int             @map("amount_paise")
+  currency       String          @default("INR") @db.Char(3)
+  customerName   String          @map("customer_name") @db.VarChar(160)
+  customerPhone  String          @map("customer_phone") @db.VarChar(40)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  stall          FoodStall       @relation(fields: [stallId], references: [id], onDelete: Restrict)
+  items          FoodOrderItem[]
+
+  @@index([userId, createdAt(sort: Desc)], map: "food_orders_user_created_idx")
+  @@index([stallId, status, createdAt], map: "food_orders_stall_status_idx")
+  @@map("food_orders")
+  @@schema("public")
+}
+
+model FoodOrderItem {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId         String       @map("order_id") @db.Uuid
+  menuItemId      String?      @map("menu_item_id") @db.Uuid
+  itemName        String       @map("item_name") @db.VarChar(120)
+  unitPricePaise  Int          @map("unit_price_paise")
+  quantity        Int
+  lineTotalPaise  Int          @map("line_total_paise")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  order           FoodOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem        FoodMenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  @@index([orderId], map: "food_order_items_order_idx")
+  @@map("food_order_items")
+  @@schema("public")
+}
+
+model Payment {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  purchaseType          String    @map("purchase_type") @db.VarChar(24)
+  purchaseId            String    @map("purchase_id") @db.Uuid
+  idempotencyKey        String    @map("idempotency_key") @db.Uuid
+  requestHash           String    @map("request_hash") @db.Char(64)
+  amountPaise           Int       @map("amount_paise")
+  currency              String    @default("INR") @db.Char(3)
+  status                String    @default("created") @db.VarChar(16)
+  razorpayOrderId       String?   @unique @map("razorpay_order_id") @db.VarChar(64)
+  razorpayPaymentId     String?   @unique @map("razorpay_payment_id") @db.VarChar(64)
+  orderCreationStartedAt DateTime? @map("order_creation_started_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc)], map: "payments_user_created_idx")
+  @@index([purchaseType, purchaseId], map: "payments_purchase_idx")
+  @@unique([userId, idempotencyKey], map: "payments_user_idempotency_key")
+  @@map("payments")
+  @@schema("public")
+}
+
+model PaymentWebhookEvent {
+  eventId         String    @id @map("event_id") @db.VarChar(200)
+  eventType       String    @map("event_type") @db.VarChar(80)
+  payloadHash     String    @map("payload_hash") @db.Char(64)
+  processingStatus String   @default("received") @map("processing_status") @db.VarChar(16)
+  receivedAt      DateTime  @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz(6)
+
+  @@map("payment_webhook_events")
   @@schema("public")
 }

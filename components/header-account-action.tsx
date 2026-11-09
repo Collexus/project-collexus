@@ -3,20 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { BadgeCheck, CircleHelp, ClipboardList, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { BadgeCheck, CalendarDays, CircleHelp, ClipboardCheck, ClipboardList, LogOut, ShieldCheck, Store, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import styles from "./header-account-action.module.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+type PanelAccess = { eventPanel: boolean; stallPanel: boolean; staffPanel: boolean };
+
 export function HeaderAccountAction() {
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
+  const [panelAccess, setPanelAccess] = useState<(PanelAccess & { userId: string }) | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const userId = user?.id;
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -54,14 +58,41 @@ export function HeaderAccountAction() {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!menuOpen || !userId) return;
+    let active = true;
+    void fetch(`${basePath}/api/account/panel-access/`, { cache: "no-store", credentials: "same-origin" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Could not load panel access.");
+        return await response.json() as { success?: boolean; data?: PanelAccess };
+      })
+      .then((result) => {
+        if (!active || !result.success || !result.data) return;
+        setPanelAccess({
+          userId,
+          eventPanel: result.data.eventPanel === true,
+          stallPanel: result.data.stallPanel === true,
+          staffPanel: result.data.staffPanel === true,
+        });
+      })
+      .catch(() => {
+        if (active) setPanelAccess({ userId, eventPanel: false, stallPanel: false, staffPanel: false });
+      });
+    return () => { active = false; };
+  }, [menuOpen, userId]);
+
   if (user) {
     const name = String(user.user_metadata.full_name ?? user.user_metadata.name ?? "Your profile");
     const email = user.email ?? "Signed in to Collexus";
     const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "C";
+    const currentPanelAccess = panelAccess?.userId === user.id ? panelAccess : null;
     const profileLinks = [
       { label: "Profile", href: `${basePath}/profile/`, Icon: UserRound },
       { label: "Account & privacy", href: `${basePath}/profile/edit/`, Icon: ShieldCheck },
       { label: "Registrations & orders", href: `${basePath}/registrations/`, Icon: ClipboardList },
+      ...(currentPanelAccess?.eventPanel ? [{ label: "Event host panel", href: `${basePath}/event-panel/`, Icon: CalendarDays }] : []),
+      ...(currentPanelAccess?.stallPanel ? [{ label: "Stall host panel", href: `${basePath}/stall-panel/`, Icon: Store }] : []),
+      ...(currentPanelAccess?.staffPanel ? [{ label: "Staff event panel", href: `${basePath}/staff-panel/`, Icon: ClipboardCheck }] : []),
       { label: "Help", href: `${basePath}/help/`, Icon: CircleHelp },
       { label: "About Collexus", href: `${basePath}/about/`, Icon: UserRound },
     ];
@@ -95,7 +126,7 @@ export function HeaderAccountAction() {
           aria-expanded={menuOpen}
           aria-controls="profileDropdown"
           title={name}
-          onClick={() => { setSignOutError(""); setMenuOpen((open) => !open); }}
+          onClick={() => { setSignOutError(""); if (!menuOpen) setPanelAccess(null); setMenuOpen((open) => !open); }}
         ><Icon name="person" /></button>
 
         <div className={styles.dropdown} id="profileDropdown" hidden={!menuOpen}>

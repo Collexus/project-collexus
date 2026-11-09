@@ -15,7 +15,7 @@ type CategoryFilter = EventCategory | "All events";
 type BranchFilter = EventBranch | "All tracks";
 
 const categories: CategoryFilter[] = ["All events", "Hackathon", "Workshop", "Project expo", "Cultural", "Special event"];
-const branches: BranchFilter[] = ["All tracks", "IoT", "Hardware", "Campus"];
+const branches: BranchFilter[] = ["All tracks", "IoT", "Hardware", "Campus", "Cyber Security"];
 const categoryIcons: Record<CategoryFilter, typeof Grid2X2> = {
   "All events": Grid2X2,
   Hackathon: Code2,

@@ -1,5 +1,5 @@
 export type EventCategory = "Hackathon" | "Workshop" | "Project expo" | "Cultural" | "Special event";
-export type EventBranch = "IoT" | "Hardware" | "Campus" | "AI & Data Science";
+export type EventBranch = "IoT" | "Hardware" | "Campus" | "AI & Data Science" | "Cyber Security";
 
 export type CampusEvent = {
   slug: string;
@@ -42,7 +42,6 @@ export const events: CampusEvent[] = [
     description:
       "PRAKALP 2026 was a two-day national project expo and offline 24-hour hackathon at Ramachandra College of Engineering in Eluru. RCEE described 100+ expo slots across 10 domains and 200+ hackathon teams across four themes: IoT Sprint, Cyber Security, AI Agents Hack and Embed Fusion. The college listed a ₹3,00,000 combined prize pool. The IoT Sprint report records a 10:00 AM April 1 start and 10:00 AM April 2 finish.",
     fee: "The PRAKALP page listed ₹1,000 for a single participant or duo, and ₹500 per person for teams of 3–5. Registration is closed.",
-    paymentUrl: "https://rzp.io/rzp/nqlZqLTa",
     format: "In person · 24-hour IoT Sprint plus project expo",
     image: `${publicBasePath}/assets/event-art/hackathon.webp`,
     source: "https://www.rcee.ac.in/prakalp",
@@ -293,6 +292,55 @@ export const events: CampusEvent[] = [
       "The ECE department lists this as an industry immersion workshop.",
       "The subject is surface-mount technology and printed circuit board assembly.",
       "The listing does not provide exact workshop dates or a session schedule.",
+    ],
+  },
+  {
+    slug: "india-japan-innovation-hackathon-2026",
+    title: "India–Japan Innovation Hackathon 2026",
+    category: "Hackathon",
+    branch: "IoT",
+    tracks: ["iot", "cyber security", "innovation & entrepreneurship"],
+    audience: "RCEE students",
+    dateStart: "2026-09-11",
+    dateLabel: "September 11, 2026",
+    venue: "SH-004 & SH-006, Ramachandra College of Engineering, Eluru",
+    organizer: "RCEE Departments of CSE (IoT) and CSE (Cyber Security) · URE Groups · Consistency.AI",
+    description:
+      "A one-day innovation hackathon organized at RCEE by the CSE (IoT) and CSE (Cyber Security) departments with URE Groups and Consistency.AI. The event brought student teams together to develop and present solutions; RCEE's event announcement listed a 9:00 AM–5:00 PM schedule.",
+    fee: "No fee or payment link was published in the event announcement.",
+    format: "In person · one-day hackathon",
+    image: `${publicBasePath}/assets/event-art/hackathon.webp`,
+    source: "https://www.linkedin.com/school/rcee/",
+    highlights: [
+      "RCEE's announcement lists September 11, 2026, from 9:00 AM to 5:00 PM.",
+      "The announcement lists SH-004 and SH-006 as the venues.",
+      "Organizing departments were CSE (IoT) and CSE (Cyber Security), with URE Groups and Consistency.AI as supporting partners.",
+      "The public announcement does not list a registration fee or payment URL.",
+    ],
+  },
+  {
+    slug: "linux-learning-series-2026",
+    title: "Linux Learning Series — Phase 1",
+    category: "Workshop",
+    branch: "Cyber Security",
+    tracks: ["cyber security", "linux & system administration"],
+    audience: "RCEE students",
+    dateStart: "2026-10-27",
+    dateEnd: "2026-10-31",
+    dateLabel: "October 27–31, 2026",
+    venue: "SH-118, Ramachandra College of Engineering, Eluru",
+    organizer: "RCEE Department of CSE (Cyber Security) · LinuXpert Systems",
+    description:
+      "A five-day, hands-on Linux training series covering Linux fundamentals, command-line computing, system administration and practical applications. RCEE's announcement lists sessions from 9:00 AM to 4:30 PM, led by Baskar Selvaraj of LinuXpert Systems.",
+    fee: "No fee or payment link was published in the event announcement.",
+    format: "In person · five-day hands-on workshop",
+    image: `${publicBasePath}/assets/event-art/workshop.webp`,
+    source: "https://www.linkedin.com/school/rcee/",
+    highlights: [
+      "RCEE's announcement lists October 27–31, 2026, from 9:00 AM to 4:30 PM.",
+      "Sessions were held in SH-118.",
+      "The training focused on Linux fundamentals, the command line and system administration.",
+      "The public announcement does not list a registration fee or payment URL.",
     ],
   },
 ];

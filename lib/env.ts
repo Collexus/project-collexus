@@ -14,6 +14,9 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalString,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalString,
+  RAZORPAY_KEY_ID: optionalString,
+  RAZORPAY_KEY_SECRET: optionalString,
+  RAZORPAY_WEBHOOK_SECRET: optionalString,
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,
   SENTRY_DSN: optionalUrl,
@@ -25,6 +28,10 @@ export function getServerEnv() {
     throw new Error("Server environment configuration is invalid.");
   }
   const values = parsed.data;
+  const razorpayCredentials = [values.RAZORPAY_KEY_ID, values.RAZORPAY_KEY_SECRET];
+  if (razorpayCredentials.some(Boolean) && razorpayCredentials.some((value) => !value)) {
+    throw new Error("Set both Razorpay API key environment variables, or neither.");
+  }
   if (Boolean(values.UPSTASH_REDIS_REST_URL) !== Boolean(values.UPSTASH_REDIS_REST_TOKEN)) {
     throw new Error("Set both Upstash Redis REST environment variables, or neither.");
   }
