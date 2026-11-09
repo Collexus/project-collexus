@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import styles from "./host.module.css";
 
@@ -33,9 +34,10 @@ async function ensureCheckoutScript() {
 export function HostStallPayment({
   listingName, stallType, plan, addOns,
 }: { listingName: string; stallType: StallType; plan: Plan; addOns: string[] }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const idempotencyKey = useRef(crypto.randomUUID());
+  const idempotencyKey = useRef("");
 
   async function startPayment() {
     setBusy(true);
@@ -44,9 +46,10 @@ export function HostStallPayment({
       const supabase = getSupabaseClient();
       const { data: sessionData } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
       if (!sessionData.session) {
-        window.location.assign(`/login/?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        router.push(`/login/?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
       }
+      if (!idempotencyKey.current) idempotencyKey.current = crypto.randomUUID();
       const response = await fetch("/api/payments/host-stall", {
         method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey.current },
         body: JSON.stringify({ listingName, stallType, plan, addOns }),
@@ -75,7 +78,7 @@ export function HostStallPayment({
           }
           const params = new URLSearchParams({ payment: "success", plan, listingName, stallType });
           if (addOns.length) params.set("addons", addOns.join(","));
-          window.location.assign(`/stall-registration/?${params.toString()}`);
+          router.push(`/stall-registration/?${params.toString()}`);
         },
       });
       checkout.open();

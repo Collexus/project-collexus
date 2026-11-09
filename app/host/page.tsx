@@ -19,8 +19,12 @@ import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { HostStallPayment } from "./host-stall-payment";
 
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-type StallType = "Silver stall" | "Gold stall" | "Platinum stall";
-const stallPrices: Record<StallType, number> = { "Silver stall": 1000, "Gold stall": 1500, "Platinum stall": 2000 };
+const stallPrices = { "Silver stall": 1000, "Gold stall": 1500, "Platinum stall": 2000 } as const;
+type StallType = keyof typeof stallPrices;
+
+function isStallType(value: string | null): value is StallType {
+  return value !== null && Object.hasOwn(stallPrices, value);
+}
 
 const normalFeatures = [
   "Host an event or stall on Collexus",
@@ -58,13 +62,14 @@ export default function HostWithCollexusPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Read browser-only query state after hydration to avoid server/client markup mismatches.
     if (type === "event" || type === "stall") setRequestType(type);
     const requestedStallType = params.get("stallType");
-    if (requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall") setStallType(requestedStallType);
+    if (isStallType(requestedStallType)) setStallType(requestedStallType);
     const name = params.get("listingName");
     if (name) setListingName(name);
   }, []);
 
   function requestHref(path: string, plan: "normal" | "pro") {
     const params = new URLSearchParams({ plan, listingName, requestType: requestType ?? "" });
+    if (requestType === "stall") params.set("stallType", stallType);
     if (selectedAddOns.length) params.set("addons", selectedAddOns.join(","));
     return `${path}?${params.toString()}`;
   }
@@ -79,9 +84,9 @@ export default function HostWithCollexusPage() {
   }
 
   const addOnSubtotal = addOns.filter(({ id }) => selectedAddOns.includes(id)).reduce((total, item) => total + Number(item.price.replace(/[^0-9]/g, "")), 0);
-  const stallBasePrice = requestType === "stall" ? stallPrices[stallType] : 0;
+  const stallSubtotal = requestType === "stall" ? stallPrices[stallType] : 0;
   const proSurcharge = requestType === "stall" && selectedPlan === "pro" ? 500 : 0;
-  const totalPayable = addOnSubtotal + stallBasePrice + proSurcharge;
+  const orderSubtotal = addOnSubtotal + stallSubtotal + proSurcharge;
   const checkoutPath = requestType === "event" ? "/host-event/" : "/stall-registration/";
 
   return (
@@ -117,16 +122,16 @@ export default function HostWithCollexusPage() {
             <article className={styles.planCard}>
               <div className={styles.planHead}><span className={styles.planIcon}><Check size={19} aria-hidden="true" /></span><span className={styles.planLabel}>THE ESSENTIALS</span></div>
               <h3>Collexus Normal</h3><p className={styles.planDescription}>A clear starting point for campus organizers and stall owners.</p>
-              <p className={styles.planPrice}>Custom quote <small>based on your event needs</small></p>
+              <p className={styles.planPrice}>{requestType === "stall" ? `₹${stallPrices[stallType].toLocaleString("en-IN")}` : "Custom quote"} <small>{requestType === "stall" ? "for your selected stall type with Normal" : "based on your event needs"}</small></p>
               <ul>{normalFeatures.map((feature) => <li key={feature}><Check size={16} aria-hidden="true" />{feature}</li>)}</ul>
-              <div className={styles.planActions}><button aria-controls={selectedPlan === "normal" ? "normal-next-step" : undefined} aria-expanded={selectedPlan === "normal"} className={styles.secondaryButton} onClick={() => { setSelectedPlan(selectedPlan === "normal" ? null : "normal"); setRequestType(null); }} type="button">Continue with Normal</button>{selectedPlan === "normal" && <div className={styles.planNext} id="normal-next-step"><button aria-pressed={requestType === "event"} onClick={() => chooseRequestType("event")} type="button">For event</button><button aria-pressed={requestType === "stall"} onClick={() => chooseRequestType("stall")} type="button">For stall</button></div>}</div>
+              <div className={styles.planActions}><button aria-controls={selectedPlan === "normal" ? "normal-next-step" : undefined} aria-expanded={selectedPlan === "normal"} className={styles.secondaryButton} onClick={() => setSelectedPlan(selectedPlan === "normal" ? null : "normal")} type="button">Continue with Normal</button>{selectedPlan === "normal" && <div className={styles.planNext} id="normal-next-step"><button aria-pressed={requestType === "event"} onClick={() => chooseRequestType("event")} type="button">For event</button><button aria-pressed={requestType === "stall"} onClick={() => chooseRequestType("stall")} type="button">For stall</button></div>}</div>
             </article>
             <article className={`${styles.planCard} ${styles.proCard}`}>
               <div className={styles.planHead}><span className={styles.planIcon}><BadgeCheck size={19} aria-hidden="true" /></span><span className={styles.planLabel}>MORE REACH &amp; SUPPORT</span><span className={styles.proBadge}>PRO</span></div>
               <h3>Collexus Pro</h3><p className={styles.planDescription}>A higher-touch package for organizers ready to make a bigger impact.</p>
-              <p className={styles.planPrice}>Custom quote <small>based on your event needs</small></p>
+              <p className={styles.planPrice}>{requestType === "stall" ? `₹${(stallPrices[stallType] + 500).toLocaleString("en-IN")}` : "Custom quote"} <small>{requestType === "stall" ? "stall price + ₹500 Pro upgrade" : "based on your event needs"}</small></p>
               <ul>{proFeatures.map((feature) => <li key={feature}><Check size={16} aria-hidden="true" />{feature}</li>)}</ul>
-              <div className={styles.planActions}><button aria-controls={selectedPlan === "pro" ? "pro-next-step" : undefined} aria-expanded={selectedPlan === "pro"} className={styles.primaryButton} onClick={() => { setSelectedPlan(selectedPlan === "pro" ? null : "pro"); setRequestType(null); }} type="button">Continue with Pro</button>{selectedPlan === "pro" && <div className={styles.planNext} id="pro-next-step"><button aria-pressed={requestType === "event"} onClick={() => chooseRequestType("event")} type="button">For event</button><button aria-pressed={requestType === "stall"} onClick={() => chooseRequestType("stall")} type="button">For stall</button></div>}</div>
+              <div className={styles.planActions}><button aria-controls={selectedPlan === "pro" ? "pro-next-step" : undefined} aria-expanded={selectedPlan === "pro"} className={styles.primaryButton} onClick={() => setSelectedPlan(selectedPlan === "pro" ? null : "pro")} type="button">Continue with Pro</button>{selectedPlan === "pro" && <div className={styles.planNext} id="pro-next-step"><button aria-pressed={requestType === "event"} onClick={() => chooseRequestType("event")} type="button">For event</button><button aria-pressed={requestType === "stall"} onClick={() => chooseRequestType("stall")} type="button">For stall</button></div>}</div>
             </article>
           </div>
           <p className={styles.pricingNote}>Plan pricing and availability are confirmed with the event team after reviewing your request. Request forms create a local file to share; they do not publish an event or reserve a stall.</p>
@@ -147,13 +152,15 @@ export default function HostWithCollexusPage() {
           <div className={styles.orderSummary}>
             <h3>Order summary</h3>
             {requestType === "stall" ? <>
-              <div className={styles.orderLine}><span>{stallType}</span><strong>₹{stallBasePrice.toLocaleString("en-IN")}</strong></div>
-              <div className={styles.orderLine}><span>Collexus {selectedPlan === "pro" ? "Pro" : "Normal"} plan</span><strong>{proSurcharge ? `₹${proSurcharge.toLocaleString("en-IN")}` : "Included"}</strong></div>
+              <div className={styles.orderLine}><span>{stallType}</span><strong>₹{stallSubtotal.toLocaleString("en-IN")}</strong></div>
+              {selectedPlan === "normal" && <div className={styles.orderLine}><span>Collexus Normal plan</span><strong>Included</strong></div>}
+              {selectedPlan === "pro" && <div className={styles.orderLine}><span>Collexus Pro upgrade</span><strong>₹500</strong></div>}
+              {!selectedPlan && <div className={styles.orderLine}><span>Collexus plan</span><strong>Choose Normal or Pro</strong></div>}
             </> : <div className={styles.orderLine}><span>Collexus {selectedPlan ? selectedPlan === "pro" ? "Pro" : "Normal" : "plan"}</span><strong>Custom quote</strong></div>}
             <div className={styles.orderAddOns}><span>Add-ons</span>{selectedAddOns.length ? addOns.filter(({ id }) => selectedAddOns.includes(id)).map((item) => <div className={styles.orderLine} key={item.id}><span>{item.title}</span><strong>{item.price}</strong></div>) : <small>No add-ons selected</small>}</div>
-            <div className={styles.orderLine}><span>Subtotal · add-ons</span><strong>₹{addOnSubtotal.toLocaleString("en-IN")}</strong></div>
-            <div className={styles.orderTotal}><span>Total payable</span><strong>{requestType === "stall" ? `₹${totalPayable.toLocaleString("en-IN")}` : <>₹{addOnSubtotal.toLocaleString("en-IN")} <small>+ plan quote</small></>}</strong></div>
-            <small className={styles.checkoutNote}>{requestType === "stall" ? "The amount shown is calculated on the server. Razorpay will verify payment before confirming your order." : "Your event plan price will be confirmed with the team."}</small>
+            <div className={styles.orderLine}><span>{requestType === "stall" ? selectedPlan === "pro" ? "Subtotal · stall, Pro & add-ons" : "Subtotal · stall & add-ons" : "Subtotal · add-ons"}</span><strong>₹{orderSubtotal.toLocaleString("en-IN")}</strong></div>
+            <div className={styles.orderTotal}><span>Total payable</span><strong>₹{orderSubtotal.toLocaleString("en-IN")} {requestType === "stall" ? selectedPlan ? null : <small>select a plan</small> : <small>+ plan quote</small>}</strong></div>
+            <small className={styles.checkoutNote}>{requestType === "stall" ? "The amount shown is calculated on the server. Razorpay verifies the payment before confirming your order." : "Your event plan price will be confirmed with the team."}</small>
             {selectedPlan && requestType === "stall" && listingName.trim() ? <HostStallPayment listingName={listingName.trim()} stallType={stallType} plan={selectedPlan} addOns={selectedAddOns} /> : selectedPlan && requestType === "event" && listingName.trim() ? <Link className={styles.checkoutButton} href={requestHref(checkoutPath, selectedPlan)}>Continue to checkout <ArrowRight size={17} aria-hidden="true" /></Link> : <button className={styles.checkoutButton} disabled type="button">Continue to checkout <ArrowRight size={17} aria-hidden="true" /></button>}
           </div>
         </section>

@@ -5,10 +5,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Activity, ArrowDownRight, ArrowLeft, ArrowUpRight, BadgeCheck,
-  ClipboardCheck, FileClock, Landmark, ShieldCheck, Store, UserCheck, UsersRound,
+  ClipboardCheck, FileClock, Landmark, ShieldCheck, UsersRound,
 } from "lucide-react";
 import { changeAccountRole, changeStaffEventAssignment, reviewEventSubmission } from "@/app/admin/actions";
-import { AdminSignOutButton } from "@/app/admin/admin-sign-out-button";
 import { formatAdminDate, formatAdminDateTime, getAdminDashboardData, roleLabels } from "@/lib/admin/data";
 import { adminManageableRoles } from "@/lib/admin/schemas";
 import { requireRole } from "@/lib/auth";
@@ -16,6 +15,7 @@ import { ApiError } from "@/lib/backend/errors";
 import { events } from "@/data/events";
 import styles from "./admin.module.css";
 import { AdminFlashToast } from "./admin-flash-toast";
+import { AdminSignOutButton } from "./admin-sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -50,14 +50,14 @@ const messages: Record<string, { tone: "success" | "error"; text: string }> = {
   "staff-assignment-updated": { tone: "success", text: "The event staff assignment was updated and recorded." },
 };
 
-function AdminAccessMessage({ title, children }: { title: string; children: ReactNode }) {
+function AdminAccessMessage({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <main id="main-content" tabIndex={-1} className={styles.accessPage}>
       <section className={styles.accessCard}>
         <span className={styles.brandMark}><ShieldCheck size={22} aria-hidden="true" /></span>
         <p className={styles.eyebrow}>COLLEXUS ADMIN</p>
         <h1>{title}</h1>
-        <p>{children}</p>
+        {children ? <p>{children}</p> : null}
         <Link className={styles.backHome} href="/"><ArrowLeft size={16} aria-hidden="true" /> Back to Collexus</Link>
       </section>
     </main>
@@ -122,7 +122,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     if (error instanceof ApiError && error.status === 401) redirect("/admin/login/?next=%2Fadmin%2F");
     if (error instanceof ApiError && error.code === "MFA_REQUIRED") redirect("/admin/mfa/?next=%2Fadmin%2F");
     if (error instanceof ApiError && error.status === 403) {
-      return <AdminAccessMessage title="Administrator access required">This workspace is restricted to accounts with an explicitly assigned administrator role.</AdminAccessMessage>;
+      return <AdminAccessMessage title="There is no access" />;
     }
     return <AdminAccessMessage title="The admin workspace is unavailable">Check the server authentication and database configuration, then reload this page.</AdminAccessMessage>;
   }
@@ -166,9 +166,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <nav className={styles.nav}>
             <a href="#overview" className={styles.navActive}><Activity size={17} aria-hidden="true" /> Overview</a>
             <a href="#event-review"><ClipboardCheck size={17} aria-hidden="true" /> Event review <span>{data.metrics.pending}</span></a>
-            <Link href="/admin/events/"><ClipboardCheck size={17} aria-hidden="true" /> Event management</Link>
-            <Link href="/admin/stalls/"><Store size={17} aria-hidden="true" /> Stall management</Link>
-            <Link href="/admin/staff/"><UserCheck size={17} aria-hidden="true" /> Staff management</Link>
             <a href="#accounts"><UsersRound size={17} aria-hidden="true" /> Accounts &amp; roles</a>
             <a href="#audit-log"><FileClock size={17} aria-hidden="true" /> Audit history</a>
           </nav>
@@ -254,7 +251,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               {data.submissions.length === 0 && data.pagination.submissions.page > 1 && <div className={styles.emptyState}><span><BadgeCheck size={22} aria-hidden="true" /></span><div><strong>No more pending submissions</strong><p>Return to an earlier page to review the remaining requests.</p></div></div>}
               <Pagination section="submissions" info={data.pagination.submissions} pages={pages} />
 
-              <p className={styles.scopeNote}>Approval grants the organizer Event panel access. Public RCEE event records continue to use the verified source content in the existing catalog.</p>
+              <p className={styles.scopeNote}>Approval records the moderation decision. Public RCEE event records continue to use the verified source content in the existing catalog.</p>
 
               {data.reviewed.length > 0 && <div className={styles.recentReviews}>
                 <h3>Recently reviewed</h3>

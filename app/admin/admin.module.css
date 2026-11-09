@@ -35,7 +35,7 @@
 .signOutButton:hover { border-color: #bccfd2; color: #263f49; background: #f8fbfb; }
 .signOutButton:focus-visible { outline: 3px solid rgba(8,126,131,.22); outline-offset: 2px; }
 .signOutButton:disabled { opacity: .62; cursor: wait; }
-.signOutError { position: absolute; right: 20px; top: calc(100% + 4px); z-index: 1; max-width: min(360px,80vw); padding: 7px 9px; border: 1px solid #ebc2bc; border-radius: 8px; color: #8d3730; background: #fff2ef; font-size: 10px; box-shadow: 0 5px 15px rgba(31,61,71,.08); }
+.signOutError { position: absolute; right: 0; top: calc(100% + 5px); z-index: 2; max-width: min(360px,80vw); padding: 7px 9px; border: 1px solid #ebc2bc; border-radius: 8px; color: #8d3730; background: #fff2ef; font-size: 10px; box-shadow: 0 5px 15px rgba(31,61,71,.08); }
 .content { width: min(1320px,100%); margin: 0 auto; padding: 31px clamp(20px,4vw,56px) 34px; }
 .notice { margin: 0 0 18px; padding: 13px 15px; border: 1px solid; border-radius: 11px; font-size: 12px; font-weight: 650; }
 .noticeSuccess { border-color: #a8dccc; color: #185e4c; background: #eaf8f3; }

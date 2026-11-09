@@ -30,10 +30,12 @@ export function AdminSignOutButton() {
     }
   }
 
-  return <div className={styles.signOutWrap}>
-    <button className={styles.signOutButton} disabled={busy} onClick={() => void signOut()} type="button">
-      <LogOut size={15} aria-hidden="true" /> {busy ? "Signing out…" : "Sign out"}
-    </button>
-    {error && <span className={styles.signOutError} role="alert">{error}</span>}
-  </div>;
+  return (
+    <div className={styles.signOutWrap}>
+      <button className={styles.signOutButton} disabled={busy} onClick={() => void signOut()} type="button">
+        <LogOut size={15} aria-hidden="true" /> {busy ? "Signing out…" : "Sign out"}
+      </button>
+      {error && <span className={styles.signOutError} role="alert">{error}</span>}
+    </div>
+  );
 }

@@ -295,6 +295,7 @@ model Payment {
 
   @@index([userId, createdAt(sort: Desc)], map: "payments_user_created_idx")
   @@index([purchaseType, purchaseId], map: "payments_purchase_idx")
+  @@index([status, createdAt(sort: Desc)], map: "payments_status_created_idx")
   @@unique([userId, idempotencyKey], map: "payments_user_idempotency_key")
   @@map("payments")
   @@schema("public")

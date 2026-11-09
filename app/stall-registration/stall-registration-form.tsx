@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { nanoid } from "nanoid";
 import {
   ArrowLeft,
   ArrowRight,
@@ -34,7 +33,8 @@ type StallForm = {
   phone: string;
   eventName: string;
   customEventName: string;
-  eventDate: string;
+  startDate: string;
+  endDate: string;
   stallName: string;
   stallType: string;
   stallSize: string;
@@ -45,25 +45,36 @@ type StallForm = {
   water: boolean;
   stallBox: boolean;
   setupNotes: string;
-  foodSafety: string;
   confirmed: boolean;
 };
 
+export type StallContactProfile = Pick<StallForm, "contactName" | "role" | "organization" | "email" | "phone">;
+export type StallProfileState = "signed-out" | "loaded" | "unavailable";
+
 const initialForm: StallForm = {
-  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", eventDate: "",
-  stallName: "", stallType: "", stallSize: "", locationPreference: "", teamSize: "",
-  sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", foodSafety: "", confirmed: false,
+  contactName: "", role: "", organization: "", email: "", phone: "", eventName: "", customEventName: "", startDate: "", endDate: "",
+  stallName: "", stallType: "", stallSize: "Silver stall", locationPreference: "", teamSize: "",
+  sellsProducts: "", power: false, water: false, stallBox: false, setupNotes: "", confirmed: false,
 };
 
 type MenuItem = { name: string; offerPrice: string; eventDayPrice: string };
 const blankMenuItem = (): MenuItem => ({ name: "", offerPrice: "", eventDayPrice: "" });
+const stallTypes = ["Silver stall", "Gold stall", "Platinum stall"] as const;
+function normalizeStallType(value: string | null | undefined) {
+  return stallTypes.includes(value as (typeof stallTypes)[number]) ? value as (typeof stallTypes)[number] : "Silver stall";
+}
 type EventPerson = { id: number; name: string; stallName: string; phone: string; photoFile: File | null; photoPreview: string };
 const blankEventPerson = (id: number): EventPerson => ({ id, name: "", stallName: "", phone: "", photoFile: null, photoPreview: "" });
+function indianMobileDigits(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return (digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits).slice(0, 10);
+}
 type CollexusPackage = { plan: "normal" | "pro" | ""; addons: string[]; listingName: string };
 
-export function StallRegistrationForm() {
+export function StallRegistrationForm({ contactProfile, profileState }: { contactProfile: StallContactProfile | null; profileState: StallProfileState }) {
   const router = useRouter();
-  const [form, setForm] = useState<StallForm>(initialForm);
+  const [form, setForm] = useState<StallForm>(() => ({ ...initialForm, ...contactProfile }));
+  const hasCompleteContact = Boolean(contactProfile?.contactName && contactProfile.role && contactProfile.organization && contactProfile.email && contactProfile.phone);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([blankMenuItem()]);
   const [eventPeople, setEventPeople] = useState<EventPerson[]>([blankEventPerson(1)]);
   const nextPersonId = useRef(2);
@@ -74,6 +85,32 @@ export function StallRegistrationForm() {
   const [reviewed, setReviewed] = useState(false);
   const [draftMessage, setDraftMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const restoreDraft = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (!saved) {
+        setDraftMessage("No saved stall request was found on this device.");
+        return;
+      }
+      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
+      const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
+      void _menuTemplateImageName;
+      setForm({ ...initialForm, ...savedForm, ...contactProfile, stallSize: normalizeStallType(savedForm.stallSize) });
+      if (savedPackage) setCollexusPackage(savedPackage);
+      setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
+      const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
+      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: indianMobileDigits(person.phone ?? "") }));
+      setEventPeople(people.length ? people : [blankEventPerson(1)]);
+      nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
+      setMenuTemplateImage(null);
+      setMenuTemplatePreview("");
+      setReviewed(false);
+      setDraftMessage("Saved draft restored.");
+    } catch {
+      setDraftMessage("The saved draft could not be read. It may have been cleared by the browser.");
+    }
+  }, [contactProfile]);
 
   useEffect(() => () => {
     if (menuTemplatePreview) URL.revokeObjectURL(menuTemplatePreview);
@@ -88,23 +125,19 @@ export function StallRegistrationForm() {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
     const listingName = params.get("listingName") ?? "";
-      const requestedStallType = params.get("stallType");
+    const stallType = params.get("stallType");
     const animation = window.requestAnimationFrame(() => {
-      if (plan === "normal" || plan === "pro" || params.get("restoreDraft") === "1") restoreDraft();
+      if (plan === "normal" || plan === "pro") restoreDraft();
       setCollexusPackage({ plan: plan === "normal" || plan === "pro" ? plan : "", addons: (params.get("addons") ?? "").split(",").filter(Boolean), listingName });
-        if (listingName || requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall") {
-          setForm((current) => ({
-            ...current,
-            ...(listingName ? { stallName: listingName } : {}),
-            ...(requestedStallType === "Silver stall" || requestedStallType === "Gold stall" || requestedStallType === "Platinum stall" ? { stallSize: requestedStallType } : {}),
-          }));
-        }
+      if (listingName) setForm((current) => ({ ...current, stallName: listingName }));
+      if (stallType) setForm((current) => ({ ...current, stallSize: normalizeStallType(stallType) }));
     });
     return () => window.cancelAnimationFrame(animation);
-  }, []);
+  }, [restoreDraft]);
 
   function update<K extends keyof StallForm>(key: K) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      if (["contactName", "role", "organization", "email", "phone"].includes(key)) return;
       const input = event.currentTarget;
       const value = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
       setForm((current) => ({ ...current, [key]: value }));
@@ -173,7 +206,7 @@ export function StallRegistrationForm() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReviewed(true);
-    setDraftMessage("Review the summary, then submit your request to Collexus for admin review.");
+    setDraftMessage("Your request is ready to review. Download a copy to share with the event team.");
     window.requestAnimationFrame(() => {
       const preview = document.getElementById("stall-request-summary");
       preview?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
@@ -201,7 +234,7 @@ export function StallRegistrationForm() {
           category: form.stallType,
           eventName: form.eventName,
           customEventName: form.customEventName,
-          eventDate: form.eventDate,
+          eventDate: form.startDate || form.endDate,
           size: form.stallSize,
           locationPreference: form.locationPreference,
           teamSize: form.teamSize,
@@ -210,14 +243,14 @@ export function StallRegistrationForm() {
           water: form.water,
           stallBox: form.stallBox,
           setupNotes: form.setupNotes,
-          foodSafety: form.foodSafety,
+          foodSafety: "",
           confirmed: form.confirmed,
         },
         menuItems: menuItems.filter((item) => item.name.trim()).map(({ name, offerPrice, eventDayPrice }) => ({ name, offerPrice, eventDayPrice })),
         people: eventPeople.filter((person) => person.name.trim()).map((person) => ({
           name: person.name,
           stallName: person.stallName || form.stallName,
-          phone: person.phone,
+          phone: `+91${person.phone}`,
         })),
       });
       if (!result.success) {
@@ -228,7 +261,6 @@ export function StallRegistrationForm() {
         }
         throw new Error(result.error);
       }
-
       try {
         storeConfirmation({
           kind: "stall",
@@ -240,11 +272,11 @@ export function StallRegistrationForm() {
           phone: form.phone,
           title: form.stallName,
           subtitle: `${form.stallType} · Submitted for admin review`,
-          date: form.eventDate,
+          date: form.startDate || form.endDate,
           location: selectedEventName,
           people: eventPeople.filter((person) => person.name.trim()).map((person) => person.name.trim()),
         });
-      } catch { /* The request is saved even if this browser cannot retain the confirmation preview. */ }
+      } catch { /* The saved request still confirms even when session storage is unavailable. */ }
       router.push(`${publicBasePath}/confirmation/`);
     } catch (error) {
       setDraftMessage(error instanceof Error ? error.message : "We couldn’t submit your stall request. Please try again.");
@@ -255,36 +287,11 @@ export function StallRegistrationForm() {
 
   function saveDraft() {
     try {
-      localStorage.setItem(draftKey, JSON.stringify({ ...form, menuItems, eventPeople: eventPeople.map((person) => ({ id: person.id, name: person.name, stallName: person.stallName || form.stallName, phone: person.phone, photoFileName: person.photoFile?.name ?? "" })), menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
+      const draftForm = { ...form, contactName: undefined, role: undefined, organization: undefined, email: undefined, phone: undefined };
+      localStorage.setItem(draftKey, JSON.stringify({ ...draftForm, menuItems, eventPeople: eventPeople.map((person) => ({ id: person.id, name: person.name, stallName: person.stallName || form.stallName, phone: person.phone, photoFileName: person.photoFile?.name ?? "" })), menuTemplateImageName: menuTemplateImage?.name ?? "", collexusPackage }));
       setDraftMessage("Draft saved on this device.");
     } catch {
       setDraftMessage("This browser could not save the draft. You can still download a request after reviewing it.");
-    }
-  }
-
-  function restoreDraft() {
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (!saved) {
-        setDraftMessage("No saved stall request was found on this device.");
-        return;
-      }
-      const parsed = JSON.parse(saved) as Partial<StallForm> & { menuItems?: unknown; eventPeople?: unknown; menuTemplateImageName?: string; collexusPackage?: CollexusPackage };
-      const { menuItems: parsedMenuItems, eventPeople: parsedPeople, menuTemplateImageName: _menuTemplateImageName, collexusPackage: savedPackage, ...savedForm } = parsed;
-      void _menuTemplateImageName;
-      setForm({ ...initialForm, ...savedForm });
-      if (savedPackage) setCollexusPackage(savedPackage);
-      setMenuItems(Array.isArray(parsedMenuItems) ? parsedMenuItems as MenuItem[] : [blankMenuItem()]);
-      const restoredPeople = Array.isArray(parsedPeople) ? parsedPeople as Partial<EventPerson>[] : [];
-      const people = restoredPeople.map((person, index) => ({ ...blankEventPerson(typeof person.id === "number" ? person.id : index + 1), name: person.name ?? "", stallName: person.stallName ?? "", phone: person.phone ?? "" }));
-      setEventPeople(people.length ? people : [blankEventPerson(1)]);
-      nextPersonId.current = Math.max(0, ...people.map((person) => person.id)) + 1;
-      setMenuTemplateImage(null);
-      setMenuTemplatePreview("");
-      setReviewed(false);
-      setDraftMessage("Saved draft restored.");
-    } catch {
-      setDraftMessage("The saved draft could not be read. It may have been cleared by the browser.");
     }
   }
 
@@ -296,8 +303,8 @@ export function StallRegistrationForm() {
       application: form,
       collexusPackage,
       menuItems: menuItems.filter((item) => item.name.trim()),
-      menuTemplateImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected image separately when sharing this request." } : null,
-      eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
+      stallPosterImage: menuTemplateImage ? { fileName: menuTemplateImage.name, note: "Attach the selected stall poster image separately when sharing this request." } : null,
+      eventPeople: eventPeople.filter((person) => person.name.trim()).map(({ name, stallName, phone, photoFile }) => ({ name, stallName: stallName || form.stallName, phone: `+91${phone}`, photoFileName: photoFile?.name ?? "", photoNote: photoFile ? "Attach this photo separately when sharing the request." : "" })),
     };
     const file = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(file);
@@ -311,46 +318,10 @@ export function StallRegistrationForm() {
 
   function continueToHostPayment() {
     saveDraft();
-    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim(), stallType: form.stallSize || "Silver stall" });
+    const params = new URLSearchParams({ requestType: "stall", listingName: form.stallName.trim(), stallType: normalizeStallType(form.stallSize) });
     router.push(`${publicBasePath}/host/?${params.toString()}`);
   }
 
-  async function openRequestConfirmation() {
-    let image = "";
-    const photo = eventPeople.find((person) => person.photoFile)?.photoFile;
-    if (photo) {
-      try {
-        const bitmap = await createImageBitmap(photo);
-        const scale = Math.min(1, 320 / Math.max(bitmap.width, bitmap.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-        canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        bitmap.close();
-        image = canvas.toDataURL("image/jpeg", 0.76);
-      } catch { image = ""; }
-    }
-    try {
-      storeConfirmation({
-        kind: "stall",
-        status: "request-ready",
-        reference: `CX-${nanoid(12).toUpperCase()}`,
-        createdAt: new Date().toISOString(),
-        name: form.contactName,
-        email: form.email,
-        phone: form.phone,
-        image,
-        title: form.stallName || "Stall registration request",
-        subtitle: `${form.stallType || "Stall request"}${form.stallSize ? ` · ${form.stallSize}` : ""}`,
-        date: form.eventDate,
-        location: selectedEventName,
-        people: eventPeople.map((person) => person.name.trim()).filter(Boolean),
-      });
-      router.push("/confirmation/");
-    } catch { setDraftMessage("Your browser could not open the request summary. Download the request file instead."); }
-  }
-
-  const isFood = form.stallType === "Food & beverages";
   const facilities = [form.power && "Power outlet", form.water && "Water access", form.stallBox && "Stall box / storage"].filter(Boolean);
   const selectedEventName = form.eventName === "Other / not listed" ? form.customEventName || form.eventName : form.eventName;
 
@@ -381,11 +352,14 @@ export function StallRegistrationForm() {
             <section className={styles.formSection} aria-labelledby="contact-heading">
               <div className={styles.sectionHeading}><span className={styles.step}>01</span><div><h2 id="contact-heading">Your details</h2><p>Who should the event team contact?</p></div></div>
               <div className={styles.fields}>
-                <label className={`${styles.field} ${styles.spanTwo}`}><span>Contact person <b>*</b></span><input autoComplete="name" name="contactName" onChange={update("contactName")} placeholder="e.g. Ananya Rao" required value={form.contactName} /></label>
-                <label className={styles.field}><span>Your role <b>*</b></span><select name="role" onChange={update("role")} required value={form.role}><option value="" disabled hidden>Select a role</option><option>Student or student team</option><option>Club or society</option><option>College department</option><option>Alumni</option><option>External vendor</option></select></label>
-                <label className={styles.field}><span>Institution / group <b>*</b></span><input autoComplete="organization" name="organization" onChange={update("organization")} placeholder="College, club, or business name" required value={form.organization} /></label>
-                <label className={styles.field}><span>Email address <b>*</b></span><input autoComplete="email" name="email" onChange={update("email")} placeholder="you@college.edu" required type="email" value={form.email} /></label>
-                <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" inputMode="tel" name="phone" onChange={update("phone")} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={form.phone} /></label>
+                <p className={`${styles.contactProfileNote} ${styles.spanTwo}`}>
+                  {profileState === "signed-out" ? <>Sign in to fill these details from your Collexus profile. <a href={`${publicBasePath}/login/?next=%2Fstall-registration%2F`}>Sign in</a></> : profileState === "unavailable" ? "Your profile details could not be loaded. Refresh the page and try again." : hasCompleteContact ? "These details are filled from your Collexus profile and are read-only." : "Some required contact details are missing from your profile. Complete your profile before continuing."}
+                </p>
+                <label className={`${styles.field} ${styles.spanTwo}`}><span>Contact person <b>*</b></span><input autoComplete="name" aria-readonly="true" name="contactName" placeholder="Not set in profile" readOnly required value={form.contactName} /></label>
+                <label className={styles.field}><span>Your role <b>*</b></span><select aria-disabled="true" disabled name="role" required value={form.role}><option value="" disabled hidden>{profileState === "signed-out" ? "Sign in to load profile" : "Not set in profile"}</option><option>Student or student team</option><option>Club or society</option><option>College department</option><option>Alumni</option><option>External vendor</option></select></label>
+                <label className={styles.field}><span>Institution / group <b>*</b></span><input autoComplete="organization" aria-readonly="true" name="organization" placeholder="Not set in profile" readOnly required value={form.organization} /></label>
+                <label className={styles.field}><span>Email address <b>*</b></span><input autoComplete="email" aria-readonly="true" name="email" placeholder="Not set in profile" readOnly required type="email" value={form.email} /></label>
+                <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" aria-readonly="true" inputMode="tel" name="phone" pattern="[+0-9() .-]{7,20}" placeholder="Not set in profile" readOnly required type="tel" value={form.phone} /></label>
               </div>
             </section>
 
@@ -408,18 +382,18 @@ export function StallRegistrationForm() {
                 </div>
                 <label className={styles.field}><span>Campus event / market <b>*</b></span><select name="eventName" onChange={update("eventName")} required value={form.eventName}><option value="" disabled hidden>Select an event</option>{events.map((event) => <option key={event.slug} value={event.title}>{event.title}</option>)}<option>Open campus market</option><option>Other / not listed</option></select></label>
                 {form.eventName === "Other / not listed" && <label className={styles.field}><span>Event name <b>*</b></span><input name="customEventName" onChange={update("customEventName")} placeholder="Enter the event name" required value={form.customEventName} /></label>}
-                <label className={styles.field}><span>Preferred event date</span><input name="eventDate" onChange={update("eventDate")} type="date" value={form.eventDate} /></label>
-                <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option value="" disabled hidden>Select a stall type</option><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>The event team will confirm final stall dimensions and placement.</small></label>
+                <label className={styles.field}><span>Event start date</span><input name="startDate" onChange={update("startDate")} type="date" value={form.startDate} /></label>
+                <label className={styles.field}><span>Event end date</span><input name="endDate" min={form.startDate || undefined} onChange={update("endDate")} type="date" value={form.endDate} /></label>
+                <label className={styles.field}><span>Stall type <b>*</b></span><select name="stallSize" onChange={update("stallSize")} required value={form.stallSize}><option>Silver stall</option><option>Gold stall</option><option>Platinum stall</option></select><small>Silver is selected by default when the event organizer has not specified a stall type. The team will confirm final dimensions and placement.</small></label>
                 <label className={styles.field}><span>Location preference <b>*</b></span><select name="locationPreference" onChange={update("locationPreference")} required value={form.locationPreference}><option value="" disabled hidden>Choose a preference</option><option>Indoor</option><option>Outdoor</option><option>No preference</option></select></label>
                 <label className={styles.field}><span>People staffing the stall <b>*</b></span><select name="teamSize" onChange={update("teamSize")} required value={form.teamSize}><option value="" disabled hidden>Select team size</option><option>1–2 people</option><option>3–4 people</option><option>5–6 people</option><option>7 or more</option></select></label>
                 <label className={styles.field}><span>Will you sell items?</span><select name="sellsProducts" onChange={update("sellsProducts")} value={form.sellsProducts}><option value="" disabled hidden>Select one</option><option>Yes, products or food</option><option>No, information or activities only</option></select></label>
-                {isFood && <label className={styles.field}><span>Food safety registration <b>*</b></span><select name="foodSafety" onChange={update("foodSafety")} required value={form.foodSafety}><option value="" disabled hidden>Select current status</option><option>Available to provide</option><option>In progress</option><option>Need guidance</option></select><small>The event team will confirm any venue requirements.</small></label>}
               </div>
             </section>
 
             <section className={styles.formSection} aria-labelledby="event-people-heading">
               <div className={styles.peopleSectionHeading}>
-                <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="event-people-heading">Event people registration</h2><p>Register each person representing your stall at the event.</p></div></div>
+                <div className={styles.sectionHeading}><span className={styles.step}>03</span><div><h2 id="event-people-heading">Event people registration</h2><p>Provide details for at least one person. You can add more people as needed.</p></div></div>
                 <button className={styles.addPersonButton} onClick={addEventPerson} type="button"><Plus size={15} aria-hidden="true" /> Add person</button>
               </div>
               <div className={styles.eventPeopleList}>
@@ -427,16 +401,16 @@ export function StallRegistrationForm() {
                   <div className={styles.eventPersonTop}><strong>Person {String(index + 1).padStart(2, "0")}</strong>{eventPeople.length > 1 && <button aria-label={`Remove person ${index + 1}`} className={styles.removePersonButton} onClick={() => removeEventPerson(person.id)} type="button"><Trash2 size={15} aria-hidden="true" /> Remove</button>}</div>
                   <div className={styles.eventPersonFields}>
                     <label className={styles.personPhoto}>
-                      {person.photoPreview ? <img src={person.photoPreview} alt={`Photo of ${person.name || `person ${index + 1}`}`} /> : <span className={styles.personPhotoPlaceholder}><ImagePlus size={20} aria-hidden="true" /><span>Person photo</span><small>Optional</small></span>}
-                      <input accept="image/*" aria-label={`Choose person ${index + 1} photo`} onChange={(event) => selectPersonPhoto(person.id, event)} type="file" />
+                      {person.photoPreview ? <img src={person.photoPreview} alt={`Photo of ${person.name || `person ${index + 1}`}`} /> : <span className={styles.personPhotoPlaceholder}><ImagePlus size={20} aria-hidden="true" /><span>Person photo *</span><small>Required</small></span>}
+                      <input accept="image/*" aria-label={`Choose required photo for person ${index + 1}`} onChange={(event) => selectPersonPhoto(person.id, event)} required type="file" />
                     </label>
                     <label className={styles.field}><span>Person name <b>*</b></span><input autoComplete="name" onChange={(event) => updateEventPerson(person.id, "name", event.currentTarget.value)} placeholder="Full name" required value={person.name} /></label>
                     <label className={styles.field}><span>Stall name <b>*</b></span><input onChange={(event) => updateEventPerson(person.id, "stallName", event.currentTarget.value)} placeholder="Stall or event name" required value={person.stallName || form.stallName} /></label>
-                    <label className={styles.field}><span>Phone number <b>*</b></span><input autoComplete="tel" inputMode="tel" onChange={(event) => updateEventPerson(person.id, "phone", event.currentTarget.value)} pattern="[+0-9() .-]{7,20}" placeholder="+91 98765 43210" required type="tel" value={person.phone} /></label>
+                    <label className={styles.field}><span>Phone number (+91) <b>*</b></span><span className={styles.phoneNumber}><span aria-hidden="true">+91</span><input aria-label={`10 digit Indian mobile number for person ${index + 1}`} autoComplete="tel-national" inputMode="numeric" maxLength={10} minLength={10} onChange={(event) => updateEventPerson(person.id, "phone", indianMobileDigits(event.currentTarget.value))} pattern="[6-9][0-9]{9}" placeholder="98765 43210" required type="tel" value={person.phone} /></span><small>Enter a valid 10 digit Indian mobile number.</small></label>
                   </div>
                 </article>)}
               </div>
-              <p className={styles.peoplePrivacy}>Person photos stay on this device. Include the original photo files when sharing the downloaded request.</p>
+              <p className={styles.peoplePrivacy}>Add details and a photo for at least one person. You can add more people whenever you need.</p>
             </section>
 
             <section className={styles.formSection} aria-labelledby="setup-heading">
@@ -449,16 +423,16 @@ export function StallRegistrationForm() {
                   <label className={styles.facility}><input checked={form.stallBox} name="stallBox" onChange={update("stallBox")} type="checkbox" /><span><Store size={16} aria-hidden="true" /> Stall box / storage</span></label>
                 </div>
               </fieldset>
-              <label className={`${styles.imageUpload} ${styles.spanTwo}`}><span><ImagePlus size={18} aria-hidden="true" /><span><strong>Menu template image</strong><small>Optional · add a photo or menu design (JPG, PNG, or WebP).</small></span></span><input accept="image/*" name="menuTemplateImage" onChange={selectMenuTemplate} type="file" />{menuTemplateImage && <small>{menuTemplateImage.name}</small>}{menuTemplatePreview && <img className={styles.menuImagePreview} src={menuTemplatePreview} alt="Selected menu template preview" />}</label>
+              <label className={`${styles.imageUpload} ${styles.spanTwo}`}><span><ImagePlus size={18} aria-hidden="true" /><span><strong>Stall poster image *</strong><small>Required · upload a clear poster or image for your stall (JPG, PNG, or WebP).</small></span></span><input accept="image/*" name="stallPosterImage" onChange={selectMenuTemplate} required type="file" />{menuTemplateImage && <small>{menuTemplateImage.name}</small>}{menuTemplatePreview && <img className={styles.menuImagePreview} src={menuTemplatePreview} alt="Selected stall poster preview" />}</label>
               <label className={`${styles.field} ${styles.spanTwo}`}><span>Other setup notes</span><textarea maxLength={400} name="setupNotes" onChange={update("setupNotes")} placeholder="Accessibility needs, equipment details, or anything else the team should know." rows={3} value={form.setupNotes} /></label>
               <label className={styles.confirm}><input checked={form.confirmed} onChange={update("confirmed")} required type="checkbox" /><span>I confirm these details are accurate. I understand this is a request, and the event team will confirm space, requirements, and any fees.</span></label>
             </section>
 
             <div className={styles.actions}>
-              <button className={styles.primaryButton} type="submit">Review stall request <ArrowRight size={18} aria-hidden="true" /></button>
+              <button className={styles.primaryButton} disabled={!hasCompleteContact} type="submit">Review stall request <ArrowRight size={18} aria-hidden="true" /></button>
               <button className={styles.secondaryButton} onClick={saveDraft} type="button">Save draft on this device</button>
               <button className={styles.secondaryButton} onClick={restoreDraft} type="button">Restore saved draft</button>
-              <p>Your application is sent to Collexus only when you submit it for admin review. Photos stay on this device.</p>
+              <p>Your form stays in this browser. Nothing is sent to a server from this page.</p>
               {draftMessage && <p className={styles.status} role="status">{draftMessage}</p>}
             </div>
           </form>
@@ -466,7 +440,7 @@ export function StallRegistrationForm() {
           <aside className={styles.sidebar} aria-label="Stall request preview">
             <section id="stall-request-summary" className={styles.summary} tabIndex={-1}>
               <div className={styles.summaryTop}><span>REQUEST PREVIEW</span><span className={styles.draft}><i /> DRAFT</span></div>
-              <div className={styles.summaryArt}><img src={`${publicBasePath}/images/stall-registration-illustration.webp`} alt="Two students at a teal and cream campus market stall" width="1536" height="1024" /></div>
+              <div className={styles.summaryArt}><img src={menuTemplatePreview || `${publicBasePath}/images/stall-registration-illustration.webp`} alt={menuTemplateImage ? "Live preview of the selected stall poster image" : "Example campus market stall"} width="1536" height="1024" /></div>
               <div className={styles.summaryBody}>
                 <span className={styles.category}>{form.stallType || "STALL CATEGORY"}</span>
                 <h2>{form.stallName || "Your stall name"}</h2>
@@ -481,11 +455,10 @@ export function StallRegistrationForm() {
                 {reviewed && <div className={styles.reviewed}><CheckCircle2 size={18} aria-hidden="true" /> Request details reviewed</div>}
               </div>
             </section>
-            <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Submit your request for admin review. If approved, your Stall panel appears in your home profile menu. This request does not reserve space or charge a fee.</p></div></div>
+            <div className={styles.infoCard}><ShieldCheck size={20} aria-hidden="true" /><div><strong>What happens next?</strong><p>Submit your request for administrator review. Approval does not reserve a stall or charge a fee.</p></div></div>
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
-            {reviewed && <button className={styles.primaryButton} disabled={isSubmitting} onClick={submitForAdminReview} type="button">{isSubmitting ? "Submitting request…" : "Submit for admin review"} <ArrowRight size={17} aria-hidden="true" /></button>}
+            {reviewed && <button className={styles.primaryButton} disabled={isSubmitting || !hasCompleteContact} onClick={() => void submitForAdminReview()} type="button">{isSubmitting ? "Submitting request…" : "Submit for admin review"} <ArrowRight size={17} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.primaryButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight size={18} aria-hidden="true" /></button>}
-            {reviewed && <button className={styles.secondaryButton} onClick={openRequestConfirmation} type="button"><CheckCircle2 size={17} aria-hidden="true" /> View request summary <ArrowRight size={16} aria-hidden="true" /></button>}
             <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
           </aside>
         </div>
