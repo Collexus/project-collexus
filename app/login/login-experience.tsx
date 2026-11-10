@@ -34,6 +34,14 @@ function continueAfterAuthentication(isSignup = false) {
   window.location.assign(`${basePath}${completeProfile ? "/about-you/" : "/profile/"}`);
 }
 
+function isPasswordRecoveryCallback() {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const recoveryType = url.searchParams.get("type") === "recovery" || hashParams.get("type") === "recovery";
+  const hasRecoveryToken = url.searchParams.has("code") || url.searchParams.has("token_hash") || hashParams.has("access_token");
+  return recoveryType && hasRecoveryToken;
+}
+
 type AccountMode = "signin" | "signup" | "recovery";
 type PhoneAuthStep = "details" | "verify";
 type EmailAuthPurpose = "signin" | "signup";
@@ -195,7 +203,8 @@ export function LoginExperience() {
             const savedMobileNumber = String(currentUser?.user_metadata.phone_number ?? "").trim();
             setNeedsMobileNumber(Boolean(currentUser && pendingGoogleSignup && !savedMobileNumber));
             setCheckingSession(false);
-            const recoveryCallback = `${window.location.search}${window.location.hash}`.includes("type=recovery");
+            const recoveryCallback = isPasswordRecoveryCallback();
+            if (recoveryCallback) setMode("recovery");
             const waitingForAccountType = window.sessionStorage.getItem("collexus-pending-account-type");
             const onboardingPending = window.sessionStorage.getItem(postSignupAboutYouKey) === "yes";
             const needsSignupPhone = Boolean(currentUser && pendingGoogleSignup && !savedMobileNumber);
@@ -517,14 +526,14 @@ export function LoginExperience() {
       continueAfterAuthentication(emailAuthPurpose === "signup");
     } catch (authError) {
       if (emailAuthPurpose === "signup" && emailVerified) {
-        setMode("recovery");
+        setMode("signin");
         setEmailAuthPurpose(null);
         setEmailAuthStep("details");
         setEmailOtp("");
         setPendingEmail("");
         setPendingSignup(null);
-        setMessage("Email verified. Set your password below to finish creating your account.");
-        setError("We couldn’t save the password from your signup form. Enter it again to finish.");
+        setMessage("Your email is verified, but we couldn’t finish saving your password.");
+        setError("Choose Forgot password to securely set a password, then sign in.");
       } else {
         signupPasswordSetupRef.current = false;
         setError(friendlyAuthError(authError));
