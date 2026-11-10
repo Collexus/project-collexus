@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowRight,
-  Gift,
   CalendarDays,
   Check,
   CircleAlert,
@@ -83,7 +82,7 @@ export function RegistrationHistory() {
       eyebrow="YOUR CAMPUS JOURNEY"
       title={view === "events" ? <>Registered <em className={styles.accent}>Events</em></> : <>Your <em className={styles.accent}>Orders</em></>}
       description={view === "events" ? "Your campus event activity, gathered in one clear view." : "A quick look at campus event purchases and their payment status."}
-      illustration={<svg viewBox="0 0 420 260" role="img" aria-label="Illustration of students exploring campus events"><defs><linearGradient id="campus-bg" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#dcfbf5"/><stop offset="1" stopColor="#e6e9ff"/></linearGradient></defs><rect x="8" y="8" width="404" height="244" rx="28" fill="url(#campus-bg)"/><circle cx="338" cy="70" r="34" fill="#fff" opacity=".75"/><path d="M54 194h310" stroke="#94cfc9" strokeWidth="5" strokeLinecap="round"/><path d="M74 193v-72l53-30 54 30v72M95 193v-44h24v44m86 0v-52h80v52m-62-52v-25h45v25" fill="#fff" stroke="#3a7f8c" strokeWidth="5" strokeLinejoin="round"/><circle cx="284" cy="111" r="18" fill="#f5b65d"/><path d="M257 192c2-36 13-54 28-54s27 18 29 54" fill="#087e83"/><circle cx="222" cy="130" r="15" fill="#d58c68"/><path d="M199 192c1-27 9-43 23-43s23 16 24 43" fill="#7662bd"/><rect x="320" y="125" width="40" height="30" rx="7" fill="#fff" stroke="#3a7f8c" strokeWidth="4"/><path d="M329 134h22m-22 8h16" stroke="#3a7f8c" strokeWidth="3" strokeLinecap="round"/><path d="M62 68l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z" fill="#f4b44f"/></svg>}
+      illustration={<ActivityIllustration view={view} />}
     >
       <section className={styles.activity} aria-label="Registrations and orders">
         <div className={styles.toolbar}>
@@ -161,6 +160,74 @@ export function RegistrationHistory() {
         )}
       </section>
     </ContentPage>
+  );
+}
+
+function ActivityIllustration({ view }: { view: "events" | "orders" }) {
+  const isOrders = view === "orders";
+  return (
+    <svg viewBox="0 0 420 260" role="img" aria-label={isOrders ? "Illustration of a campus food order and receipt" : "Illustration of an event pass and campus calendar"}>
+      <defs>
+        <linearGradient id="activity-scene" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#d9f7f2" /><stop offset=".56" stopColor="#e6f0ff" /><stop offset="1" stopColor="#f7e9f7" /></linearGradient>
+        <linearGradient id="activity-ticket" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#087e83" /><stop offset="1" stopColor="#168eaa" /></linearGradient>
+        <filter id="activity-shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" floodColor="#173d4a" floodOpacity=".15" /></filter>
+      </defs>
+      <rect x="8" y="8" width="404" height="244" rx="28" fill="url(#activity-scene)" />
+      <circle cx="350" cy="51" r="38" fill="#fff" opacity=".58" />
+      <circle cx="68" cy="204" r="26" fill="#fff" opacity=".36" />
+      <path d="M42 216c60-16 105-16 154 0s100 16 182-3" fill="none" stroke="#9fd9d3" strokeWidth="4" strokeLinecap="round" />
+
+      <g filter="url(#activity-shadow)" transform={isOrders ? "rotate(-7 126 130)" : "rotate(-5 126 130)"}>
+        <rect x="42" y="52" width="164" height="150" rx="19" fill="#fff" />
+        <path d="M42 71a19 19 0 0 1 19-19h126a19 19 0 0 1 19 19v23H42z" fill="url(#activity-ticket)" />
+        <circle cx="64" cy="72" r="5" fill="#d9f7f2" />
+        <path d="M80 68h74m-74 9h45" stroke="#e8fffd" strokeWidth="4" strokeLinecap="round" opacity=".9" />
+        {isOrders ? (
+          <>
+            <path d="M69 122h110m-110 16h84m-84 16h94" stroke="#cbd9df" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="164" cy="175" r="15" fill="#fff2d7" />
+            <path d="m157 175 5 5 10-11" fill="none" stroke="#bb7c20" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        ) : (
+          <>
+            <rect x="62" y="111" width="40" height="43" rx="8" fill="#e5f6f4" />
+            <path d="M62 122h40" stroke="#61bdb8" strokeWidth="4" />
+            <path d="M72 105v12m20-12v12" stroke="#087e83" strokeWidth="4" strokeLinecap="round" />
+            <path d="M75 134h6m-6 10h6m11-10h6m-6 10h6" stroke="#168eaa" strokeWidth="4" strokeLinecap="round" />
+            <path d="M122 119h53m-53 16h40m-40 16h50" stroke="#cbd9df" strokeWidth="5" strokeLinecap="round" />
+            <path d="m159 174 5 5 10-11" fill="none" stroke="#087e83" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        )}
+      </g>
+
+      <g filter="url(#activity-shadow)" transform={isOrders ? "rotate(7 285 153)" : "rotate(7 285 153)"}>
+        <path d="M214 98h137v94l-12-7-12 7-12-7-12 7-12-7-12 7-12-7-12 7-12-7-11 7z" fill="#fff" />
+        <path d="M232 116h94" stroke="#c8d9df" strokeWidth="5" strokeLinecap="round" />
+        <path d="M232 130h70" stroke="#c8d9df" strokeWidth="5" strokeLinecap="round" />
+        {isOrders ? (
+          <>
+            <circle cx="279" cy="163" r="20" fill="#fff0d8" />
+            <path d="M264 160c4-10 25-10 30 0m-32 5c6 8 27 8 34 0" fill="none" stroke="#d99a3f" strokeWidth="4" strokeLinecap="round" />
+            <circle cx="279" cy="163" r="7" fill="#ee8c55" />
+            <path d="M268 141c-4-5 4-7 0-12m12 12c-4-5 4-7 0-12m12 12c-4-5 4-7 0-12" fill="none" stroke="#168eaa" strokeWidth="3" strokeLinecap="round" />
+          </>
+        ) : (
+          <>
+            <rect x="236" y="145" width="57" height="31" rx="7" fill="url(#activity-ticket)" />
+            <path d="M247 155h24m-24 8h33" stroke="#e8fffd" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="317" cy="160" r="19" fill="#fff2d7" />
+            <path d="m309 160 6 6 11-13" fill="none" stroke="#bb7c20" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        )}
+      </g>
+
+      <g fill={isOrders ? "#e6a746" : "#087e83"}>
+        <path d="m355 89 5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z" />
+        <circle cx="207" cy="64" r="5" opacity=".72" />
+        <circle cx="373" cy="193" r="4" opacity=".55" />
+      </g>
+      <path d="m209 46 3 7 8 1-6 5 1 7-6-4-7 4 2-7-6-5 8-1z" fill="#ed9f55" />
+    </svg>
   );
 }
 
