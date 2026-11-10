@@ -59,7 +59,7 @@ export function ContentPage({
         <footer className={styles.footer}>
           <span>Collexus · Campus events, in one place.</span>
           <nav aria-label="Footer navigation">
-            <Link href="/about/">About</Link><Link href="/help/">Help</Link><Link href="/profile/">Profile</Link>
+            <Link href="/about/">About</Link><Link href="/help/">Help</Link><Link href="/profile/">Profile</Link><Link href="/account-privacy/">Account &amp; privacy</Link>
           </nav>
         </footer>
       </div>

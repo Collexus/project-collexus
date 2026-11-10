@@ -1,0 +1,11 @@
+.content{display:grid;gap:14px;margin-top:22px}
+.notice{display:flex;align-items:flex-start;gap:13px;padding:20px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:18px;background:color-mix(in srgb,var(--accent-soft) 64%,var(--card));color:var(--muted);font-size:12px;line-height:1.65}
+.notice>span,.sectionTitle>span{display:grid;place-items:center;width:40px;height:40px;flex:0 0 auto;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:13px;color:var(--accent);background:var(--card)}
+.notice p{margin:0}.notice strong{color:var(--ink);font-size:13px}
+.section{padding:clamp(20px,4vw,30px);border:1px solid var(--line);border-radius:19px;background:var(--card)}
+.sectionTitle{display:flex;align-items:center;gap:12px}.sectionTitle h2,.actions h2{margin:0;color:var(--ink);font-family:"Space Grotesk",var(--font-poppins),sans-serif;font-size:clamp(18px,2.5vw,24px);line-height:1.2;letter-spacing:-.025em}
+.paragraphs{display:grid;gap:11px;margin:17px 0 0 52px}.paragraphs p,.actions p{margin:0;color:var(--muted);font-size:13px;line-height:1.75}
+.actions{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1fr);align-items:center;gap:24px;padding:clamp(20px,4vw,30px);border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line));border-radius:19px;background:linear-gradient(120deg,color-mix(in srgb,var(--accent-soft) 55%,var(--card)),var(--card))}
+.actions p{margin-top:7px}.actionLinks{display:grid;gap:7px}.actionLinks a{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 11px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:var(--card);font-size:11px;font-weight:700;text-decoration:none}.actionLinks a svg:last-child{margin-left:auto;color:var(--accent)}.actionLinks a:hover{border-color:var(--accent);color:var(--accent)}
+.legalNote{margin:2px 3px 0;color:var(--muted);font-size:10px;line-height:1.65}.legalNote a{color:var(--accent);text-underline-offset:3px}
+@media(max-width:650px){.actions{grid-template-columns:minmax(0,1fr)}.paragraphs{margin-left:0}.sectionTitle{align-items:flex-start}}

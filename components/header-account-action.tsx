@@ -88,7 +88,7 @@ export function HeaderAccountAction() {
     const currentPanelAccess = panelAccess?.userId === user.id ? panelAccess : null;
     const profileLinks = [
       { label: "Profile", href: `${basePath}/profile/`, Icon: UserRound },
-      { label: "Account & privacy", href: `${basePath}/profile/edit/`, Icon: ShieldCheck },
+      { label: "Account & privacy", href: `${basePath}/account-privacy/`, Icon: ShieldCheck },
       { label: "Registrations & orders", href: `${basePath}/registrations/`, Icon: ClipboardList },
       ...(currentPanelAccess?.eventPanel ? [{ label: "Event host panel", href: `${basePath}/event-panel/`, Icon: CalendarDays }] : []),
       ...(currentPanelAccess?.stallPanel ? [{ label: "Stall host panel", href: `${basePath}/stall-panel/`, Icon: Store }] : []),
