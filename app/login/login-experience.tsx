@@ -42,7 +42,7 @@ function isPasswordRecoveryCallback() {
   return recoveryType && hasRecoveryToken;
 }
 
-type AccountMode = "signin" | "signup" | "recovery";
+type AccountMode = "signin" | "signup" | "forgot" | "recovery";
 type PhoneAuthStep = "details" | "verify";
 type EmailAuthPurpose = "signin" | "signup";
 type SignupDetails = { fullName: string; campusId: string; email: string; phone: string; password: string };
@@ -70,7 +70,8 @@ function friendlyAuthError(error: unknown) {
   if (code === "captcha_failed") return "Cloudflare couldn’t verify the security check. Complete it again and retry.";
   if (code === "phone_exists" || code === "email_exists" || code === "user_already_exists" || normalized.includes("phone number already registered") || normalized.includes("email address already registered")) return "An account already exists for this address. Choose Sign in and request an email code.";
   if (code === "otp_expired") return "This code has expired. Request a new code and try again.";
-  if (code === "otp_invalid" || code === "token_not_found" || code === "invalid_credentials") return "That code or sign-in detail is not valid. Check it and try again.";
+  if (code === "otp_invalid" || code === "token_not_found") return "That code is not valid. Check it and try again.";
+  if (code === "invalid_credentials") return "That email or password is incorrect. If you joined with Google, choose Continue with Google. If you need to create or reset your Collexus password, choose Forgot password.";
   if (code === "user_not_found") return "No account was found for these details. Create an account with your college email, or check your sign-in method.";
   if (code === "over_email_send_rate_limit") return "Email delivery is temporarily limited for this project. Wait for the limit to reset, or ask the site administrator to configure custom SMTP.";
   if (code === "over_request_rate_limit") return "Supabase temporarily limited sign-up requests from this network. Wait a few minutes before trying again, and avoid repeated retries.";
@@ -79,7 +80,7 @@ function friendlyAuthError(error: unknown) {
   if (details.status === 429) return "Supabase temporarily limited this authentication request. Wait a few minutes before trying again.";
   if (normalized.includes("rate limit") || normalized.includes("too many")) return "Too many attempts. Wait a little and try again.";
   if (normalized.includes("already registered") || normalized.includes("already exists")) return "That account may already exist. Try signing in or use another email address.";
-  if (normalized.includes("email not confirmed")) return "Verify your email with the one-time code we sent before signing in.";
+  if (code === "email_not_confirmed" || normalized.includes("email not confirmed")) return "Verify your email with the one-time code we sent before signing in.";
   return "We couldn’t complete sign-in. Check your details and try again.";
 }
 
@@ -725,8 +726,8 @@ export function LoginExperience() {
           ) : (
             <>
               <p className={styles.eyebrow}>{mode === "signin" ? "WELCOME BACK" : mode === "signup" ? "GET STARTED" : "ACCOUNT RECOVERY"}</p>
-              <h2>{mode === "signin" ? "Sign in to Collexus" : mode === "signup" ? "Create your account" : "Choose a new password"}</h2>
-              <p className={styles.cardIntro}>{mode === "recovery" ? "Use a new password you have not used here before." : mode === "signup" ? "Verify your college email and choose a password for your account." : "Choose your account type to get the right sign-in fields."}</p>
+              <h2>{mode === "signin" ? "Sign in to Collexus" : mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : "Choose a new password"}</h2>
+              <p className={styles.cardIntro}>{mode === "recovery" ? "Use a new password you have not used here before." : mode === "forgot" ? "Enter the email for your Collexus account. We’ll send a secure password reset link if an account exists." : mode === "signup" ? "Verify your college email and choose a password for your account." : "Choose your account type to get the right sign-in fields."}</p>
 
               {mode !== "recovery" && <div className={styles.accountTypes} role="group" aria-label="Choose account type">
                 {accountTypes.map(({ id, label, detail, icon: Icon }) => (
@@ -745,7 +746,7 @@ export function LoginExperience() {
                 ))}
               </div>}
 
-              {mode !== "recovery" && <div className={styles.modeTabs} role="tablist" aria-label="Account action">
+              {mode !== "recovery" && mode !== "forgot" && <div className={styles.modeTabs} role="tablist" aria-label="Account action">
                 <button aria-selected={mode === "signin"} className={mode === "signin" ? styles.modeActive : ""} disabled={busy || (phoneAuthPurpose !== null && phoneAuthStep === "verify") || emailAuthStep === "verify"} onClick={() => switchMode("signin")} role="tab" type="button">Sign in</button>
                 <button aria-selected={mode === "signup"} className={mode === "signup" ? styles.modeActive : ""} disabled={busy || (phoneAuthPurpose !== null && phoneAuthStep === "verify") || emailAuthStep === "verify"} onClick={() => switchMode("signup")} role="tab" type="button">Create account</button>
               </div>}
@@ -764,9 +765,9 @@ export function LoginExperience() {
                 <button className={styles.googleButton} disabled={busy || !configured} onClick={() => void continueWithGoogle()} type="button">
                   <GoogleMark /><span>Continue with Google</span>
                 </button>
-                <div className={styles.divider}><span>sign in with your college email</span></div>
+                <div className={styles.divider}><span>sign in with email</span></div>
                 <form className={styles.form} onSubmit={sendEmailCode}>
-                  <label className={styles.field}><span>College email</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" defaultValue={pendingEmail} maxLength={254} name="email" placeholder="name@college.edu" required type="email" disabled={busy} /></div><small className={styles.fieldHelp}>We’ll send a one-time sign-in code to this inbox.</small></label>
+                  <label className={styles.field}><span>Email address</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" defaultValue={pendingEmail} maxLength={254} name="email" placeholder="you@example.com" required type="email" disabled={busy} /></div><small className={styles.fieldHelp}>We’ll send a one-time sign-in code to this inbox.</small></label>
                   {error && <p className={styles.error} role="alert">{error}</p>}
                   {message && <p className={styles.success} role="status">{message}</p>}
                   {!configured && <p className={styles.setupNotice} role="status">Authentication needs a Supabase project URL and publishable key before sign-in is enabled.</p>}
@@ -775,13 +776,26 @@ export function LoginExperience() {
                 <form className={styles.form} onSubmit={submitCredentials}>
                   <div className={styles.divider}><span>or use your password</span></div>
                   <label className={styles.field}><span>Email address</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder="you@example.com" required type="email" /></div></label>
-                  <label className={styles.field}><span>Password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="current-password" maxLength={128} name="password" placeholder="Enter your password" required type={showPassword ? "text" : "password"} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>
+                  <label className={styles.field}><span>Password</span><div className={styles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="current-password" maxLength={128} name="password" placeholder="Enter your password" required type={showPassword ? "text" : "password"} /><button aria-label={showPassword ? "Hide password" : "Show password"} className={styles.passwordToggle} onClick={() => setShowPassword((value) => !value)} type="button">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div><small className={styles.fieldHelp}>Use your Collexus password here. If you use your Google account password, select Continue with Google above.</small></label>
                   {error && <p className={styles.error} role="alert">{error}</p>}
                   {message && <p className={styles.success} role="status">{message}</p>}
                   {!configured && <p className={styles.setupNotice} role="status">Authentication needs a Supabase project URL and publishable key before sign-in is enabled.</p>}
                   <button className={styles.primaryButton} disabled={busy || checkingSession || !configured} type="submit">{busy ? "Please wait…" : "Sign in with password"}<ArrowRight size={17} aria-hidden="true" /></button>
                 </form>
+                <button className={styles.textButton} disabled={busy || !configured} onClick={() => { setMode("forgot"); setError(""); setMessage(""); }} type="button">Forgot password?</button>
                 <button className={styles.textButton} disabled={busy || !configured} onClick={startWhatsAppSignIn} type="button">Sign in with an existing WhatsApp account</button>
+              </>}
+
+              {mode === "forgot" && <>
+                <form className={styles.form} onSubmit={submitCredentials}>
+                  <input name="resetPassword" type="hidden" value="true" />
+                  <label className={styles.field}><span>Email address</span><div className={styles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" maxLength={254} name="email" placeholder="you@example.com" required type="email" /></div></label>
+                  {error && <p className={styles.error} role="alert">{error}</p>}
+                  {message && <p className={styles.success} role="status">{message}</p>}
+                  {!configured && <p className={styles.setupNotice} role="status">Authentication needs a Supabase project URL and publishable key before password recovery is available.</p>}
+                  <button className={styles.primaryButton} disabled={busy || checkingSession || !configured} type="submit">{busy ? "Sending link…" : "Send password reset link"}<ArrowRight size={17} aria-hidden="true" /></button>
+                </form>
+                <button className={styles.textButton} disabled={busy} onClick={() => { setMode("signin"); setError(""); setMessage(""); }} type="button">Back to sign in</button>
               </>}
 
               {mode === "signup" && emailAuthStep === "details" && <>
