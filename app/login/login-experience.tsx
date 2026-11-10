@@ -31,7 +31,7 @@ const postSignupAboutYouKey = "collexus:post-signup-about-you";
 function continueAfterAuthentication(isSignup = false) {
   const completeProfile = isSignup || window.sessionStorage.getItem(postSignupAboutYouKey) === "yes";
   window.sessionStorage.removeItem(postSignupAboutYouKey);
-  window.location.assign(`${basePath}${completeProfile ? "/about-you/" : "/profile/"}`);
+  window.location.assign(`${basePath}${completeProfile ? "/profile/edit/" : "/profile/"}`);
 }
 
 function isPasswordRecoveryCallback() {
@@ -210,7 +210,7 @@ export function LoginExperience() {
             const needsSignupPhone = Boolean(currentUser && pendingGoogleSignup && !savedMobileNumber);
             if ((currentUser?.email_confirmed_at || currentUser?.phone_confirmed_at) && !recoveryCallback && !waitingForAccountType && !needsSignupPhone && !signupPasswordSetupRef.current) {
               if (onboardingPending) window.sessionStorage.removeItem(postSignupAboutYouKey);
-              window.location.replace(`${basePath}${onboardingPending ? "/about-you/" : "/profile/"}`);
+              window.location.replace(`${basePath}${onboardingPending ? "/profile/edit/" : "/profile/"}`);
             }
           }
         };
