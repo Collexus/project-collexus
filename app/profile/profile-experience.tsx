@@ -462,7 +462,7 @@ export function ProfileExperience() {
         <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={basePath} />
         </a>
-        <a className={styles.backLink} href={`${basePath}/profile/`}><ArrowLeft size={16} aria-hidden="true" /> Back to profile</a>
+        <a className={`${styles.backLink} site-back-link`} href={`${basePath}/profile/`}><ArrowLeft size={16} aria-hidden="true" /> Back to profile</a>
       </header>
 
       <div className={styles.shell}>

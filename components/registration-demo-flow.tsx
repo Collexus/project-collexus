@@ -44,7 +44,7 @@ function DemoFrame({ event, step, children }: { event: EventSummary; step: strin
   return (
     <main id="main-content" tabIndex={-1} className="details-page demo-page">
       <div className="details-topline">
-        <Link href={`/events/${event.slug}`} className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link>
+        <Link href={`/events/${event.slug}`} className="back-link site-back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link>
         <span className="record-label"><span className="demo-status-dot" /> NO-CHARGE DEMO</span>
       </div>
       <section className="demo-card">
@@ -298,7 +298,7 @@ export function DemoPaymentPanel({ event }: { event: EventSummary }) {
       ) : (
         <div className="demo-no-session"><p>No registration details were found in this browser session.</p><Link className="primary-button" href={`/events/${event.slug}/register`}>Start registration preview <ArrowRight size={16} aria-hidden="true" /></Link></div>
       )}
-      <Link className="demo-back-link" href={`/events/${event.slug}/register`}><ArrowLeft size={14} aria-hidden="true" /> Back to registration</Link>
+      <Link className="demo-back-link site-back-link" href={`/events/${event.slug}/register`}><ArrowLeft size={14} aria-hidden="true" /> Back to registration</Link>
     </DemoFrame>
   );
 }

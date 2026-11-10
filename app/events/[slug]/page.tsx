@@ -48,7 +48,7 @@ export default async function EventDetailsPage({ params }: EventPageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="details-page">
       <div className="details-topline">
-        <Link href="/#featured-events" className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Back to events</Link>
+        <Link href="/#featured-events" className="back-link site-back-link"><ArrowLeft size={15} aria-hidden="true" /> Back to events</Link>
         <span className="record-label"><CircleCheck size={15} aria-hidden="true" /> VERIFIED EVENT RECORD</span>
       </div>
 

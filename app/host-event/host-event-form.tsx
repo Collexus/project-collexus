@@ -350,7 +350,7 @@ export function HostEventForm() {
         <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={publicBasePath} />
         </a>
-        <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}>
+        <a className={`${styles.backLink} site-back-link`} href={`${publicBasePath}/#featured-events`}>
           <ArrowLeft aria-hidden="true" size={17} />
           <span>Back to events</span>
         </a>

@@ -5094,6 +5094,27 @@ html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfal
 }
 @media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme .back-link,body.warm-editorial-theme.vivid-nightfall-theme .demo-back-link{transition:none!important}}
 
+/* Shared return-link treatment from the Collexus account and event flows. */
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link{
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;gap:12px!important;min-height:60px!important;padding:7px 20px 7px 8px!important;
+  border:1px solid #d6e4e5!important;border-radius:999px!important;color:#173843!important;
+  background:linear-gradient(135deg,#fff,#f4f9f9)!important;box-shadow:0 7px 20px rgba(20,57,67,.08)!important;
+  font-size:14px!important;font-weight:700!important;line-height:1.2!important;text-decoration:none!important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link>svg:first-child,
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link>span:first-child{
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;
+  padding:12px!important;border:0!important;border-radius:50%!important;color:#fff!important;background:#087e83!important;
+}
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link>span:first-child svg{display:block!important;width:18px!important;height:18px!important;color:inherit!important}
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link:hover{transform:translateY(-1px)!important;border-color:#82c9c6!important;color:#075d65!important;background:linear-gradient(135deg,#fff,#ecf8f7)!important;box-shadow:0 11px 25px rgba(8,126,131,.16)!important}
+body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link:focus-visible{outline:3px solid #168eaa!important;outline-offset:3px!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link{border-color:#31535e!important;color:#effafa!important;background:linear-gradient(135deg,#142a35,#10232d)!important;box-shadow:0 7px 22px rgba(0,0,0,.22)!important}
+html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link:hover{border-color:#53aaa9!important;color:#fff!important;background:linear-gradient(135deg,#17343f,#123039)!important}
+@media(max-width:600px){body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link{min-height:50px!important;gap:9px!important;padding:5px 14px 5px 6px!important;font-size:12px!important}body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link>svg:first-child,body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link>span:first-child{flex-basis:38px!important;width:38px!important;height:38px!important;padding:11px!important}}
+@media(prefers-reduced-motion:reduce){body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link{transition:none!important}body.warm-editorial-theme.vivid-nightfall-theme a.site-back-link:hover{transform:none!important}}
+
 @media(max-width:760px){
   body.warm-editorial-theme.vivid-nightfall-theme #quickCategories.quick-category-top{
     display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;

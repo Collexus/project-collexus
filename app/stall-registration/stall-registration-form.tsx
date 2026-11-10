@@ -329,7 +329,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
     <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href={`${publicBasePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={publicBasePath} /></a>
-        <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={17} aria-hidden="true" /><span>Back to events</span></a>
+        <a className={`${styles.backLink} site-back-link`} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={17} aria-hidden="true" /><span>Back to events</span></a>
       </header>
 
       <div className={styles.shell}>
@@ -459,7 +459,7 @@ export function StallRegistrationForm({ contactProfile, profileState }: { contac
             {reviewed && <button className={styles.downloadButton} onClick={downloadRequest} type="button"><Download size={17} aria-hidden="true" /> Download stall request <ArrowRight size={16} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.primaryButton} disabled={isSubmitting || !hasCompleteContact} onClick={() => void submitForAdminReview()} type="button">{isSubmitting ? "Submitting request…" : "Submit for admin review"} <ArrowRight size={17} aria-hidden="true" /></button>}
             {reviewed && <button className={styles.primaryButton} onClick={continueToHostPayment} type="button">Continue to plans and add-ons <ArrowRight size={18} aria-hidden="true" /></button>}
-            <a className={styles.backLink} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
+            <a className={`${styles.backLink} site-back-link`} href={`${publicBasePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Explore published events</a>
           </aside>
         </div>
         <footer className={styles.footer}><span>© 2026 Collexus</span><span>Campus events, in one place.</span></footer>

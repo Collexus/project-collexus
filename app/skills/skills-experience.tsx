@@ -169,7 +169,7 @@ export function SkillsExperience() {
   return <main id="main-content" tabIndex={-1} className={styles.page}>
     <header className={styles.header}>
       <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={basePath} /></a>
-      <a className={styles.backLink} href={`${basePath}/`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
+      <a className={`${styles.backLink} site-back-link`} href={`${basePath}/`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
     </header>
     <div className={styles.shell}>
       <section className={styles.hero}>

@@ -690,7 +690,7 @@ export function LoginExperience() {
         <a className={styles.brand} href={`${basePath}/`} aria-label="Collexus home">
           <CollexusHomeLogo basePath={basePath} />
         </a>
-        <a className={styles.backLink} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
+        <a className={`${styles.backLink} site-back-link`} href={`${basePath}/#featured-events`}><ArrowLeft size={16} aria-hidden="true" /> Back to events</a>
       </header>
 
       <div className={styles.shell}>

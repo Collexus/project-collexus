@@ -96,10 +96,10 @@ export function EventRegistrationCheckout({ event }: { event: { slug: string; ti
   }
 
   return <main id="main-content" tabIndex={-1} className="details-page demo-page">
-    <div className="details-topline"><Link href={`/events/${event.slug}`} className="back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link><span className="record-label"><LockKeyhole size={13} /> SECURE CHECKOUT</span></div>
+    <div className="details-topline"><Link href={`/events/${event.slug}`} className="back-link site-back-link"><ArrowLeft size={15} aria-hidden="true" /> Event details</Link><span className="record-label"><LockKeyhole size={13} /> SECURE CHECKOUT</span></div>
     <section className="demo-card">
       <p className="category-eyebrow">EVENT REGISTRATION</p><h1>{event.title}</h1>
-      {loading ? <p aria-live="polite">Checking available tickets…</p> : tickets.length === 0 ? <div role="status"><p>There are no paid tickets open for this event right now.</p><p>Checkout appears after the event team publishes a price and opens ticket sales.</p><Link className="back-link" href={`/events/${event.slug}`}>Return to event details</Link></div> : <>
+      {loading ? <p aria-live="polite">Checking available tickets…</p> : tickets.length === 0 ? <div role="status"><p>There are no paid tickets open for this event right now.</p><p>Checkout appears after the event team publishes a price and opens ticket sales.</p><Link className="back-link site-back-link" href={`/events/${event.slug}`}><ArrowLeft size={15} aria-hidden="true" /> Return to event details</Link></div> : <>
         <div className="demo-registration-grid"><label>Ticket type<select value={ticketId} onChange={(change) => { checkoutKey.current = null; setTicketId(change.target.value); }}>{tickets.map((ticket) => <option value={ticket.id} key={ticket.id}>{ticket.name} · {money(ticket.pricePaise)}</option>)}</select></label></div>
         {tickets.find((ticket) => ticket.id === ticketId)?.description && <p className="demo-registration-note">{tickets.find((ticket) => ticket.id === ticketId)?.description}</p>}
         <div className="demo-registration-grid">

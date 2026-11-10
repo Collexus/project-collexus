@@ -139,7 +139,7 @@ export function ProfileSummary() {
     <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.header}>
         <a className={`${styles.brand} collexus-brand`} href={`${basePath}/`} aria-label="Collexus home"><CollexusHomeLogo basePath={basePath} /></a>
-        <a className={styles.backLink} href={`${basePath}/#featured-events`}><span className={styles.backIcon}><ArrowLeft size={16} aria-hidden="true" /></span><span>Back to events</span></a>
+        <a className={`${styles.backLink} site-back-link`} href={`${basePath}/#featured-events`}><span className={styles.backIcon}><ArrowLeft size={16} aria-hidden="true" /></span><span>Back to events</span></a>
       </header>
       <div className={styles.shell}>
         <article className={styles.profileCard}>

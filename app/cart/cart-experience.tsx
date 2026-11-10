@@ -122,7 +122,7 @@ export function CartExperience() {
 
   return <ContentPage active="/cart/" eyebrow="CAMPUS FOOD" title={<>Food <em className={styles.accent}>orders</em></>} description="Choose items from an active campus stall. Prices and totals are checked against the live menu when you pay.">
     <section className={styles.cartShell} aria-label="Campus food ordering">
-      <div className={styles.cartTopline}><Link className={styles.backLink} href="/registrations/"><ArrowLeft size={15} aria-hidden="true" /> Your orders</Link><span className={styles.previewBadge}><i aria-hidden="true" /> LIVE MENU</span></div>
+      <div className={styles.cartTopline}><Link className={`${styles.backLink} site-back-link`} href="/registrations/"><ArrowLeft size={15} aria-hidden="true" /> Your orders</Link><span className={styles.previewBadge}><i aria-hidden="true" /> LIVE MENU</span></div>
       {notice && <p className={styles.disclaimer} role="alert"><CircleAlert size={15} aria-hidden="true" /> {notice}</p>}
       {loading ? <p aria-live="polite">Loading available stalls…</p> : stalls.length === 0 ? <div className={styles.emptyCart}><ShoppingBag size={28} aria-hidden="true" /><h3>No active food menus yet</h3><p>Once an administrator activates a stall and publishes available menu items, they will appear here for ordering.</p><Link href="/help/">Get help <ArrowRight size={15} aria-hidden="true" /></Link></div> : <div className={styles.cartLayout}>
         <section className={styles.itemsPanel} aria-label="Active stalls and menus">
