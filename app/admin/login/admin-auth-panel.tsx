@@ -12,6 +12,7 @@ import { adminEmailOtpSchema, adminEmailSchema, adminSignInSchema, adminSignUpSc
 import styles from "./admin-login.module.css";
 
 const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
+const passwordResetEmailStorageKey = "collexus-admin-password-reset-email";
 
 type AdminAuthMode = "signin" | "signup" | "forgot" | "verify-reset" | "reset";
 
@@ -72,7 +73,16 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
 
     const hasAuthCallback = window.location.hash.includes("access_token=")
       || searchParams.has("code");
-    if (!hasAuthCallback) return;
+    if (!hasAuthCallback) {
+      // Keep the code-entry step visible if the browser reloads while the user checks email.
+      const pendingResetEmail = window.sessionStorage.getItem(passwordResetEmailStorageKey);
+      if (!pendingResetEmail || !adminEmailSchema.safeParse(pendingResetEmail).success) return;
+      const timer = window.setTimeout(() => {
+        setEmail(pendingResetEmail);
+        setMode("verify-reset");
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
 
     const supabase = getSupabaseClient();
     if (!supabase) return;
@@ -106,6 +116,9 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
   }, [destination, router]);
 
   function switchMode(nextMode: AdminAuthMode) {
+    if (nextMode !== "verify-reset" && nextMode !== "reset") {
+      window.sessionStorage.removeItem(passwordResetEmailStorageKey);
+    }
     setMode(nextMode);
     setPassword("");
     setConfirmPassword("");
@@ -164,6 +177,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
           return;
         }
         await supabase.auth.signOut();
+        window.sessionStorage.removeItem(passwordResetEmailStorageKey);
         setMode("signin");
         setPassword("");
         setConfirmPassword("");
@@ -218,8 +232,9 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
           return;
         }
         setPasswordResetOtp("");
+        window.sessionStorage.setItem(passwordResetEmailStorageKey, parsedEmail.data);
         setMode("verify-reset");
-        setNotice("If an account exists for this email, a six-digit password reset code is on its way.");
+        setNotice("If an account exists for this email, a six-digit password reset code is on its way. Enter it below.");
         return;
       }
 
@@ -367,6 +382,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
         return;
       }
 
+      window.sessionStorage.removeItem(passwordResetEmailStorageKey);
       setPasswordResetOtp("");
       setMode("reset");
       setNotice("Reset code verified. Choose a new password for your admin account.");
@@ -580,7 +596,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
             {notice && <p className={authStyles.success} aria-live="polite" role="status">{notice}</p>}
 
             <button className={authStyles.primaryButton} disabled={busy || !isSupabaseConfigured()} type="submit">
-              {busy ? "Please wait…" : mode === "signin" ? "Sign in securely" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset link" : "Update password"}
+              {busy ? "Please wait…" : mode === "signin" ? "Sign in securely" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset code" : "Update password"}
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </form>
