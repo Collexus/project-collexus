@@ -13,7 +13,7 @@ import styles from "./admin-login.module.css";
 
 const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 
-type AdminAuthMode = "signin" | "signup" | "forgot" | "reset";
+type AdminAuthMode = "signin" | "signup" | "forgot" | "verify-reset" | "reset";
 
 function authErrorMessage(error: { code?: string; status?: number }) {
   if (["user_already_exists", "email_exists", "duplicate_email"].includes(error.code ?? "")) return "An account already exists for this email. Sign in or choose Forgot password.";
@@ -35,6 +35,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
   const [emailOtpStep, setEmailOtpStep] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
+  const [passwordResetOtp, setPasswordResetOtp] = useState("");
   const [resendSeconds, setResendSeconds] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -111,6 +112,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
     setShowPassword(false);
     setEmailOtpStep(false);
     setEmailOtp("");
+    setPasswordResetOtp("");
     setSignupEmail("");
     setResendSeconds(0);
     setError("");
@@ -215,7 +217,9 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
           setError(authErrorMessage(resetError));
           return;
         }
-        setNotice("If an account exists for this email, a password reset link is on its way.");
+        setPasswordResetOtp("");
+        setMode("verify-reset");
+        setNotice("If an account exists for this email, a six-digit password reset code is on its way.");
         return;
       }
 
@@ -326,6 +330,53 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
     }
   }
 
+  async function verifyPasswordResetCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+
+    const parsed = adminEmailOtpSchema.safeParse(passwordResetOtp);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Enter the 6-digit password reset code from your email.");
+      return;
+    }
+
+    const supabase = getSupabaseClient();
+    if (!supabase || !email) {
+      setError("Your reset request expired. Request a new password reset code and try again.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: parsed.data,
+        type: "recovery",
+      });
+      if (verifyError) {
+        if (verifyError.code === "otp_expired" || verifyError.code === "invalid_otp") {
+          setError("That reset code is incorrect, expired, or already used. Request a fresh code and try again.");
+        } else {
+          setError(authErrorMessage(verifyError));
+        }
+        return;
+      }
+      if (!data.session || !data.user?.email_confirmed_at) {
+        setError("Supabase did not verify this reset code. Request a new code and try again.");
+        return;
+      }
+
+      setPasswordResetOtp("");
+      setMode("reset");
+      setNotice("Reset code verified. Choose a new password for your admin account.");
+    } catch {
+      setError("We could not verify that reset code. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resendSignupEmailCode() {
     if (!signupEmail || resendSeconds > 0) return;
     setError("");
@@ -430,6 +481,43 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
               <button className={authStyles.textButton} disabled={busy} onClick={returnToSignup} type="button">Back to signup</button>
               <button className={authStyles.textButton} disabled={busy} onClick={() => switchMode("signin")} type="button">Already have an account? Sign in</button>
             </>
+          ) : mode === "verify-reset" ? (
+            <>
+              <p className={authStyles.eyebrow}><span /> ADMINISTRATOR ACCESS</p>
+              <h1 className={styles.title} id="admin-auth-title">Enter your reset code</h1>
+              <p className={`${authStyles.cardIntro} ${styles.intro}`}>
+                Enter the six-digit password reset code sent to {email}. This keeps email security scanners from consuming your reset link.
+              </p>
+              <button className={authStyles.textButton} disabled={busy} onClick={() => switchMode("forgot")} type="button">Request another code</button>
+              {notice && <p className={authStyles.success} aria-live="polite" role="status">{notice}</p>}
+              <form className={`${authStyles.form} ${styles.form}`} onSubmit={verifyPasswordResetCode}>
+                <label className={authStyles.field} htmlFor="admin-password-reset-code">
+                  <span>6-digit reset code</span>
+                  <span className={authStyles.inputWrap}>
+                    <Mail size={16} aria-hidden="true" />
+                    <input
+                      autoComplete="one-time-code"
+                      autoFocus
+                      id="admin-password-reset-code"
+                      inputMode="numeric"
+                      maxLength={6}
+                      onChange={(event) => setPasswordResetOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                      pattern="[0-9]{6}"
+                      placeholder="Enter the code"
+                      required
+                      type="text"
+                      value={passwordResetOtp}
+                    />
+                  </span>
+                </label>
+                {error && <p className={authStyles.error} id="admin-auth-error" role="alert">{error}</p>}
+                <button className={authStyles.primaryButton} disabled={busy} type="submit">
+                  {busy ? "Verifying…" : "Verify reset code"}
+                  <ArrowRight size={17} aria-hidden="true" />
+                </button>
+              </form>
+              <p className={styles.standardLogin}><Link href="/login/">Use standard Collexus sign-in</Link></p>
+            </>
           ) : (
             <>
           <p className={authStyles.eyebrow}><span /> ADMINISTRATOR ACCESS</p>
@@ -442,7 +530,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
               : mode === "signup"
                 ? "Create a Collexus account, verify your email, then have a trusted administrator assign workspace access."
                 : mode === "forgot"
-                  ? "Enter your email and we’ll send a reset link if an account is registered with it."
+                  ? "Enter your email and we’ll send a six-digit reset code if an account is registered with it."
                   : "Set a new password for your admin account, then sign in and complete the authenticator check."}
           </p>
 

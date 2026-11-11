@@ -39,6 +39,19 @@ The error `Unsupported provider: missing OAuth secret` means the Google provider
 
 Do not replace the Supabase Site URL unless the app's canonical production domain changes. Keep the Collexus production login URL and any preview URL under test in the redirect allow-list so OAuth and email confirmation return to the correct deployment.
 
+## Configure admin password recovery
+
+Admin password recovery uses a six-digit code so mail security scanners cannot consume the single-use recovery link before the administrator opens it. In Supabase **Authentication → Email Templates → Reset Password**, use the `{{ .Token }}` variable and remove `{{ .ConfirmationURL }}` from the template. For example:
+
+```html
+<h2>Reset your Collexus admin password</h2>
+<p>Enter this six-digit code on the Collexus admin reset screen:</p>
+<p style="font-size: 24px; font-weight: 700; letter-spacing: 6px">{{ .Token }}</p>
+<p>If you did not request a password reset, you can ignore this email.</p>
+```
+
+After entering the code on `/admin/login/`, the administrator chooses a new password. Do not include a clickable recovery link in this template; mail security scanners can open single-use Supabase links before the recipient does. See [Supabase email templates](https://supabase.com/docs/guides/auth/auth-email-templates) for the supported template variables.
+
 ## Configure email OTP
 
 Signup collects the user's name, account type, campus ID, college email, and international phone number. Supabase Auth uses the email as the account identity and sends a six-digit code with `signInWithOtp`; the session is created only after `verifyOtp` accepts it with `type: "email"`. The phone number is stored as unverified contact information in Auth metadata and is not used for authentication. Use an email inbox the person can access. The form labels it as a college email but does not guess or enforce a college domain.
