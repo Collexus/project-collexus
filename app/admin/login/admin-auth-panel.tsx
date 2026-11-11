@@ -63,10 +63,11 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
     if (!supabase) return;
 
     let active = true;
-    let recoveryCallback = new URLSearchParams(window.location.search).get("type") === "recovery"
+    let recoveryCallback = new URLSearchParams(window.location.search).get("flow") === "recovery"
+      || new URLSearchParams(window.location.search).get("type") === "recovery"
       || window.location.hash.includes("type=recovery");
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" && active) {
+      if ((event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && recoveryCallback)) && active) {
         recoveryCallback = true;
         setEmail(session?.user.email ?? "");
         setMode("reset");
@@ -195,7 +196,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
     try {
       if (mode === "forgot") {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(parsedEmail.data, {
-          redirectTo: `${window.location.origin}${basePath}/admin/login/`,
+          redirectTo: `${window.location.origin}${basePath}/admin/login/?flow=recovery`,
           captchaToken: submittedToken,
         });
         if (resetError) {
