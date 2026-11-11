@@ -16,6 +16,19 @@ export const adminEmailOtpSchema = z.string().trim().regex(/^\d{6}$/, "Enter the
 export const adminSignUpSchema = adminSignInSchema.extend({
   confirmPassword: passwordSchema,
 }).superRefine(({ password, confirmPassword }, context) => {
+  if (!/[a-z]/.test(password)) {
+    context.addIssue({ code: "custom", path: ["password"], message: "Include at least one lowercase letter." });
+  }
+  if (!/[A-Z]/.test(password)) {
+    context.addIssue({ code: "custom", path: ["password"], message: "Include at least one uppercase letter." });
+  }
+  if (!/[0-9]/.test(password)) {
+    context.addIssue({ code: "custom", path: ["password"], message: "Include at least one number." });
+  }
+  const allowedSymbols = "!@#$%^&*()_+-=[]{};:'\"\\|<>?,./`~";
+  if (![...password].some((character) => allowedSymbols.includes(character))) {
+    context.addIssue({ code: "custom", path: ["password"], message: "Include at least one symbol, such as ! or #." });
+  }
   if (password !== confirmPassword) {
     context.addIssue({ code: "custom", path: ["confirmPassword"], message: "Passwords do not match." });
   }

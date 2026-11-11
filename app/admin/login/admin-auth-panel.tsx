@@ -8,13 +8,13 @@ import { CollexusHomeLogo } from "@/components/collexus-home-logo";
 import { TurnstileChallenge, turnstileSiteKey } from "../../login/turnstile-challenge";
 import authStyles from "../../login/login.module.css";
 import { getSupabaseClient, isSupabaseConfigured } from "../../../lib/supabase-client";
-import { adminEmailOtpSchema, adminEmailSchema, adminSignInSchema, adminSignUpSchema } from "../../../lib/admin/auth-schemas";
+import { adminEmailOtpSchema, adminEmailSchema, adminMfaCodeSchema, adminSignInSchema, adminSignUpSchema } from "../../../lib/admin/auth-schemas";
 import styles from "./admin-login.module.css";
 
 const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 const passwordResetEmailStorageKey = "collexus-admin-password-reset-email";
 
-type AdminAuthMode = "signin" | "signup" | "forgot" | "verify-reset" | "reset";
+type AdminAuthMode = "signin" | "signup" | "forgot" | "verify-reset" | "reset" | "reset-mfa";
 
 function authErrorMessage(error: { code?: string; status?: number }) {
   if (["user_already_exists", "email_exists", "duplicate_email"].includes(error.code ?? "")) return "An account already exists for this email. Sign in or choose Forgot password.";
@@ -23,6 +23,18 @@ function authErrorMessage(error: { code?: string; status?: number }) {
   if (error.code === "email_not_confirmed") return "Verify your email from the message Supabase sent, then sign in again.";
   if (error.code === "signup_disabled" || error.code === "email_provider_disabled") return "Email signup is disabled for this Supabase project. Enable the Email provider to create an account.";
   if (error.code === "weak_password") return "Choose a stronger password and try again.";
+  if (error.code === "insufficient_aal") return "This account requires a current authenticator code before its password can be changed.";
+  if (error.code === "mfa_verification_failed" || error.code === "mfa_invalid_code") return "That authenticator code was not accepted. Enter the current 6-digit code from your authenticator app.";
+  if (error.code === "same_password") return "Choose a new password that is different from your current password.";
+  if (["session_not_found", "session_expired", "refresh_token_not_found", "refresh_token_already_used"].includes(error.code ?? "")) {
+    return "Your password reset authorization expired. Request a fresh reset code, verify it, then set your password right away.";
+  }
+  if (error.code === "reauthentication_needed" || error.code === "reauthentication_not_valid") {
+    return "This reset authorization is no longer valid. Request and verify a fresh reset code, then try again.";
+  }
+  if (error.code === "over_request_rate_limit" || error.code === "over_email_send_rate_limit") {
+    return "Too many password reset attempts. Wait a little before requesting or using another code.";
+  }
   if (error.status === 429 || error.code?.includes("rate_limit")) return "Too many attempts. Wait a little and try again.";
   return "We could not complete that request. Check the email and password, then try again.";
 }
@@ -37,6 +49,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
   const [signupEmail, setSignupEmail] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [passwordResetOtp, setPasswordResetOtp] = useState("");
+  const [passwordResetMfaCode, setPasswordResetMfaCode] = useState("");
   const [resendSeconds, setResendSeconds] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -126,6 +139,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
     setEmailOtpStep(false);
     setEmailOtp("");
     setPasswordResetOtp("");
+    setPasswordResetMfaCode("");
     setSignupEmail("");
     setResendSeconds(0);
     setError("");
@@ -163,16 +177,71 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
       return;
     }
 
-    if (mode === "reset") {
+    if (mode === "reset" || mode === "reset-mfa") {
       const parsed = adminSignUpSchema.safeParse({ email, password, confirmPassword });
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? "Check the form and try again.");
         return;
       }
+      const parsedMfaCode = mode === "reset-mfa" ? adminMfaCodeSchema.safeParse(passwordResetMfaCode) : null;
+      if (parsedMfaCode && !parsedMfaCode.success) {
+        setError(parsedMfaCode.error.issues[0]?.message ?? "Enter the current 6-digit authenticator code.");
+        return;
+      }
       setBusy(true);
       try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+          setMode("forgot");
+          setPassword("");
+          setConfirmPassword("");
+          setError(sessionError
+            ? authErrorMessage(sessionError)
+            : "Your password reset authorization expired. Request a fresh reset code, verify it, then set your password right away.");
+          return;
+        }
+
+        if (mode === "reset-mfa" && parsedMfaCode?.success) {
+          const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
+          if (factorError) {
+            setError(authErrorMessage(factorError));
+            return;
+          }
+          const factor = factorData.totp.find((item) => item.status === "verified");
+          if (!factor) {
+            setError("No verified authenticator is available for this account. Contact the Collexus administrator to restore authenticator access.");
+            return;
+          }
+          const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
+          if (challengeError) {
+            setError(authErrorMessage(challengeError));
+            return;
+          }
+          const { error: verifyError } = await supabase.auth.mfa.verify({
+            factorId: factor.id,
+            challengeId: challenge.id,
+            code: parsedMfaCode.data,
+          });
+          if (verifyError) {
+            setPasswordResetMfaCode("");
+            setError(authErrorMessage(verifyError));
+            return;
+          }
+        }
+
         const { error: updateError } = await supabase.auth.updateUser({ password: parsed.data.password });
         if (updateError) {
+          if (updateError.code === "insufficient_aal" && mode === "reset") {
+            setMode("reset-mfa");
+            setPasswordResetMfaCode("");
+            setError("This account has two-step verification enabled. Enter the current code from your authenticator app, then submit to finish changing the password.");
+            return;
+          }
+          if (["session_not_found", "session_expired", "refresh_token_not_found", "refresh_token_already_used"].includes(updateError.code ?? "")) {
+            setMode("forgot");
+            setPassword("");
+            setConfirmPassword("");
+          }
           setError(authErrorMessage(updateError));
           return;
         }
@@ -181,6 +250,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
         setMode("signin");
         setPassword("");
         setConfirmPassword("");
+        setPasswordResetMfaCode("");
         setEmailOtpStep(false);
         setCaptchaToken("");
         setCaptchaError("");
@@ -538,7 +608,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
             <>
           <p className={authStyles.eyebrow}><span /> ADMINISTRATOR ACCESS</p>
           <h1 className={styles.title} id="admin-auth-title">
-            {mode === "signin" ? "Sign in to the admin workspace" : mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : "Choose a new password"}
+            {mode === "signin" ? "Sign in to the admin workspace" : mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : mode === "reset-mfa" ? "Verify your authenticator" : "Choose a new password"}
           </h1>
           <p className={`${authStyles.cardIntro} ${styles.intro}`}>
             {mode === "signin"
@@ -547,7 +617,9 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
                 ? "Create a Collexus account, verify your email, then have a trusted administrator assign workspace access."
                 : mode === "forgot"
                   ? "Enter your email and we’ll send a six-digit reset code if an account is registered with it."
-                  : "Set a new password for your admin account, then sign in and complete the authenticator check."}
+                  : mode === "reset-mfa"
+                    ? "Enter the current 6-digit code from your authenticator app to authorize this password change."
+                    : "Set a new password for your admin account, then sign in and complete the authenticator check."}
           </p>
 
           {(mode === "signin" || mode === "signup") ? (
@@ -564,7 +636,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
             <p>Creating an account never grants administrator privileges. Admin roles are assigned separately and recorded by the server.</p>
           </div>}
 
-          {mode !== "reset" && <TurnstileChallenge
+          {mode !== "reset" && mode !== "reset-mfa" && <TurnstileChallenge
               errorMessage={captchaError}
               onError={saveCaptchaError}
               onToken={saveCaptchaToken}
@@ -573,12 +645,12 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
             />}
 
           <form className={`${authStyles.form} ${styles.form}`} onSubmit={submit}>
-            {mode !== "reset" && <label className={authStyles.field} htmlFor="admin-email">
+            {mode !== "reset" && mode !== "reset-mfa" && <label className={authStyles.field} htmlFor="admin-email">
               <span>Email address</span>
               <span className={authStyles.inputWrap}><Mail size={16} aria-hidden="true" /><input autoComplete="email" id="admin-email" maxLength={254} onChange={(event) => setEmail(event.target.value)} required type="email" value={email} /></span>
             </label>}
-            {(mode === "signin" || mode === "signup" || mode === "reset") && <label className={authStyles.field} htmlFor="admin-password">
-              <span>{mode === "reset" ? "New password" : "Password"} <small>{mode !== "signin" ? "at least 10 characters" : ""}</small></span>
+            {(mode === "signin" || mode === "signup" || mode === "reset" || mode === "reset-mfa") && <label className={authStyles.field} htmlFor="admin-password">
+              <span>{mode === "reset" || mode === "reset-mfa" ? "New password" : "Password"} <small>{mode === "signin" ? "" : "10+ characters, upper/lowercase, number, symbol"}</small></span>
               <span className={authStyles.inputWrap}>
                 <KeyRound size={16} aria-hidden="true" />
                 <input autoComplete={mode === "signin" ? "current-password" : "new-password"} id="admin-password" maxLength={128} minLength={10} onChange={(event) => setPassword(event.target.value)} required type={showPassword ? "text" : "password"} value={password} />
@@ -586,9 +658,29 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
               </span>
             </label>}
 
-            {(mode === "signup" || mode === "reset") && <label className={authStyles.field} htmlFor="admin-confirm-password">
+            {(mode === "signup" || mode === "reset" || mode === "reset-mfa") && <label className={authStyles.field} htmlFor="admin-confirm-password">
               <span>Confirm password</span>
               <span className={authStyles.inputWrap}><KeyRound size={16} aria-hidden="true" /><input autoComplete="new-password" id="admin-confirm-password" maxLength={128} minLength={10} onChange={(event) => setConfirmPassword(event.target.value)} required type={showPassword ? "text" : "password"} value={confirmPassword} /></span>
+            </label>}
+
+            {mode === "reset-mfa" && <label className={authStyles.field} htmlFor="admin-password-reset-mfa-code">
+              <span>Authenticator code</span>
+              <span className={authStyles.inputWrap}>
+                <KeyRound size={16} aria-hidden="true" />
+                <input
+                  autoComplete="one-time-code"
+                  autoFocus
+                  id="admin-password-reset-mfa-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  onChange={(event) => setPasswordResetMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  pattern="[0-9]{6}"
+                  placeholder="000000"
+                  required
+                  type="text"
+                  value={passwordResetMfaCode}
+                />
+              </span>
             </label>}
 
             {error && <p className={authStyles.error} id="admin-auth-error" role="alert">{error}</p>}
@@ -596,7 +688,7 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
             {notice && <p className={authStyles.success} aria-live="polite" role="status">{notice}</p>}
 
             <button className={authStyles.primaryButton} disabled={busy || !isSupabaseConfigured()} type="submit">
-              {busy ? "Please wait…" : mode === "signin" ? "Sign in securely" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset code" : "Update password"}
+              {busy ? "Please wait…" : mode === "signin" ? "Sign in securely" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset code" : mode === "reset-mfa" ? "Verify and update password" : "Update password"}
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </form>
