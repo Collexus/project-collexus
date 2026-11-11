@@ -55,17 +55,29 @@ export function AdminAuthPanel({ destination }: { destination: string }) {
   }, [resendSeconds]);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const recoveryIntent = searchParams.get("flow") === "recovery"
+      || searchParams.get("type") === "recovery"
+      || hashParams.get("type") === "recovery";
+    const recoveryError = searchParams.get("error_code") ?? hashParams.get("error_code");
+    if (recoveryIntent && recoveryError) {
+      const timer = window.setTimeout(() => {
+        setMode("forgot");
+        setError("This password reset link has expired or has already been used. Request a fresh link below.");
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
     const hasAuthCallback = window.location.hash.includes("access_token=")
-      || new URLSearchParams(window.location.search).has("code");
+      || searchParams.has("code");
     if (!hasAuthCallback) return;
 
     const supabase = getSupabaseClient();
     if (!supabase) return;
 
     let active = true;
-    let recoveryCallback = new URLSearchParams(window.location.search).get("flow") === "recovery"
-      || new URLSearchParams(window.location.search).get("type") === "recovery"
-      || window.location.hash.includes("type=recovery");
+    let recoveryCallback = recoveryIntent || window.location.hash.includes("type=recovery");
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && recoveryCallback)) && active) {
         recoveryCallback = true;
