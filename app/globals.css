@@ -5334,36 +5334,12 @@ html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading,.catego
 html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading h2,.category-card h3,.calendar-top h2,.pass-dialog h2,.login-dialog h2){color:#e8f5ee!important}
 html[data-collexus-theme="dark"] .dark-green-theme :is(.category-heading p,.category-card p,.calendar-top p,.pass-dialog p,.login-subtitle){color:#b5c9bf!important}
 
-/* Keep the mobile Nightfall carousel focused on one readable event at a time. */
+/* Keep the original Nightfall carousel panels; soften only copy on the side cards. */
 @media(max-width:760px){
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow{
-    min-height:290px!important;overflow:hidden!important;isolation:isolate;perspective:none;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card{
-    left:50%!important;width:min(430px,calc(100% - 32px))!important;opacity:.18!important;
-    filter:blur(6px)!important;pointer-events:none!important;z-index:1!important;
-    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card.prev{
-    transform:translateX(calc(-50% - 68vw)) scale(.84)!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card.next{
-    transform:translateX(calc(-50% + 68vw)) scale(.84)!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card.far{
-    opacity:0!important;transform:translateX(-50%) scale(.72)!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card:not(.is-active) :is(.cover-icon,span,h3,p,a){
-    visibility:hidden!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card.is-active{
-    z-index:5!important;opacity:1!important;filter:none!important;pointer-events:auto!important;
-    transform:translateX(-50%) scale(1)!important;background:#111922!important;
-    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
-    box-shadow:0 22px 50px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.08)!important;
-  }
-  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .coverflow .cover-card.is-active :is(h3,p){
-    color:#f5f8fc!important;
+  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .cover-card:not(.is-active) > span,
+  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .cover-card:not(.is-active) h3,
+  html:not([data-collexus-theme="light"]) body.warm-editorial-theme.vivid-nightfall-theme .motion-showcase-section .cover-card:not(.is-active) p{
+    filter:blur(3px)!important;
   }
 }
 @media(prefers-reduced-motion:reduce){.site-theme-button{transition:none!important}}
