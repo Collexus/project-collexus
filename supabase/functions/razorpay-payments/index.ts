@@ -146,14 +146,19 @@ async function razorpayFetch<T>(path: string, init: RequestInit = {}) {
     signal: AbortSignal.timeout(timeoutMs),
     headers: { Authorization: `Basic ${authorization}`, "Content-Type": "application/json", ...init.headers },
   });
-  if (!response.ok) throw new Error("Razorpay request failed.");
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Razorpay rejected the API credentials. Confirm that the Test or Live Key ID and Key Secret match.");
+    }
+    throw new Error(`Razorpay could not create the order (HTTP ${response.status}). Check the key mode and Razorpay account.`);
+  }
   return await response.json() as T;
 }
 
 async function getPaymentRecord(client: SupabaseClient, paymentId: string, userId: string) {
   const { data, error } = await client.from("payments").select("id,user_id,amount_paise,currency,status,razorpay_order_id,razorpay_payment_id,order_creation_started_at")
     .eq("id", paymentId).eq("user_id", userId).maybeSingle();
-  if (error) throw new Error("Payment records are not configured.");
+  if (error) throw new Error("Payment records are not ready. Apply the Supabase payments migration and try again.");
   return data as PaymentRecord | null;
 }
 
@@ -164,7 +169,9 @@ async function createOrder(client: SupabaseClient, userId: string, paymentId: st
   const keyId = Deno.env.get("RAZORPAY_KEY_ID");
   if (!keyId) return json({ error: "Payments are not configured." }, 503);
 
-  if (payment.razorpay_order_id && payment.status === "pending") {
+  // Razorpay permits multiple payment attempts against one un-paid order. Reuse
+  // the order after a failed method so the customer can retry with another one.
+  if (payment.razorpay_order_id && ["pending", "failed"].includes(payment.status)) {
     return json({ order_id: payment.razorpay_order_id, payment_id: payment.id, amount: payment.amount_paise, currency: payment.currency, key_id: keyId });
   }
   if (!Number.isSafeInteger(payment.amount_paise) || payment.amount_paise < 100 || payment.currency !== "INR") {
@@ -183,7 +190,7 @@ async function createOrder(client: SupabaseClient, userId: string, paymentId: st
   if (claimError) throw new Error("Could not reserve this payment attempt.");
   if (!claimed) {
     payment = await getPaymentRecord(client, paymentId, userId);
-    if (payment?.razorpay_order_id && payment.status === "pending") {
+    if (payment?.razorpay_order_id && ["pending", "failed"].includes(payment.status)) {
       return json({ order_id: payment.razorpay_order_id, payment_id: payment.id, amount: payment.amount_paise, currency: payment.currency, key_id: keyId });
     }
     return json({ error: "A payment attempt is already being prepared. Try again shortly." }, 409);
@@ -201,10 +208,13 @@ async function createOrder(client: SupabaseClient, userId: string, paymentId: st
       .eq("id", payment.id).eq("user_id", userId).eq("order_creation_started_at", claimTime);
     if (saveError) throw new Error("Could not save the provider order.");
     return json({ order_id: order.id, payment_id: payment.id, amount: order.amount, currency: order.currency, key_id: keyId });
-  } catch {
+  } catch (error) {
     await client.from("payments").update({ status: "created", order_creation_started_at: null })
       .eq("id", payment.id).eq("user_id", userId).eq("order_creation_started_at", claimTime);
-    return json({ error: "Could not start checkout. Try again." }, 502);
+    const message = error instanceof Error && /^(Razorpay credentials are not configured\.|Razorpay rejected the API credentials\.|Razorpay could not create the order)/.test(error.message)
+      ? error.message
+      : "Could not reach Razorpay. Check the Edge Function secrets and try again.";
+    return json({ error: message }, 502);
   }
 }
 
@@ -326,6 +336,11 @@ Deno.serve(async (request) => {
   } catch (error) {
     // Keep credentials and provider/database response bodies out of client responses and logs.
     console.error("razorpay-payments request failed", error instanceof Error ? error.name : "UnknownError");
-    return json({ error: "Payment service is temporarily unavailable." }, 503, origin ?? undefined);
+    const message = error instanceof Error && error.message === "Payment records are not ready. Apply the Supabase payments migration and try again."
+      ? error.message
+      : error instanceof Error && error.message === "Supabase function secrets are not configured."
+        ? "Payment service secrets are not configured in Supabase."
+        : "Payment service is temporarily unavailable. Check the Supabase function logs and try again.";
+    return json({ error: message }, 503, origin ?? undefined);
   }
 });

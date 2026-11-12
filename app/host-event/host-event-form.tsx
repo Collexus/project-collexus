@@ -108,6 +108,60 @@ function formatDate(value: string) {
     : new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(parsed);
 }
 
+type TimeParts = { hour: string; minute: string; period: string };
+
+function parseTimeParts(value: string): TimeParts {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return { hour: "", minute: "", period: "" };
+  const hours = Number(match[1]);
+  return {
+    hour: String(hours % 12 || 12),
+    minute: match[2],
+    period: hours >= 12 ? "PM" : "AM",
+  };
+}
+
+function to24HourTime({ hour, minute, period }: TimeParts) {
+  if (!hour || !minute || !period) return "";
+  const hour24 = Number(hour) % 12 + (period === "PM" ? 12 : 0);
+  return `${String(hour24).padStart(2, "0")}:${minute}`;
+}
+
+function formatTime(value: string) {
+  const parts = parseTimeParts(value);
+  return parts.hour ? `${parts.hour}:${parts.minute} ${parts.period}` : "";
+}
+
+function TimePicker({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const [parts, setParts] = useState<TimeParts>(() => parseTimeParts(value));
+
+  useEffect(() => {
+    if (value) setParts(parseTimeParts(value));
+  }, [value]);
+
+  function updatePart(key: keyof TimeParts, nextValue: string) {
+    const next = { ...parts, [key]: nextValue };
+    setParts(next);
+    onChange(to24HourTime(next));
+  }
+
+  return <div className={styles.timePicker}>
+    <select aria-label={`${label} hour`} onChange={(event) => updatePart("hour", event.currentTarget.value)} required value={parts.hour}>
+      <option value="" disabled>HH</option>
+      {Array.from({ length: 12 }, (_, index) => String(index + 1)).map((hour) => <option key={hour} value={hour}>{hour.padStart(2, "0")}</option>)}
+    </select>
+    <select aria-label={`${label} minute`} onChange={(event) => updatePart("minute", event.currentTarget.value)} required value={parts.minute}>
+      <option value="" disabled>MM</option>
+      {Array.from({ length: 60 }, (_, minute) => String(minute).padStart(2, "0")).map((minute) => <option key={minute} value={minute}>{minute}</option>)}
+    </select>
+    <select aria-label={`${label} AM or PM`} onChange={(event) => updatePart("period", event.currentTarget.value)} required value={parts.period}>
+      <option value="" disabled>AM/PM</option>
+      <option value="AM">AM</option>
+      <option value="PM">PM</option>
+    </select>
+  </div>;
+}
+
 function createSubmission(form: FormState, posterPath: string | null = null) {
   return {
     schemaVersion: 1,
@@ -129,6 +183,7 @@ function createSubmission(form: FormState, posterPath: string | null = null) {
       endDate: form.endDate || null,
       startTime: form.startTime || null,
       endTime: form.endTime || null,
+      timeZone: "Asia/Kolkata",
       duration: form.duration,
       customDurationHours: form.duration === "custom" && form.customDurationHours ? Number(form.customDurationHours) : null,
       mode: form.mode,
@@ -210,6 +265,15 @@ export function HostEventForm() {
   function update<K extends keyof FormState>(key: K) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const value = event.currentTarget.value;
+      setForm((current) => ({ ...current, [key]: value }));
+      setReviewed(false);
+      setDateError("");
+      setDraftStatus("");
+    };
+  }
+
+  function updateTime(key: "startTime" | "endTime") {
+    return (value: string) => {
       setForm((current) => ({ ...current, [key]: value }));
       setReviewed(false);
       setDateError("");
@@ -464,12 +528,14 @@ export function HostEventForm() {
                   <input id="host-end-date" min={form.startDate || undefined} name="endDate" onChange={update("endDate")} required type="date" value={form.endDate} />
                 </label>
                 <label className={styles.field}>
-                  <span>Starting time <b aria-hidden="true">*</b></span>
-                  <input name="startTime" onChange={update("startTime")} required type="time" value={form.startTime} />
+                  <span>Starting time (12-hour) <b aria-hidden="true">*</b></span>
+                  <TimePicker label="Starting time" onChange={updateTime("startTime")} value={form.startTime} />
+                  <small>India Standard Time (IST)</small>
                 </label>
                 <label className={styles.field}>
-                  <span>Ending time <b aria-hidden="true">*</b></span>
-                  <input name="endTime" onChange={update("endTime")} required type="time" value={form.endTime} />
+                  <span>Ending time (12-hour) <b aria-hidden="true">*</b></span>
+                  <TimePicker label="Ending time" onChange={updateTime("endTime")} value={form.endTime} />
+                  <small>India Standard Time (IST)</small>
                 </label>
                 <label className={styles.field}>
                   <span>Event duration <b aria-hidden="true">*</b></span>
@@ -566,7 +632,7 @@ export function HostEventForm() {
                 <h2>{form.eventName || "Your event name"}</h2>
                 <p>{form.about || "A short description of your event will appear here."}</p>
                 <div className={styles.previewMeta}><CalendarDays aria-hidden="true" size={16} /><span>{dates}</span></div>
-                <div className={styles.previewMeta}><Clock3 aria-hidden="true" size={16} /><span>{form.startTime || "Start time"}{form.endTime ? ` – ${form.endTime}` : ""}</span></div>
+                <div className={styles.previewMeta}><Clock3 aria-hidden="true" size={16} /><span>{form.startTime ? formatTime(form.startTime) : "Start time"}{form.endTime ? ` – ${formatTime(form.endTime)}` : ""} · IST</span></div>
                 <div className={styles.previewMeta}><Clock3 aria-hidden="true" size={16} /><span>{durationLabel}</span></div>
                 <div className={styles.previewMeta}><MapPin aria-hidden="true" size={16} /><span>{form.venue || "Event venue"}</span></div>
                 <div className={styles.previewMeta}><Building2 aria-hidden="true" size={16} /><span>{form.institution === "Other institution" ? form.institutionOther || "Your institution" : form.institution || "Institution"}</span></div>

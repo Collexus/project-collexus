@@ -21,7 +21,8 @@
 .headerNav > a:not(.headerCta) { color: var(--muted); font-size: 12px; font-weight: 650; text-decoration: none; }
 .headerNav > a:hover, .footer a:hover { color: var(--accent); }
 .headerCta, .textLink, .outlineButton, .secondaryButton, .primaryButton { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--accent-dark); background: var(--surface); font-size: 11px; font-weight: 750; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease; }
-.headerCta { min-height: 39px; padding-inline: 12px; }
+.headerCta { min-height: 44px; padding: 4px 11px 4px 14px; border-radius: 999px; }
+.headerCta svg { box-sizing: border-box; width: 30px; height: 30px; margin-right: -6px; padding: 7px; border-radius: 50%; color: #fff; background: var(--accent); }
 .primaryButton { border-color: transparent; color: #fff; background: linear-gradient(120deg, #087e83, #137f9d); box-shadow: 0 8px 20px rgba(8, 126, 131, .15); }
 .outlineButton { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--accent-dark); background: transparent; }
 .secondaryButton:hover, .outlineButton:hover, .headerCta:hover { border-color: var(--accent); background: var(--accent-soft); }
@@ -129,3 +130,31 @@
 @media (max-width: 390px) { .headerNav { gap: 8px; } .headerNav > a:not(.headerCta) { font-size: 9px; } .headerCta svg { display: none; } .addOnGrid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 650px) { .checkout { grid-template-columns: minmax(0, 1fr); gap: 17px; margin-top: 50px; padding: 20px 15px; border-radius: 21px; } .orderSummary { padding: 15px; border-radius: 16px; } }
 @media (prefers-reduced-motion: reduce) { .headerCta, .textLink, .outlineButton, .secondaryButton, .primaryButton { transition: none; } .primaryButton:hover, .secondaryButton:hover, .outlineButton:hover, .headerCta:hover { transform: none; } }
+
+/* Keep host page sections and inherited text in step with the dark palette. */
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .plansSection,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .addOnsSection,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .howSection {
+  color: var(--ink) !important;
+  background: transparent !important;
+}
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .hero,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .planCard,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .addOnCard,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .checkout,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .orderSummary,
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .bottomCta {
+  color: var(--ink) !important;
+}
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) :is(.hero h1, .panelFooter strong, .sectionIntro h2, .planCard h3, .addOnTop h3, .checkoutForm h2, .orderSummary h3, .bottomCta h2) {
+  color: var(--ink) !important;
+}
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .headerCta {
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+  background: linear-gradient(135deg, var(--surface), var(--surface-soft)) !important;
+}
+:global(html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme) .headerCta svg {
+  color: #07131c !important;
+  background: var(--accent) !important;
+}

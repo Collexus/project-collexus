@@ -137,6 +137,8 @@
   box-sizing: border-box; padding: 12px 14px; color: var(--ink); background: var(--card-soft); font: inherit; font-size: 14px; font-weight: 450;
   transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
 }
+.timePicker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .9fr); gap: 8px; }
+.timePicker select { min-width: 0; }
 .field input[type="date"], .field input[type="time"] { color-scheme: light; min-height: 52px; padding-block: 12px; accent-color: var(--accent); }
 :global(html:not([data-collexus-theme="light"])) .field input[type="date"], :global(html:not([data-collexus-theme="light"])) .field input[type="time"] { color-scheme: dark; }
 .field input[type="date"]::-webkit-calendar-picker-indicator, .field input[type="time"]::-webkit-calendar-picker-indicator { width: 22px; height: 22px; margin-left: 8px; padding: 3px; border-radius: 6px; cursor: pointer; opacity: .78; }

@@ -11,7 +11,8 @@ import styles from "./cart.module.css";
 type MenuItem = { id: string; name: string; description: string | null; pricePaise: number };
 type Stall = { id: string; name: string; slug: string; location: string | null; menuItems: MenuItem[] };
 type CartLine = MenuItem & { quantity: number };
-type RazorpayCheckout = { open: () => void };
+type RazorpayFailure = { error?: { description?: string; reason?: string } };
+type RazorpayCheckout = { open: () => void; on: (event: "payment.failed", handler: (response: RazorpayFailure) => void) => void };
 type RazorpayOptions = {
   key: string; order_id: string; amount: number; currency: string; name: string; description: string;
   handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void;
@@ -112,6 +113,10 @@ export function CartExperience() {
             }).catch((error: unknown) => setNotice(error instanceof Error ? error.message : "Payment confirmation is pending."))
             .finally(() => setBusy(false));
         },
+      });
+      checkoutWindow.on("payment.failed", ({ error }) => {
+        setNotice(error?.description || "Payment failed. Try another payment method or retry.");
+        setBusy(false);
       });
       checkoutWindow.open();
     } catch (error) {

@@ -5371,3 +5371,13 @@ body.category-mode .category-section-nav.quick-category-top button{
   }
 }
 @media(prefers-reduced-motion:reduce){.site-theme-button{transition:none!important}}
+
+/* Profile summary cards inherit a legacy white section surface in dark mode. */
+html[data-collexus-theme="dark"] body.warm-editorial-theme.vivid-nightfall-theme
+  #main-content[class*="profile-summary_page__"]
+  article[class*="profile-summary_profileCard__"]
+  div[class*="profile-summary_grid__"] > section[class*="profile-summary_card__"]{
+  color:#edf5f7!important;
+  background:transparent!important;
+  border-color:#2b3e49!important;
+}

@@ -7,7 +7,8 @@ import { ArrowLeft, ArrowRight, CircleAlert, LockKeyhole } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
 type Ticket = { id: string; eventTitle: string; name: string; description: string | null; pricePaise: number };
-type RazorpayCheckout = { open: () => void };
+type RazorpayFailure = { error?: { description?: string; reason?: string } };
+type RazorpayCheckout = { open: () => void; on: (event: "payment.failed", handler: (response: RazorpayFailure) => void) => void };
 type RazorpayOptions = {
   key: string; order_id: string; amount: number; currency: string; name: string; description: string;
   handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void;
@@ -75,7 +76,7 @@ export function EventRegistrationCheckout({ event }: { event: { slug: string; ti
       const { data: orderData, error: orderError } = await supabase.functions.invoke("razorpay-payments", { body: { action: "create_order", payment_id: purchase.paymentId } });
       if (orderError || !orderData?.order_id || !orderData?.key_id) throw new Error(orderData?.error || orderError?.message || "Could not start payment.");
       await loadRazorpay();
-      new window.Razorpay!({
+      const checkout = new window.Razorpay!({
         key: orderData.key_id, order_id: orderData.order_id, amount: orderData.amount, currency: orderData.currency,
         name: "Collexus", description: `${event.title} · event registration`, theme: { color: "#087e83" },
         modal: { ondismiss: () => setBusy(false) },
@@ -88,7 +89,12 @@ export function EventRegistrationCheckout({ event }: { event: { slug: string; ti
             }).catch((error: unknown) => setNotice(error instanceof Error ? error.message : "Payment confirmation is pending."))
             .finally(() => setBusy(false));
         },
-      }).open();
+      });
+      checkout.on("payment.failed", ({ error }) => {
+        setNotice(error?.description || "Payment failed. Try another payment method or retry.");
+        setBusy(false);
+      });
+      checkout.open();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Could not start checkout. Please try again.");
       setBusy(false);

@@ -8,13 +8,14 @@ import styles from "./host.module.css";
 
 type StallType = "Silver stall" | "Gold stall" | "Platinum stall";
 type Plan = "normal" | "pro";
+type RazorpayFailure = { error?: { description?: string; reason?: string } };
 type RazorpayOptions = {
   key: string; amount: number; currency: string; name: string; description: string; order_id: string;
   handler: (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => void;
   modal: { ondismiss: () => void };
   theme: { color: string };
 };
-declare global { interface Window { Razorpay?: new (options: RazorpayOptions) => { open: () => void }; } }
+declare global { interface Window { Razorpay?: new (options: RazorpayOptions) => { open: () => void; on: (event: "payment.failed", handler: (response: RazorpayFailure) => void) => void }; } }
 
 async function ensureCheckoutScript() {
   if (window.Razorpay) return;
@@ -29,6 +30,19 @@ async function ensureCheckoutScript() {
     if (!existing) document.body.appendChild(script);
   });
   if (!window.Razorpay) throw new Error("Razorpay checkout did not load. Please try again.");
+}
+
+async function getPaymentFunctionError(error: unknown) {
+  if (error && typeof error === "object" && "context" in error && error.context instanceof Response) {
+    try {
+      const body = await error.context.clone().json() as { error?: unknown };
+      if (typeof body.error === "string" && body.error.trim()) return body.error;
+    } catch {
+      // Fall back to the SDK message when the function didn't return JSON.
+    }
+  }
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
+  return "Could not start Razorpay checkout. Please try again.";
 }
 
 export function HostStallPayment({
@@ -60,7 +74,8 @@ export function HostStallPayment({
       const { data: order, error: orderError } = await supabase.functions.invoke("razorpay-payments", {
         body: { action: "create_order", payment_id: prepared.paymentId },
       });
-      if (orderError || !order?.order_id || !order?.key_id) throw new Error(order?.error ?? orderError?.message ?? "Could not start Razorpay checkout.");
+      if (orderError) throw new Error(await getPaymentFunctionError(orderError));
+      if (!order?.order_id || !order?.key_id) throw new Error(order?.error ?? "Could not start Razorpay checkout.");
       await ensureCheckoutScript();
       const checkout = new window.Razorpay!({
         key: order.key_id, amount: order.amount, currency: order.currency, name: "Collexus",
@@ -80,6 +95,10 @@ export function HostStallPayment({
           if (addOns.length) params.set("addons", addOns.join(","));
           router.push(`/stall-registration/?${params.toString()}`);
         },
+      });
+      checkout.on("payment.failed", ({ error }) => {
+        setMessage(error?.description ?? "Payment failed. Try another payment method or retry.");
+        setBusy(false);
       });
       checkout.open();
     } catch (error) {
