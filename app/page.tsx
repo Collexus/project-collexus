@@ -358,7 +358,7 @@ export default function HomePage() {
 
 <section id="categoryViews" className="category-views hidden" aria-live="polite">
   <div className="category-page-shell">
-    <nav className="category-section-nav" aria-label="Event sections">
+    <nav className="category-section-nav quick-category-rail quick-category-top" aria-label="Event sections">
       <button type="button" data-category-nav="Hackathons"><Icon name="terminal" />Hackathons</button>
       <button type="button" data-category-nav="Internships"><Icon name="work" />Internships</button>
       <button type="button" data-category-nav="Workshops"><Icon name="school" />Workshops</button>
@@ -373,7 +373,7 @@ export default function HomePage() {
     </div>
     <div className="category-heading">
       <div className="category-heading-copy"><p id="categoryEyebrow" className="category-eyebrow">EXPLORE</p><h2 id="categoryTitle">Hackathons</h2><p id="categoryPunchline" className="category-punchline">Build bold. Break limits. Ship what matters.</p><p id="categoryDescription">Find events that match your interests.</p></div>
-      <label className="category-sort-control" id="categorySortControl" hidden><span className="category-sort-icon"><Icon name="tune" /></span><span className="category-sort-label">Sort by</span><select id="categorySort" aria-label="Sort nearby events"><option value="featured">Featured</option><option value="free">Free first</option><option value="paid">Paid first</option><option value="name">Name A–Z</option></select><Icon name="expand_more" /></label>
+      <label className="category-sort-control" id="categorySortControl" hidden><span className="category-sort-icon"><Icon name="tune" /></span><span className="category-sort-label">Sort by</span><select id="categorySort" aria-label="Sort nearby events"><option value="featured">Featured</option><option value="nearby">Nearby first</option><option value="valuable">Best value</option><option value="free">Free first</option><option value="paid">Paid first</option></select><Icon name="expand_more" /></label>
     </div>
     <div id="categoryCards" className="category-cards"></div>
   </div>
