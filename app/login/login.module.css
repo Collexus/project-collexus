@@ -38,9 +38,9 @@
 .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--teal); font-size: 10px; font-weight: 800; letter-spacing: .16em; }
 .eyebrow > span { width: 7px; height: 7px; border-radius: 50%; background: #26c8ba; box-shadow: 0 0 0 4px color-mix(in srgb, #26c8ba 15%, transparent); }
 .authCard { min-width: 0; padding: clamp(24px, 3.5vw, 38px); border: 1px solid var(--line); border-radius: 24px; background: var(--card); box-shadow: 0 18px 50px rgba(15, 52, 65, .09); }
-.cardTopline { display: flex; align-items: center; gap: 9px; margin-bottom: 32px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.cardTopline { display: flex; align-items: center; gap: 9px; margin-bottom: 32px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .cardIcon { display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid var(--line); border-radius: 10px; color: var(--teal); background: var(--teal-soft); }
-.secureBadge { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: var(--teal-dark); font-size: 9px; letter-spacing: .015em; }
+.secureBadge { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: var(--teal-dark); font-size: 10px; letter-spacing: .015em; }
 .authCard > .eyebrow { margin-bottom: 8px; }
 .authCard h2 { margin: 0; color: var(--ink); font-family: "Space Grotesk", var(--font-poppins), sans-serif; font-size: clamp(24px, 2.7vw, 30px); font-weight: 700; line-height: 1.15; letter-spacing: -.04em; }
 .cardIntro { margin: 9px 0 19px; color: var(--muted); font-size: 12px; line-height: 1.55; }
@@ -52,8 +52,8 @@
 .accountTypeSelected strong { color: var(--teal-dark); }
 .accountType > svg:first-child { display: block; }
 .accountType > span { min-width: 0; display: grid; gap: 3px; }
-.accountType strong { color: var(--ink); font-size: 10px; line-height: 1.2; }
-.accountType small { color: var(--muted); font-size: 9px; line-height: 1.3; }
+.accountType strong { color: var(--ink); font-size: 11px; line-height: 1.25; }
+.accountType small { color: var(--muted); font-size: 10px; line-height: 1.35; }
 .typeCheck { display: block; color: var(--teal); opacity: 0; transform: scale(.8); transition: opacity .16s ease, transform .16s ease; }
 .typeCheckVisible { opacity: 1; transform: scale(1); }
 .modeTabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 23px 0 15px; padding: 4px; border-radius: 12px; background: var(--soft); }
@@ -72,8 +72,8 @@
 .field { display: grid; gap: 7px; min-width: 0; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 1.35; }
 .field > * { min-width: 0; }
 .field > span { min-height: 15px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.field small { color: var(--muted); font-size: 9px; font-weight: 500; }
-.fieldHelp { display: block; margin-top: -2px; color: var(--muted); font-size: 10px; font-weight: 500; line-height: 1.4; }
+.field small { color: var(--muted); font-size: 10px; font-weight: 500; }
+.fieldHelp { display: block; margin-top: -2px; color: var(--muted); font-size: 11px; font-weight: 500; line-height: 1.45; }
 .captchaWrap { display: grid; justify-items: start; gap: 6px; min-width: 0; margin: 12px 0; }
 .captchaLabel { color: var(--muted); font-size: 10px; font-weight: 700; line-height: 1.35; }
 .captchaWidget { width: 100%; min-width: 0; min-height: 66px; overflow: visible; }
@@ -89,10 +89,10 @@
 .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
 :global(body.warm-editorial-theme.vivid-nightfall-theme) .inputWrap input:focus-visible { outline: 0 !important; outline-offset: 0 !important; }
 .inputWrap input:disabled { opacity: .62; cursor: not-allowed; }
-.inputWrap input::placeholder { color: #91a4af; }
+.inputWrap input::placeholder { color: var(--muted); opacity: .82; }
 .passwordToggle { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; cursor: pointer; transition: color .16s ease, background .16s ease; }
 .passwordToggle:hover { color: var(--teal); background: var(--teal-soft); }
-.remember { display: flex; align-items: flex-start; gap: 7px; color: var(--muted); font-size: 9px; font-weight: 500; line-height: 1.5; }
+.remember { display: flex; align-items: flex-start; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 500; line-height: 1.5; }
 .passwordMatch { margin: -5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .passwordMatchInvalid { color: #9c3434; }
 .remember input { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--teal); cursor: pointer; }
@@ -104,7 +104,7 @@
 .primaryButton:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 9px 20px rgba(8, 126, 131, .2); }
 .primaryButton:active:not(:disabled) { transform: translateY(1px); }
 .primaryButton:disabled { opacity: .62; cursor: not-allowed; }
-.roleNote { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
+.roleNote { margin: 14px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
 .error, .success, .setupNotice, .verifyNotice { margin: 0; padding: 10px 11px; border: 1px solid; border-radius: 9px; font-size: 10px; line-height: 1.45; }
 .error { color: #9c3434; border-color: #efcdcd; background: #fff5f4; }
 .success { color: #087662; border-color: #bfe4db; background: #effaf6; }
@@ -133,13 +133,13 @@
   .cardTopline { margin-bottom: 24px; }
   .accountType { min-height: 72px; }
   .inputWrap { height: 54px; }
-  .accountType small { font-size: 7.5px; }
+  .accountType small { font-size: 10px; }
   .footer { width: min(520px, calc(100% - 28px)); }
 }
 @media (max-width: 380px) {
   .accountTypes { grid-template-columns: 1fr; }
   .accountType { min-height: 56px; padding: 9px 11px; }
-  .accountType small { font-size: 9px; }
+  .accountType small { font-size: 10px; }
   .secureBadge { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

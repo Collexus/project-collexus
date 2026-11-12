@@ -1,0 +1,292 @@
+/* Shared day/night tokens and compatibility fixes for older page modules. */
+html[data-collexus-theme="light"] {
+  color-scheme: light;
+  --cx-page: #eef5f5;
+  --cx-surface: #ffffff;
+  --cx-surface-raised: #f7fafa;
+  --cx-surface-soft: #e9f1f2;
+  --cx-field: #ffffff;
+  --cx-ink: #193440;
+  --cx-muted: #5e747d;
+  --cx-line: #d3e1e4;
+  --cx-accent: #087e83;
+  --cx-accent-soft: #e4f4f2;
+  --cx-danger: #a33434;
+  --cx-danger-soft: #fff1ef;
+  --cx-danger-line: #efc5c1;
+  --cx-warning: #815616;
+  --cx-warning-soft: #fff8e9;
+  --cx-warning-line: #efdfba;
+  --cx-success: #17664e;
+  --cx-success-soft: #edf8f2;
+  --cx-success-line: #bee2d1;
+}
+
+html[data-collexus-theme="dark"] {
+  color-scheme: dark;
+  --cx-page: #0b1219;
+  --cx-surface: #111a23;
+  --cx-surface-raised: #17232d;
+  --cx-surface-soft: #16222c;
+  --cx-field: #0d171f;
+  --cx-ink: #edf5f7;
+  --cx-muted: #a8bac4;
+  --cx-line: #2b3e49;
+  --cx-accent: #66ddd0;
+  --cx-accent-soft: #173337;
+  --cx-danger: #ffc0b8;
+  --cx-danger-soft: #351d20;
+  --cx-danger-line: #704044;
+  --cx-warning: #f0cf8f;
+  --cx-warning-soft: #332a1b;
+  --cx-warning-line: #655337;
+  --cx-success: #a8e4c7;
+  --cx-success-soft: #153027;
+  --cx-success-line: #315f4e;
+}
+
+html[data-collexus-theme="dark"] body.warm-editorial-theme {
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-page) !important;
+}
+
+/* Give CSS-module page roots one reliable set of values to inherit. */
+html[data-collexus-theme] :is([class*="page__"], [class*="dashboard__"], [class*="host-panels_page__"]) {
+  --page: var(--cx-page) !important;
+  --page-bg: var(--cx-page) !important;
+  --bg: var(--cx-page) !important;
+  --card: var(--cx-surface) !important;
+  --card-soft: var(--cx-surface-soft) !important;
+  --card-raised: var(--cx-surface-raised) !important;
+  --surface: var(--cx-surface) !important;
+  --surface-soft: var(--cx-surface-soft) !important;
+  --soft: var(--cx-surface-soft) !important;
+  --field: var(--cx-field) !important;
+  --field-border: var(--cx-line) !important;
+  --line: var(--cx-line) !important;
+  --border: var(--cx-line) !important;
+  --ink: var(--cx-ink) !important;
+  --muted: var(--cx-muted) !important;
+  --teal: var(--cx-accent) !important;
+  --teal-dark: var(--cx-accent) !important;
+  --teal-soft: var(--cx-accent-soft) !important;
+  --accent: var(--cx-accent) !important;
+  --accent-strong: var(--cx-accent) !important;
+  --accent-soft: var(--cx-accent-soft) !important;
+  --accent-dark: var(--cx-accent) !important;
+  --activity-card: var(--cx-surface) !important;
+  --activity-soft: var(--cx-surface-soft) !important;
+  --activity-line: var(--cx-line) !important;
+  --activity-ink: var(--cx-ink) !important;
+  --activity-muted: var(--cx-muted) !important;
+  --activity-teal: var(--cx-accent) !important;
+  --activity-teal-soft: var(--cx-accent-soft) !important;
+  --cart-card: var(--cx-surface) !important;
+  --cart-soft: var(--cx-surface-soft) !important;
+  --cart-line: var(--cx-line) !important;
+  --cart-ink: var(--cx-ink) !important;
+  --cart-muted: var(--cx-muted) !important;
+  --cart-teal: var(--cx-accent) !important;
+  --cart-teal-soft: var(--cx-accent-soft) !important;
+}
+
+/* Semantic text and surfaces for CSS-module routes with legacy hardcoded colors. */
+html[data-collexus-theme="dark"] :is([class*="page__"], [class*="dashboard__"], [class*="host-panels_page__"]) {
+  color: var(--cx-ink);
+  background-color: var(--cx-page);
+}
+
+html[data-collexus-theme="dark"] :is([class*="page__"], [class*="dashboard__"], [class*="host-panels_page__"]) :is(h1, h2, h3, h4, h5, h6, label, legend, summary, strong, b) {
+  color: var(--cx-ink);
+}
+
+html[data-collexus-theme="dark"] :is([class*="page__"], [class*="dashboard__"], [class*="host-panels_page__"]) :is(p, small, time, figcaption, dt, dd, [class*="hint__"], [class*="description__"], [class*="meta__"], [class*="footnote__"]) {
+  color: var(--cx-muted);
+}
+
+html[data-collexus-theme="dark"] :is([class*="page__"], [class*="dashboard__"], [class*="host-panels_page__"]) :is([class*="card__"], [class*="panel__"], [class*="section__"], [class*="summary__"], [class*="row__"], [class*="emptyState__"], [class*="notice__"]) {
+  border-color: var(--cx-line);
+  color: var(--cx-ink);
+  background-color: var(--cx-surface);
+}
+
+/* Standardize form control contrast and native date/select menus on every route. */
+html[data-collexus-theme] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color-scheme: inherit;
+}
+
+html[data-collexus-theme="light"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color-scheme: light;
+  border-color: var(--cx-line);
+  color: var(--cx-ink);
+  background-color: var(--cx-field);
+}
+
+html[data-collexus-theme="light"] :is(input, textarea)::placeholder {
+  color: var(--cx-muted);
+  opacity: .78;
+}
+
+html[data-collexus-theme="dark"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-field) !important;
+}
+
+html[data-collexus-theme] :is(input, textarea)::placeholder {
+  color: var(--cx-muted);
+  opacity: .82;
+}
+
+html[data-collexus-theme] :is(input, select, textarea):focus-visible,
+html[data-collexus-theme] :is(button, a):focus-visible {
+  outline-color: color-mix(in srgb, var(--cx-accent) 58%, transparent);
+}
+
+html[data-collexus-theme] :is(input[type="checkbox"], input[type="radio"], progress) {
+  accent-color: var(--cx-accent);
+}
+
+html[data-collexus-theme="dark"] option {
+  color: var(--cx-ink);
+  background-color: var(--cx-surface);
+}
+
+html[data-collexus-theme="light"] option {
+  color: var(--cx-ink);
+  background-color: var(--cx-surface);
+}
+
+html[data-collexus-theme] [aria-invalid="true"] {
+  border-color: var(--cx-danger-line) !important;
+}
+
+/* Keep the shared sticky navigation legible when night mode is selected. */
+html[data-collexus-theme="dark"] body > header,
+html[data-collexus-theme="dark"] .quick-category-top {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background: rgba(13, 23, 31, .97) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .28) !important;
+}
+
+html[data-collexus-theme="dark"] #globalSearch {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background: var(--cx-field) !important;
+}
+
+html[data-collexus-theme="dark"] #globalSearch::placeholder {
+  color: var(--cx-muted) !important;
+}
+
+html[data-collexus-theme="dark"] .quick-category-top :is(button, a) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background: var(--cx-surface) !important;
+}
+
+/* Admin console and organizer/staff/stall panels still have legacy light-only colors. */
+html[data-collexus-theme="dark"] :is([class*="admin_dashboard__"], [class*="host-panels_page__"]) {
+  color: var(--cx-ink) !important;
+  background: var(--cx-page) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_topbar__"], [class*="admin_section__"], [class*="admin_metricCard__"], [class*="submissionCard__"], [class*="reviewForm__"], [class*="admin_accessCard__"], [class*="admin_accountRow__"], [class*="admin_reviewedRow__"], [class*="admin_auditRow__"], [class*="admin_emptyState__"], [class*="staffAssignmentList__"], [class*="catalogFootnote__"], [class*="filterTabs__"], [class*="submissionDetails__"], [class*="catalogRow__"], [class*="stallCard__"], [class*="menuItem__"], [class*="empty__"], [class*="host-panels_section__"], [class*="host-panels_card__"], [class*="host-panels_hero__"]) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-surface) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_metricCard__"], [class*="admin_section__"], [class*="submissionCard__"], [class*="reviewForm__"], [class*="admin_accessCard__"], [class*="host-panels_section__"], [class*="host-panels_card__"]) :is(h1, h2, h3, h4, strong, label) {
+  color: var(--cx-ink) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_dashboard__"], [class*="host-panels_page__"]) :is(p, small, time, dt, dd, label, [class*="description__"], [class*="meta__"], [class*="footnote__"], [class*="panelIntro__"], [class*="formHint__"]) {
+  color: var(--cx-muted) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_dashboard__"], [class*="host-panels_page__"]) :is(h1, h2, h3, h4, strong) {
+  color: var(--cx-ink);
+}
+
+html[data-collexus-theme="dark"] :is([class*="host-panels_page__"]) :is([class*="actionLink__"], [class*="smallButton__"], [class*="count__"], [class*="status__"]) {
+  border-color: var(--cx-line);
+  color: var(--cx-accent);
+  background-color: var(--cx-surface-soft);
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_dashboard__"], [class*="host-panels_page__"]) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-field) !important;
+}
+
+/* Login, MFA, admin, and staff components contain older fixed light colors. */
+html[data-collexus-theme="dark"] :is([class*="admin_"], [class*="admin-"], [class*="staff_"], [class*="stall_"], [class*="host-panels_"]) :is([class*="topbar__"], [class*="content__"], [class*="section__"], [class*="metricCard__"], [class*="submissionCard__"], [class*="submissionDetails__"], [class*="reviewForm__"], [class*="accountRow__"], [class*="auditRow__"], [class*="reviewedRow__"], [class*="emptyState__"], [class*="accessCard__"], [class*="card__"], [class*="panel__"], [class*="details__"], [class*="list__"], [class*="notice__"]) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-surface) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_"], [class*="admin-"], [class*="staff_"], [class*="stall_"], [class*="host-panels_"]) :is(h1, h2, h3, h4, h5, h6, label, strong, b) {
+  color: var(--cx-ink);
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_"], [class*="admin-"], [class*="staff_"], [class*="stall_"], [class*="host-panels_"]) :is(p, small, time, [class*="description__"], [class*="meta__"], [class*="hint__"], [class*="footnote__"]) {
+  color: var(--cx-muted);
+}
+
+html[data-collexus-theme="dark"] :is([class*="admin_"], [class*="admin-"], [class*="staff_"], [class*="stall_"], [class*="host-panels_"]) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-ink) !important;
+  background-color: var(--cx-field) !important;
+}
+
+/* Status and feedback cards use tinted dark surfaces instead of pale text-on-white. */
+html[data-collexus-theme="dark"] :is([class*="error__"], [class*="noticeError__"], [class*="toastError__"], [class*="signOutError__"], [class*="formError__"]) {
+  border-color: var(--cx-danger-line) !important;
+  color: var(--cx-danger) !important;
+  background-color: var(--cx-danger-soft) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="success__"], [class*="noticeSuccess__"], [class*="toastSuccess__"], [class*="formSuccess__"]) {
+  border-color: var(--cx-success-line) !important;
+  color: var(--cx-success) !important;
+  background-color: var(--cx-success-soft) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="setupNotice__"], [class*="verifyNotice__"], [class*="restartNotice__"], [class*="statusPaused__"], [class*="statusPending__"], [class*="pendingPill__"]) {
+  border-color: var(--cx-warning-line) !important;
+  color: var(--cx-warning) !important;
+  background-color: var(--cx-warning-soft) !important;
+}
+
+html[data-collexus-theme="dark"] [class*="countBadge__"] {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-accent) !important;
+  background-color: var(--cx-accent-soft) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="statusApproved__"], [class*="statusActive__"]) {
+  border-color: var(--cx-success-line) !important;
+  color: var(--cx-success) !important;
+  background-color: var(--cx-success-soft) !important;
+}
+
+html[data-collexus-theme="dark"] :is([class*="statusRejected__"], [class*="rejectButton__"]) {
+  border-color: var(--cx-danger-line) !important;
+  color: var(--cx-danger) !important;
+  background-color: var(--cx-danger-soft) !important;
+}
+
+html[data-collexus-theme="dark"] [class*="statusArchived__"] {
+  border-color: var(--cx-line) !important;
+  color: var(--cx-muted) !important;
+  background-color: var(--cx-surface-soft) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
